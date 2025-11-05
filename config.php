@@ -2,7 +2,7 @@
 // config.php
 session_start();
 
-define('DB_HOST', '185.177.116.249');
+define('DB_HOST', 'localhost');
 define('DB_NAME', 'mana_manager');
 define('DB_USER', 'mana_manager');
 define('DB_PASS', 'manager'); // change if needed
