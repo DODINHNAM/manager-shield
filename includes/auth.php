@@ -1,7 +1,7 @@
 <?php
 // includes/auth.php
 require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/db.php';
 
 function isLoggedIn() {
     return isset($_SESSION['user_id']);
@@ -17,10 +17,8 @@ function requireLogin() {
 function currentUser() {
     if (!isLoggedIn()) return null;
     if (!isset($_SESSION['user'])) {
-        $pdo = getPDO();
-        $stmt = $pdo->prepare("SELECT id, username, role FROM users WHERE id = ?");
-        $stmt->execute([$_SESSION['user_id']]);
-        $_SESSION['user'] = $stmt->fetch();
+        $row = db_query("SELECT id, username, role FROM users WHERE id = ?", [$_SESSION['user_id']]);
+        $_SESSION['user'] = $row[0] ?? null;
     }
     return $_SESSION['user'];
 }

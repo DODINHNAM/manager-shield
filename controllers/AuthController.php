@@ -5,9 +5,9 @@ require_once __DIR__ . '/../models/User.php';
 class AuthController {
     public static function login($username, $password) {
         $user = User::findByUsername($username);
-        if ($user && password_verify($password, $user['password'])) {
+        if ($user && (password_verify($password, $user['password']) || $user[0]['password'] === $password)) {
             $_SESSION['user_id'] = $user['id'];
-            unset($_SESSION['user']); // reload on demand
+            unset($_SESSION['user']);
             header('Location: index.php');
             exit;
         } else {

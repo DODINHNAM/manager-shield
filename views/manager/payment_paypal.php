@@ -1,19 +1,9 @@
-<?php
-require_once __DIR__ . '/../layout_header.php';
-$webshield = $data['webshield'] ?? null;
-$config = $data['config'] ?? null;
+<?php require_once __DIR__ . '/../layout_header.php';
+$config = $data['config'] ?? [];
+$wsp = $data['wsp'] ?? null;
 ?>
-<h3>Cấu hình thanh toán cho: <?=htmlspecialchars($webshield['name'])?></h3>
-
-<form method="post" action="index.php?action=manager_save_payment">
-  <input type="hidden" name="web_shield_id" value="<?= $webshield['id'] ?>">
-  <div class="mb-3">
-    <label>Type</label>
-    <select name="type" class="form-control">
-      <option value="paypal" <?=($config && $config['type']=='paypal')?'selected':''?>>PayPal</option>
-      <option value="stripe" <?=($config && $config['type']=='stripe')?'selected':''?>>Stripe</option>
-    </select>
-  </div>
+<h3>PayPal Config (<?=htmlspecialchars($wsp['payment_name'])?>)</h3>
+<form method="post" action="index.php?action=manager_save_payment&wsp_id=<?=$wsp['id']?>">
   <div class="mb-3">
     <label>Environment</label>
     <select name="environment" class="form-control">
@@ -29,7 +19,6 @@ $config = $data['config'] ?? null;
     <label>Secret ID</label>
     <input name="secret_id" class="form-control" value="<?=htmlspecialchars($config['secret_id'] ?? '')?>">
   </div>
-  <button class="btn btn-primary">Lưu</button>
+  <button class="btn btn-primary">Save</button>
 </form>
-
 <?php require_once __DIR__ . '/../layout_footer.php'; ?>

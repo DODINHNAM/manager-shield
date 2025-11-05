@@ -1,26 +1,28 @@
 <?php
-// index.php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
 
-// load controllers
+// load controllers and models
 require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/AdminController.php';
 require_once __DIR__ . '/controllers/ManagerController.php';
+require_once __DIR__ . '/controllers/PaymentController.php';
+
 require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/models/WebShield.php';
-require_once __DIR__ . '/models/PaymentConfig.php';
+require_once __DIR__ . '/models/PaymentType.php';
+require_once __DIR__ . '/models/WebShieldPayment.php';
+require_once __DIR__ . '/models/PayPalConfig.php';
+require_once __DIR__ . '/models/StripeConfig.php';
+require_once __DIR__ . '/models/MomoConfig.php';
 
-// route
 $action = $_GET['action'] ?? 'home';
 
-// simple dispatcher
 switch($action) {
     case 'login':
         $error = $_GET['error'] ?? '';
         require __DIR__ . '/views/login.php';
         break;
-
     case 'login_post':
         $username = $_POST['username'] ?? '';
         $password = $_POST['password'] ?? '';
@@ -30,55 +32,30 @@ switch($action) {
             require __DIR__ . '/views/login.php';
         }
         break;
-
     case 'logout':
         AuthController::logout();
         break;
-
     case 'home':
         requireLogin();
         $user = currentUser();
         if ($user['role'] === 'admin') {
+            $data = [];
             require __DIR__ . '/views/admin/dashboard.php';
         } else {
             require __DIR__ . '/views/manager/dashboard.php';
         }
         break;
 
-    /* ADMIN PAGES */
-    case 'admin_users':
-        requireLogin();
-        requireRole('admin');
-        $users = User::all();
-        require __DIR__ . '/views/admin/users.php';
-        break;
-
-    case 'admin_create_user':
-        requireLogin();
-        requireRole('admin');
-        $username = $_POST['username'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $role = $_POST['role'] ?? 'manager';
-        AdminController::createUser($username, $password, $role);
-        header('Location: index.php?action=admin_users');
-        break;
-
-    case 'admin_delete_user':
-        requireLogin();
-        requireRole('admin');
-        $id = intval($_GET['id'] ?? 0);
-        AdminController::deleteUser($id);
-        header('Location: index.php?action=admin_users');
-        break;
-
+    /* ADMIN */
     case 'admin_webshields':
         requireLogin();
         requireRole('admin');
         $webshields = WebShield::all();
         $managers = User::allManagers();
+        $payment_types = PaymentType::all();
+        $data = ['webshields'=>$webshields,'managers'=>$managers,'payment_types'=>$payment_types];
         require __DIR__ . '/views/admin/webshields.php';
         break;
-
     case 'admin_create_webshield':
         requireLogin();
         requireRole('admin');
@@ -88,32 +65,64 @@ switch($action) {
         AdminController::createWebShield($name, $domain, $manager_id);
         header('Location: index.php?action=admin_webshields');
         break;
-
     case 'admin_delete_webshield':
         requireLogin();
         requireRole('admin');
         $id = intval($_GET['id'] ?? 0);
-        AdminController::deleteWebShield($id);
+        WebShield::delete($id);
+        header('Location: index.php?action=admin_webshields');
+        break;
+    case 'admin_attach_payment':
+        requireLogin();
+        requireRole('admin');
+        $web_shield_id = intval($_POST['web_shield_id'] ?? 0);
+        $payment_type_id = intval($_POST['payment_type_id'] ?? 0);
+        AdminController::attachPayment($web_shield_id, $payment_type_id);
+        header('Location: index.php?action=admin_webshields');
+        break;
+    case 'admin_detach_payment':
+        requireLogin();
+        requireRole('admin');
+        $id = intval($_GET['id'] ?? 0);
+        AdminController::detachPayment($id);
         header('Location: index.php?action=admin_webshields');
         break;
 
-    /* MANAGER PAGES */
+    case 'admin_users':
+        requireLogin();
+        requireRole('admin');
+        $users = User::all();
+        $data = ['users'=>$users];
+        require __DIR__ . '/views/admin/users.php';
+        break;
+    case 'admin_create_user':
+        requireLogin();
+        requireRole('admin');
+        $username = $_POST['username'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $role = $_POST['role'] ?? 'manager';
+        AdminController::createUser($username, $password, $role);
+        header('Location: index.php?action=admin_users');
+        break;
+    case 'admin_delete_user':
+        requireLogin();
+        requireRole('admin');
+        $id = intval($_GET['id'] ?? 0);
+        AdminController::deleteUser($id);
+        header('Location: index.php?action=admin_users');
+        break;
+
+    /* MANAGER */
     case 'manager_my_webshields':
         requireLogin();
         requireRole('manager');
         $user = currentUser();
         $webshields = ManagerController::myWebShields($user['id']);
-        // show a simple list with links to edit payment
-        require __DIR__ . '/views/layout_header.php';
-        echo "<h3>My Web Shields</h3><ul class='list-group'>";
-        foreach($webshields as $w) {
-            echo "<li class='list-group-item'><strong>".htmlspecialchars($w['name'])."</strong> - ".htmlspecialchars($w['domain'] ?? '')." <a class='btn btn-sm btn-primary float-end' href='index.php?action=manager_payment&web_id={$w['id']}'>Payment</a></li>";
-        }
-        echo "</ul>";
-        require __DIR__ . '/views/layout_footer.php';
+        $data = ['webshields'=>$webshields];
+        require __DIR__ . '/views/manager/my_webshields.php';
         break;
 
-    case 'manager_payment':
+    case 'manager_payments':
         requireLogin();
         requireRole('manager');
         $user = currentUser();
@@ -123,27 +132,42 @@ switch($action) {
             echo "Không tìm thấy web shield hoặc bạn không có quyền.";
             exit;
         }
-        $config = PaymentConfig::findByWebShield($web_id);
-        $data = ['webshield' => $w, 'config' => $config];
-        require __DIR__ . '/views/manager/payment_config.php';
+        $payments = PaymentController::listForWeb($web_id);
+        $data = ['webshield'=>$w,'payments'=>$payments];
+        require __DIR__ . '/views/manager/payments.php';
+        break;
+
+    case 'manager_edit_payment':
+        requireLogin();
+        requireRole('manager');
+        $wsp_id = intval($_GET['wsp_id'] ?? 0);
+        $wsp = WebShieldPayment::findById($wsp_id);
+        $user = currentUser();
+        $w = WebShield::find($wsp['web_shield_id']);
+        if (!$w || $w['manager_id'] != $user['id']) { echo "Không hợp lệ"; exit; }
+        $config = PaymentController::getConfig($wsp);
+        $data = ['wsp'=>$wsp,'config'=>$config];
+        // include view based on payment code
+        switch ($wsp['payment_code']) {
+            case 'paypal': require __DIR__ . '/views/manager/payment_paypal.php'; break;
+            case 'stripe': require __DIR__ . '/views/manager/payment_stripe.php'; break;
+            case 'momo': require __DIR__ . '/views/manager/payment_momo.php'; break;
+            default: echo "Unsupported"; break;
+        }
         break;
 
     case 'manager_save_payment':
         requireLogin();
         requireRole('manager');
+        $wsp_id = intval($_GET['wsp_id'] ?? 0);
+        $wsp = WebShieldPayment::findById($wsp_id);
         $user = currentUser();
-        $web_id = intval($_POST['web_shield_id'] ?? 0);
-        $w = WebShield::find($web_id);
-        if (!$w || $w['manager_id'] != $user['id']) {
-            echo "Không hợp lệ.";
-            exit;
-        }
-        $type = $_POST['type'] ?? 'paypal';
-        $env = $_POST['environment'] ?? 'sandbox';
-        $client = $_POST['client_id'] ?? null;
-        $secret = $_POST['secret_id'] ?? null;
-        ManagerController::savePaymentConfig($web_id, $type, $env, $client, $secret);
-        header('Location: index.php?action=manager_payment&web_id=' . $web_id);
+        $w = WebShield::find($wsp['web_shield_id']);
+        if (!$w || $w['manager_id'] != $user['id']) { echo "Không hợp lệ"; exit; }
+        $typeCode = $wsp['payment_code'];
+        $post = $_POST;
+        ManagerController::savePayment($wsp_id, $typeCode, $post);
+        header('Location: index.php?action=manager_payments&web_id=' . $w['id']);
         break;
 
     default:

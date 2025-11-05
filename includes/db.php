@@ -14,3 +14,16 @@ function getPDO() {
     }
     return $pdo;
 }
+
+function db_query($sql, $params = []) {
+    $pdo = getPDO();
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll();
+}
+
+function db_execute($sql, $params = []) {
+    $pdo = getPDO();
+    $stmt = $pdo->prepare($sql);
+    return $stmt->execute($params);
+}

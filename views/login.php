@@ -1,5 +1,4 @@
 <?php
-// views/login.php
 require_once __DIR__ . '/layout_header.php';
 ?>
 <div class="row justify-content-center">

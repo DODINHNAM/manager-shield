@@ -1,11 +1,8 @@
-<?php
-require_once __DIR__ . '/../layout_header.php';
+<?php require_once __DIR__ . '/../layout_header.php';
 $users = $data['users'] ?? [];
-$managers = $data['managers'] ?? [];
 ?>
 <h3>Users</h3>
 
-<!-- Form tạo user -->
 <div class="card mb-3 p-3">
   <form method="post" action="index.php?action=admin_create_user">
     <div class="row g-2">
