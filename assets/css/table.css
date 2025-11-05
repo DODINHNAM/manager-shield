@@ -1,0 +1,4 @@
+/* assets/css/table.css */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th, .data-table td{padding:10px;border-bottom:1px solid #f0f0f0;text-align:left}
+.data-table thead th{background:#fbfdff;font-weight:600}
