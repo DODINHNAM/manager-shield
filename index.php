@@ -7,6 +7,8 @@ require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/AdminController.php';
 require_once __DIR__ . '/controllers/ManagerController.php';
 require_once __DIR__ . '/controllers/PaymentController.php';
+require_once __DIR__ . '/controllers/ManagerWhitelistController.php';
+
 
 require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/models/WebShield.php';
@@ -15,6 +17,8 @@ require_once __DIR__ . '/models/WebShieldPayment.php';
 require_once __DIR__ . '/models/PayPalConfig.php';
 require_once __DIR__ . '/models/StripeConfig.php';
 require_once __DIR__ . '/models/MomoConfig.php';
+require_once __DIR__ . '/models/ManagerWhitelist.php';
+
 
 $action = $_GET['action'] ?? 'home';
 
@@ -168,6 +172,22 @@ switch($action) {
         $post = $_POST;
         ManagerController::savePayment($wsp_id, $typeCode, $post);
         header('Location: index.php?action=manager_payments&web_id=' . $w['id']);
+        break;
+
+    case 'manager_whitelist':
+        ManagerWhitelistController::list();
+        break;
+    
+    case 'manager_whitelist_add':
+        ManagerWhitelistController::add();
+        break;
+    
+    case 'manager_whitelist_edit':
+        ManagerWhitelistController::edit($_GET['id'] ?? 0);
+        break;
+    
+    case 'manager_whitelist_delete':
+        ManagerWhitelistController::delete($_GET['id'] ?? 0);
         break;
 
     default:

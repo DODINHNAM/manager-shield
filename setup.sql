@@ -64,6 +64,16 @@ CREATE TABLE momo_configs (
     FOREIGN KEY (web_shield_payment_id) REFERENCES web_shield_payments(id) ON DELETE CASCADE
 );
 
+CREATE TABLE manager_whitelist_domains (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  manager_id INT NOT NULL,
+  domain VARCHAR(255) NOT NULL,
+  active TINYINT(1) DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (manager_id) REFERENCES users(id)
+);
+
+
 -- seed payment types
 INSERT INTO payment_types (code, name, description) VALUES
 ('paypal','PayPal','PayPal payment'),
