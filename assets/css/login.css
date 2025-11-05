@@ -1,0 +1,110 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  body, html {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    background: #f5f7fa;
+  }
+  
+  .left {
+    width: 50%;
+    background: linear-gradient(135deg, #0b8a47, #0d6b40);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .left h1 {
+    font-size: 42px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .left h1::before {
+    content: "🛡️";
+    font-size: 40px;
+  }
+  
+  .left p {
+    font-size: 16px;
+    opacity: 0.9;
+    margin-top: 8px;
+  }
+  
+  .right {
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+  }
+  
+  .login-box {
+    width: 320px;
+    text-align: center;
+  }
+  
+  .login-box h2 {
+    font-size: 22px;
+    margin-bottom: 25px;
+    color: #222;
+  }
+  
+  .login-box input[type="text"],
+  .login-box input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 15px;
+  }
+  
+  .login-box button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0b8a47;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  
+  .login-box button:hover {
+    background-color: #0a753c;
+  }
+  
+  .login-box .remember {
+    text-align: left;
+    font-size: 13px;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .footer {
+    position: absolute;
+    bottom: 15px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  @media(max-width: 768px) {
+    .left {
+      display: none;
+    }
+    .right {
+      width: 100%;
+    }
+  }
+  

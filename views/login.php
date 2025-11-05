@@ -1,24 +1,33 @@
 <?php
-require_once __DIR__ . '/layout_header.php';
+// views/login.php
 ?>
-<div class="row justify-content-center">
-  <div class="col-md-5">
-    <h3>Đăng nhập</h3>
-    <?php if(!empty($error)): ?>
-      <div class="alert alert-danger"><?=htmlspecialchars($error)?></div>
-    <?php endif; ?>
-    <form method="post" action="index.php?action=login_post">
-      <div class="mb-3">
-        <label class="form-label">Username</label>
-        <input name="username" class="form-control" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input name="password" type="password" class="form-control" required>
-      </div>
-      <button class="btn btn-primary">Login</button>
-    </form>
-    <p class="mt-3"><strong>Test admin:</strong> username <code>admin</code> / password <code>Admin@123</code></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Cards Shield</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="assets/css/login.css">
+</head>
+<body>
+
+  <div class="left">
+    <h1>Cards Shield</h1>
+    <p>Processing payments safely and confidently.</p>
+    <div class="footer">© <?= date('Y') ?> Cards Shield. All rights reserved.</div>
   </div>
-</div>
-<?php require_once __DIR__ . '/layout_footer.php'; ?>
+
+  <div class="right">
+    <form method="POST" action="index.php?action=login_post" class="login-box">
+      <h2>Welcome to <strong>Cards Shield!</strong></h2>
+      <input type="text" name="username" placeholder="Email" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <div class="remember">
+        <label><input type="checkbox" name="remember"> Remember me</label>
+      </div>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+</body>
+</html>
