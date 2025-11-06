@@ -1,15 +1,22 @@
-<h2><?= isset($item) ? 'Chỉnh sửa' : 'Thêm mới' ?> Domain Whitelist</h2>
+<?php require_once __DIR__ . '/../layout_header.php'; ?>
 
-<form method="POST">
-    <label>Domain:</label><br>
-    <input type="text" name="domain" required
-           value="<?= htmlspecialchars($item['domain'] ?? '') ?>"><br><br>
+<div class="card">
+    <h2><?= isset($item) ? 'Chỉnh sửa' : 'Thêm mới' ?> Domain Whitelist</h2>
 
-    <label>
-        <input type="checkbox" name="active" <?= (!isset($item) || $item['active']) ? 'checked' : '' ?>>
-        Kích hoạt
-    </label><br><br>
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">Domain:</label>
+            <input type="text" name="domain" class="form-control" required
+                   value="<?= htmlspecialchars($item['domain'] ?? '') ?>">
+        </div>
 
-    <button type="submit">Lưu</button>
-    <a href="index.php?action=manager_whitelist">Quay lại</a>
-</form>
+        <div class="form-check mb-3">
+            <input type="checkbox" name="active" class="form-check-input" <?= (!isset($item) || $item['active']) ? 'checked' : '' ?>>
+            <label class="form-check-label">Kích hoạt</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lưu</button>
+    </form>
+</div>
+
+<?php require_once __DIR__ . '/../layout_footer.php'; ?>

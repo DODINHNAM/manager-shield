@@ -19,21 +19,23 @@ $users = $data['users'] ?? [];
   </form>
 </div>
 
-<table class="table table-striped">
-  <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Created</th><th>Action</th></tr></thead>
-  <tbody>
-    <?php foreach($users as $u): ?>
-      <tr>
-        <td><?=$u['id']?></td>
-        <td><?=htmlspecialchars($u['username'])?></td>
-        <td><?=$u['role']?></td>
-        <td><?=$u['created_at']?></td>
-        <td>
-          <a href="index.php?action=admin_delete_user&id=<?=$u['id']?>" class="btn btn-sm btn-danger" onclick="return confirm('Xác nhận xóa?')">Xóa</a>
-        </td>
-      </tr>
-    <?php endforeach; ?>
-  </tbody>
-</table>
+<div class="card">
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Created</th><th>Action</th></tr></thead>
+    <tbody>
+      <?php foreach($users as $u): ?>
+        <tr>
+          <td><?=$u['id']?></td>
+          <td><?=htmlspecialchars($u['username'])?></td>
+          <td><?=$u['role']?></td>
+          <td><?=$u['created_at']?></td>
+          <td>
+            <a href="index.php?action=admin_delete_user&id=<?=$u['id']?>" class="btn btn-sm btn-danger" onclick="return confirm('Xác nhận xóa?')">Xóa</a>
+          </td>
+        </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
+</div>
 
 <?php require_once __DIR__ . '/../layout_footer.php'; ?>

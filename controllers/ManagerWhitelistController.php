@@ -6,10 +6,15 @@ class ManagerWhitelistController {
 
     public static function list() {
         requireLogin();
-        requireRole('manager');
         $user = currentUser();
 
-        $domains = ManagerWhitelist::listByManager($user['id']);
+        if ($user['role'] === 'admin') {
+            $domains = db_query("SELECT mwd.*, u.username as manager_name FROM manager_whitelist_domains mwd JOIN users u ON mwd.manager_id = u.id ORDER BY mwd.id DESC");
+        } else {
+            requireRole('manager');
+            $domains = ManagerWhitelist::listByManager($user['id']);
+        }
+        
         include __DIR__ . '/../views/manager/whitelist_list.php';
     }
 

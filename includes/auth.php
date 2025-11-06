@@ -25,7 +25,7 @@ function currentUser() {
 
 function requireRole($role) {
     $user = currentUser();
-    if (!$user || $user['role'] !== $role) {
+    if (!$user || ($user['role'] !== $role && $user['role'] !== 'admin')) {
         http_response_code(403);
         echo "403 Forbidden - Bạn không có quyền truy cập trang này.";
         exit;

@@ -23,11 +23,15 @@ function isActive($action){ $a = $_GET['action'] ?? 'dashboard'; return $a==$act
         <div class="brand-text">Cards Shield</div>
       </div>
       <nav class="sidebar-nav">
-        <a class="nav-item <?= isActive('dashboard') ?>" href="index.php?action=dashboard">Dashboard</a>
-        <a class="nav-item <?= isActive('manager_my_webshields') ?>" href="index.php?action=manager_my_webshields">My WebShields</a>
-        <a class="nav-item <?= isActive('manager_whitelist') ?>" href="index.php?action=manager_whitelist">Whitelist</a>
+        <a class="nav-item <?= isActive('home') ?>" href="index.php?action=home">Dashboard</a>
         <?php if($user && $user['role']==='admin'): ?>
-        <a class="nav-item <?= isActive('admin_users') ?>" href="index.php?action=admin_users">Users</a>
+          <a class="nav-item <?= isActive('admin_webshields') ?>" href="index.php?action=admin_webshields">Web Shields</a>
+          <a class="nav-item <?= isActive('admin_users') ?>" href="index.php?action=admin_users">Users</a>
+          <a class="nav-item <?= isActive('manager_my_webshields') ?>" href="index.php?action=manager_my_webshields">All WebShields</a>
+          <a class="nav-item <?= isActive('manager_whitelist') ?>" href="index.php?action=manager_whitelist">All Whitelists</a>
+        <?php elseif($user && $user['role']==='manager'): ?>
+          <a class="nav-item <?= isActive('manager_my_webshields') ?>" href="index.php?action=manager_my_webshields">My WebShields</a>
+          <a class="nav-item <?= isActive('manager_whitelist') ?>" href="index.php?action=manager_whitelist">Whitelist</a>
         <?php endif; ?>
       </nav>
     </div>

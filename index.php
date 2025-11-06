@@ -119,9 +119,13 @@ switch($action) {
     /* MANAGER */
     case 'manager_my_webshields':
         requireLogin();
-        requireRole('manager');
         $user = currentUser();
-        $webshields = ManagerController::myWebShields($user['id']);
+        if ($user['role'] === 'admin') {
+            $webshields = WebShield::all();
+        } else {
+            requireRole('manager');
+            $webshields = ManagerController::myWebShields($user['id']);
+        }
         $data = ['webshields'=>$webshields];
         require __DIR__ . '/views/manager/my_webshields.php';
         break;
