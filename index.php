@@ -69,28 +69,64 @@ switch($action) {
         AdminController::createWebShield($name, $domain, $manager_id);
         header('Location: index.php?action=admin_webshields');
         break;
-    case 'admin_delete_webshield':
-        requireLogin();
-        requireRole('admin');
-        $id = intval($_GET['id'] ?? 0);
-        WebShield::delete($id);
-        header('Location: index.php?action=admin_webshields');
-        break;
-    case 'admin_attach_payment':
-        requireLogin();
-        requireRole('admin');
-        $web_shield_id = intval($_POST['web_shield_id'] ?? 0);
-        $payment_type_id = intval($_POST['payment_type_id'] ?? 0);
-        AdminController::attachPayment($web_shield_id, $payment_type_id);
-        header('Location: index.php?action=admin_webshields');
-        break;
-    case 'admin_detach_payment':
-        requireLogin();
-        requireRole('admin');
-        $id = intval($_GET['id'] ?? 0);
-        AdminController::detachPayment($id);
-        header('Location: index.php?action=admin_webshields');
-        break;
+        case 'admin_delete_webshield':
+            requireLogin();
+            requireRole('admin');
+            $id = intval($_GET['id'] ?? 0);
+            WebShield::delete($id);
+            header('Location: index.php?action=admin_webshields');
+            break;
+    
+        case 'admin_edit_webshield':
+            requireLogin();
+            requireRole('admin');
+            $id = intval($_GET['id'] ?? 0);
+            $webshield = WebShield::find($id);
+            if (!$webshield) {
+                echo "Web Shield not found.";
+                exit;
+            }
+            $managers = User::allManagers();
+            $payment_types = PaymentType::all();
+            $attached_payments = WebShieldPayment::findByWebShield($id);
+            $data = [
+                'webshield' => $webshield,
+                'managers' => $managers,
+                'payment_types' => $payment_types,
+                'attached_payments' => $attached_payments,
+            ];
+            require __DIR__ . '/views/admin/edit_webshield.php';
+            break;
+    
+        case 'admin_update_webshield':
+            requireLogin();
+            requireRole('admin');
+            $id = intval($_POST['id'] ?? 0);
+            $name = $_POST['name'] ?? '';
+            $domain = $_POST['domain'] ?? '';
+            $manager_id = !empty($_POST['manager_id']) ? intval($_POST['manager_id']) : null;
+            WebShield::update($id, $name, $domain, $manager_id);
+            header('Location: index.php?action=admin_edit_webshield&id=' . $id);
+            break;
+    
+        case 'admin_attach_payment':
+            requireLogin();
+            requireRole('admin');
+            $web_shield_id = intval($_POST['web_shield_id'] ?? 0);
+            $payment_type_id = intval($_POST['payment_type_id'] ?? 0);
+            AdminController::attachPayment($web_shield_id, $payment_type_id);
+            header('Location: index.php?action=admin_edit_webshield&id=' . $web_shield_id);
+            break;
+    
+        case 'admin_detach_payment':
+            requireLogin();
+            requireRole('admin');
+            $id = intval($_GET['id'] ?? 0);
+            $wsp = WebShieldPayment::findById($id);
+            $web_shield_id = $wsp['web_shield_id'];
+            AdminController::detachPayment($id);
+            header('Location: index.php?action=admin_edit_webshield&id=' . $web_shield_id);
+            break;
 
     case 'admin_users':
         requireLogin();
@@ -114,6 +150,23 @@ switch($action) {
         $id = intval($_GET['id'] ?? 0);
         AdminController::deleteUser($id);
         header('Location: index.php?action=admin_users');
+        break;
+
+    case 'admin_manager_whitelist':
+        requireLogin();
+        requireRole('admin');
+        $manager_id = intval($_GET['manager_id'] ?? 0);
+        $manager = User::find($manager_id);
+        if (!$manager || $manager['role'] !== 'manager') {
+            echo "Manager not found.";
+            exit;
+        }
+        $domains = ManagerWhitelist::listByManager($manager_id);
+        $data = [
+            'manager' => $manager,
+            'domains' => $domains,
+        ];
+        require __DIR__ . '/views/admin/manager_whitelist.php';
         break;
 
     /* MANAGER */

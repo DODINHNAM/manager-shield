@@ -10,6 +10,7 @@ function isActive($action){ $a = $_GET['action'] ?? 'dashboard'; return $a==$act
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/assets/css/core.css">
   <link rel="stylesheet" href="/assets/css/table.css">
+  <link rel="stylesheet" href="/assets/css/form.css">
   <?php if(basename($_SERVER['PHP_SELF']) == 'login.php'): ?>
     <link rel="stylesheet" href="/assets/css/login.css">
   <?php endif; ?>
@@ -27,8 +28,6 @@ function isActive($action){ $a = $_GET['action'] ?? 'dashboard'; return $a==$act
         <?php if($user && $user['role']==='admin'): ?>
           <a class="nav-item <?= isActive('admin_webshields') ?>" href="index.php?action=admin_webshields">Web Shields</a>
           <a class="nav-item <?= isActive('admin_users') ?>" href="index.php?action=admin_users">Users</a>
-          <a class="nav-item <?= isActive('manager_my_webshields') ?>" href="index.php?action=manager_my_webshields">All WebShields</a>
-          <a class="nav-item <?= isActive('manager_whitelist') ?>" href="index.php?action=manager_whitelist">All Whitelists</a>
         <?php elseif($user && $user['role']==='manager'): ?>
           <a class="nav-item <?= isActive('manager_my_webshields') ?>" href="index.php?action=manager_my_webshields">My WebShields</a>
           <a class="nav-item <?= isActive('manager_whitelist') ?>" href="index.php?action=manager_whitelist">Whitelist</a>
