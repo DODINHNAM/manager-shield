@@ -6,11 +6,11 @@ $attached_payments = $data['attached_payments'] ?? [];
 ?>
 
 <div class="card">
-    <h3>Edit Web Shield</h3>
+    <h3>Chỉnh sửa Web Shield</h3>
     <form method="post" action="index.php?action=admin_update_webshield">
         <input type="hidden" name="id" value="<?= $webshield['id'] ?>">
         <div class="mb-3">
-            <label class="form-label">Name</label>
+            <label class="form-label">Tên</label>
             <input name="name" class="form-control" value="<?= htmlspecialchars($webshield['name']) ?>" required>
         </div>
         <div class="mb-3">
@@ -18,7 +18,7 @@ $attached_payments = $data['attached_payments'] ?? [];
             <input name="domain" class="form-control" value="<?= htmlspecialchars($webshield['domain']) ?>">
         </div>
         <div class="mb-3">
-            <label class="form-label">Manager</label>
+            <label class="form-label">Người quản lý</label>
             <select name="manager_id" class="form-control">
                 <option value="">-- Chọn manager --</option>
                 <?php foreach ($managers as $m): ?>
@@ -28,29 +28,29 @@ $attached_payments = $data['attached_payments'] ?? [];
                 <?php endforeach; ?>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="submit" class="btn btn-primary">Lưu</button>
     </form>
 </div>
 
 <div class="card mt-3">
-    <h3>Payments</h3>
+    <h3>Thanh toán</h3>
     <form method="post" action="index.php?action=admin_attach_payment">
         <input type="hidden" name="web_shield_id" value="<?= $webshield['id'] ?>">
         <div class="mb-3">
-            <label class="form-label">Payment Type</label>
+            <label class="form-label">Loại thanh toán</label>
             <select name="payment_type_id" class="form-control">
                 <?php foreach ($payment_types as $pt): ?>
                     <option value="<?= $pt['id'] ?>"><?= htmlspecialchars($pt['name']) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary">Attach</button>
+        <button type="submit" class="btn btn-primary">Đính kèm</button>
     </form>
     <ul class="mt-2">
         <?php foreach ($attached_payments as $p): ?>
             <li>
                 <?= htmlspecialchars($p['payment_name']) ?>
-                <a href="index.php?action=admin_detach_payment&id=<?= $p['id'] ?>" class="btn btn-sm btn-danger ms-2">Detach</a>
+                <a href="index.php?action=admin_detach_payment&id=<?= $p['id'] ?>" class="btn btn-sm btn-danger ms-2">Gỡ bỏ</a>
                 <?php
                 // Display configuration if web shield has a manager
                 if ($webshield['manager_id']) {
@@ -62,10 +62,10 @@ $attached_payments = $data['attached_payments'] ?? [];
                     $config = PaymentController::getConfig($p);
                     if ($config) {
                         echo '<div class="ms-4 mt-2 p-2 border rounded">';
-                        echo '<h5>Configuration:</h5>';
+                        echo '<h5>Cấu hình:</h5>';
                         switch ($p['payment_code']) {
                             case 'paypal':
-                                echo '<p>Environment: ' . htmlspecialchars($config['environment']) . '</p>';
+                                echo '<p>Môi trường: ' . htmlspecialchars($config['environment']) . '</p>';
                                 echo '<p>Client ID: ' . htmlspecialchars($config['client_id']) . '</p>';
                                 echo '<p>Secret ID: ' . htmlspecialchars($config['secret_id']) . '</p>';
                                 break;
@@ -77,7 +77,7 @@ $attached_payments = $data['attached_payments'] ?? [];
                                 echo '<p>Partner Code: ' . htmlspecialchars($config['partner_code']) . '</p>';
                                 echo '<p>Access Key: ' . htmlspecialchars($config['access_key']) . '</p>';
                                 echo '<p>Secret Key: ' . htmlspecialchars($config['secret_key']) . '</p>';
-                                echo '<p>Environment: ' . htmlspecialchars($config['environment']) . '</p>';
+                                echo '<p>Môi trường: ' . htmlspecialchars($config['environment']) . '</p>';
                                 break;
                         }
                         echo '</div>';

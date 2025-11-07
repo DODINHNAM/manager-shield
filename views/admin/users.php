@@ -1,21 +1,21 @@
 <?php require_once __DIR__ . '/../layout_header.php';
 $users = $data['users'] ?? [];
 ?>
-<h3>Users</h3>
+<h3>Người dùng</h3>
 
 <div class="card mb-3 p-3">
-  <h4>Add User</h4>
+  <h4>Thêm người dùng</h4>
   <form method="post" action="index.php?action=admin_create_user">
     <div class="mb-3">
-      <label class="form-label">Username</label>
+      <label class="form-label">Tên đăng nhập</label>
       <input name="username" placeholder="username" class="form-control" required>
     </div>
     <div class="mb-3">
-      <label class="form-label">Password</label>
+      <label class="form-label">Mật khẩu</label>
       <input name="password" placeholder="password" class="form-control" required>
     </div>
     <div class="mb-3">
-      <label class="form-label">Role</label>
+      <label class="form-label">Vai trò</label>
       <select name="role" class="form-control">
         <option value="manager">manager</option>
         <option value="admin">admin</option>
@@ -27,7 +27,7 @@ $users = $data['users'] ?? [];
 
 <div class="card">
   <table class="data-table">
-    <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Created</th><th>Action</th></tr></thead>
+    <thead><tr><th>ID</th><th>Tên đăng nhập</th><th>Vai trò</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead>
     <tbody>
       <?php foreach($users as $u): ?>
         <tr>

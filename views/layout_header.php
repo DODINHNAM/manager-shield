@@ -6,7 +6,7 @@ function isActive($action){ $a = $_GET['action'] ?? 'dashboard'; return $a==$act
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Cards Shield Manager</title>
+  <title>Quản lý Cards Shield</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/assets/css/core.css">
   <link rel="stylesheet" href="/assets/css/table.css">
@@ -24,10 +24,10 @@ function isActive($action){ $a = $_GET['action'] ?? 'dashboard'; return $a==$act
         <div class="brand-text">Cards Shield</div>
       </div>
       <nav class="sidebar-nav">
-        <a class="nav-item <?= isActive('home') ?>" href="index.php?action=home">Dashboard</a>
+        <a class="nav-item <?= isActive('home') ?>" href="index.php?action=home">Bảng điều khiển</a>
         <?php if($user && $user['role']==='admin'): ?>
           <a class="nav-item <?= isActive('admin_webshields') ?>" href="index.php?action=admin_webshields">Web Shields</a>
-          <a class="nav-item <?= isActive('admin_users') ?>" href="index.php?action=admin_users">Users</a>
+          <a class="nav-item <?= isActive('admin_users') ?>" href="index.php?action=admin_users">Người dùng</a>
         <?php elseif($user && $user['role']==='manager'): ?>
           <a class="nav-item <?= isActive('manager_my_webshields') ?>" href="index.php?action=manager_my_webshields">My WebShields</a>
           <a class="nav-item <?= isActive('manager_whitelist') ?>" href="index.php?action=manager_whitelist">Whitelist</a>
@@ -38,7 +38,7 @@ function isActive($action){ $a = $_GET['action'] ?? 'dashboard'; return $a==$act
     <div class="sidebar-footer">
       <?php if($user): ?>
         <div class="user-line"><?= htmlspecialchars($user['username']) ?> (<?= $user['role'] ?>)</div>
-        <a href="index.php?action=logout" class="logout">Logout</a>
+        <a href="index.php?action=logout" class="logout">Đăng xuất</a>
       <?php endif; ?>
     </div>
   </aside>
@@ -48,7 +48,7 @@ function isActive($action){ $a = $_GET['action'] ?? 'dashboard'; return $a==$act
       <header class="header">
         <div class="header-left">
           <button id="menuToggle" class="menu-toggle">☰</button>
-          <h1 class="page-title"><?= htmlspecialchars($page_title ?? 'Dashboard') ?></h1>
+          <h1 class="page-title"><?= htmlspecialchars($page_title ?? 'Bảng điều khiển') ?></h1>
         </div>
         <div class="header-right">
           <img src="/assets/images/avatar.png" class="avatar" alt="avatar">

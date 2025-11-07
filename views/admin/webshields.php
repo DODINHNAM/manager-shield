@@ -6,10 +6,10 @@ $payment_types = $data['payment_types'] ?? [];
 <h3>Web Shields</h3>
 
 <div class="card p-3 mb-3">
-  <h4>Add Web Shield</h4>
+  <h4>Thêm Web Shield</h4>
   <form method="post" action="index.php?action=admin_create_webshield">
     <div class="mb-3">
-      <label class="form-label">Name</label>
+      <label class="form-label">Tên</label>
       <input name="name" placeholder="name" class="form-control" required>
     </div>
     <div class="mb-3">
@@ -17,9 +17,9 @@ $payment_types = $data['payment_types'] ?? [];
       <input name="domain" placeholder="domain" class="form-control">
     </div>
     <div class="mb-3">
-      <label class="form-label">Manager</label>
+      <label class="form-label">Người quản lý</label>
       <select name="manager_id" class="form-control" required>
-        <option value="">-- Chọn manager --</option>
+        <option value="">-- Chọn người quản lý --</option>
         <?php foreach($managers as $m): ?>
           <option value="<?=$m['id']?>"><?=htmlspecialchars($m['username'])?></option>
         <?php endforeach; ?>
@@ -31,7 +31,7 @@ $payment_types = $data['payment_types'] ?? [];
 
 <div class="card">
   <table class="data-table">
-    <thead><tr><th>ID</th><th>Name</th><th>Domain</th><th>Manager</th><th>Payments</th><th>Action</th></tr></thead>
+    <thead><tr><th>ID</th><th>Tên</th><th>Domain</th><th>Người quản lý</th><th>Thanh toán</th><th>Thao tác</th></tr></thead>
     <tbody>
       <?php foreach($webshields as $w): ?>
         <tr>
@@ -47,7 +47,7 @@ $payment_types = $data['payment_types'] ?? [];
             ?>
           </td>
           <td>
-            <a href="index.php?action=admin_edit_webshield&id=<?=$w['id']?>" class="btn btn-sm btn-primary">Edit</a>
+            <a href="index.php?action=admin_edit_webshield&id=<?=$w['id']?>" class="btn btn-sm btn-primary">Sửa</a>
             <a href="index.php?action=admin_delete_webshield&id=<?=$w['id']?>" class="btn btn-sm btn-danger" onclick="return confirm('Xác nhận xóa?')">Xóa</a>
           </td>
         </tr>

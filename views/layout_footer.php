@@ -2,7 +2,7 @@
       </section>
   </div>
     <footer class="footer">
-      <p>© <?= date('Y') ?> Cards Shield. All rights reserved.</p>
+      <p>© <?= date('Y') ?> Cards Shield. Đã đăng ký bản quyền.</p>
     </footer>
   </main>
 </div>
