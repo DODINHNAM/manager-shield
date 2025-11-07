@@ -25,7 +25,9 @@
       <div class="remember">
         <label><input type="checkbox" name="remember"> Ghi nhớ đăng nhập</label>
       </div>
-      <button type="submit">Đăng nhập</button>
+      <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Đăng nhập</button>
+      </div>
     </form>
   </div>
 

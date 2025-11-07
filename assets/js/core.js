@@ -7,4 +7,15 @@ document.addEventListener('DOMContentLoaded', function(){
       if(sb) sb.style.display = sb.style.display === 'none' ? 'block' : 'none';
     });
   }
+
+  var configToggles = document.querySelectorAll('[data-toggle="config"]');
+  configToggles.forEach(function(toggle) {
+    toggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = document.querySelector(this.getAttribute('data-target'));
+      if (target) {
+        target.style.display = target.style.display === 'none' ? 'table-row' : 'none';
+      }
+    });
+  });
 });

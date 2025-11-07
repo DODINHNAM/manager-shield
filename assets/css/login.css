@@ -70,21 +70,6 @@
     margin-bottom: 15px;
   }
   
-  .login-box button {
-    width: 100%;
-    padding: 10px;
-    background-color: #0b8a47;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 15px;
-  }
-  
-  .login-box button:hover {
-    background-color: #0a753c;
-  }
-  
   .login-box .remember {
     text-align: left;
     font-size: 13px;
