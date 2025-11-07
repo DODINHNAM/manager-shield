@@ -20,7 +20,9 @@ $wsp = $data['wsp'] ?? null;
       <label>Secret ID</label>
       <input name="secret_id" class="form-control" value="<?=htmlspecialchars($config['secret_id'] ?? '')?>">
     </div>
-    <button class="btn btn-primary">Lưu</button>
+    <div class="mt-3">
+      <button class="btn btn-primary">Lưu</button>
+    </div>
   </form>
 </div>
 <?php require_once __DIR__ . '/../layout_footer.php'; ?>

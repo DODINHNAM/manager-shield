@@ -9,7 +9,9 @@ $wsp = $data['wsp'] ?? null;
     <div class="mb-3"><label>Access Key</label><input name="access_key" class="form-control" value="<?=htmlspecialchars($config['access_key'] ?? '')?>"></div>
     <div class="mb-3"><label>Secret Key</label><input name="secret_key" class="form-control" value="<?=htmlspecialchars($config['secret_key'] ?? '')?>"></div>
     <div class="mb-3"><label>Môi trường</label><select name="environment" class="form-control"><option value="sandbox">Sandbox</option><option value="production">Production</option></select></div>
-    <button class="btn btn-primary">Lưu</button>
+    <div class="mt-3">
+      <button class="btn btn-primary">Lưu</button>
+    </div>
   </form>
 </div>
 <?php require_once __DIR__ . '/../layout_footer.php'; ?>

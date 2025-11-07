@@ -28,7 +28,9 @@ $attached_payments = $data['attached_payments'] ?? [];
                 <?php endforeach; ?>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary">Lưu</button>
+        <div class="mt-3">
+          <button type="submit" class="btn btn-primary">Lưu</button>
+        </div>
     </form>
 </div>
 
@@ -44,7 +46,9 @@ $attached_payments = $data['attached_payments'] ?? [];
                 <?php endforeach; ?>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary">Đính kèm</button>
+        <div class="mt-3">
+          <button type="submit" class="btn btn-primary">Đính kèm</button>
+        </div>
     </form>
     <ul class="mt-2">
         <?php foreach ($attached_payments as $p): ?>

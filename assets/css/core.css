@@ -27,3 +27,6 @@ body{margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:var(
 .footer{padding:12px 20px;background:#fff;border-top:1px solid var(--border);font-size:13px}
 .avatar{width:36px;height:36px;border-radius:50%}
 @media(max-width:900px){.sidebar{display:none}.app-wrapper{flex-direction:column}}
+.mt-3 {
+  margin-top: 1rem;
+}

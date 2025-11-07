@@ -25,7 +25,9 @@ $payment_types = $data['payment_types'] ?? [];
         <?php endforeach; ?>
       </select>
     </div>
-    <button type="submit" class="btn btn-success">Tạo</button>
+    <div class="mt-3">
+      <button type="submit" class="btn btn-success">Tạo</button>
+    </div>
   </form>
 </div>
 
