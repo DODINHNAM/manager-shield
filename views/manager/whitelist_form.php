@@ -10,7 +10,7 @@
                    value="<?= htmlspecialchars($item['domain'] ?? '') ?>">
         </div>
 
-        <div class="form-check mb-3">
+        <div class="mb-3">
             <input type="checkbox" name="active" class="form-check-input" <?= (!isset($item) || $item['active']) ? 'checked' : '' ?>>
             <label class="form-check-label">Kích hoạt</label>
         </div>

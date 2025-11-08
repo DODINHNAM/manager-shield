@@ -1,6 +1,11 @@
 <?php
-// api/get-webshield-whitelist.php
+// api/get-webshield-config.php
 require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/encrypt.php';
+require_once __DIR__ . '/../models/WebShieldPayment.php';
+require_once __DIR__ . '/../models/MomoConfig.php';
+require_once __DIR__ . '/../models/PayPalConfig.php';
+require_once __DIR__ . '/../models/StripeConfig.php';
 
 header('Content-Type: application/json');
 
@@ -19,6 +24,7 @@ if (!$domain) {
     echo json_encode(['error' => 'Cannot detect calling domain']);
     exit;
 }
+
 
 // 2️⃣ Tìm Web Shield tương ứng domain này
 $webShield = db_query("SELECT * FROM web_shields WHERE domain = ? LIMIT 1", [$domain]);
@@ -55,7 +61,39 @@ $rows = db_query("
 
 $whitelist = array_map(fn($r) => $r['domain'], $rows);
 
-// 5️⃣ Trả JSON response
+// 5️⃣ Lấy và mã hóa cấu hình thanh toán
+$payment_configs = [];
+$payments = WebShieldPayment::findByWebShield($webShield['id']);
+
+foreach ($payments as $payment) {
+    if (!$payment['active']) continue;
+
+    $config = null;
+    switch ($payment['payment_code']) {
+        case 'momo':
+            $config = MomoConfig::findByPayment($payment['id']);
+            break;
+        case 'paypal':
+            $config = PayPalConfig::findByPayment($payment['id']);
+            break;
+        case 'stripe':
+            $config = StripeConfig::findByPayment($payment['id']);
+            break;
+    }
+
+    if ($config) {
+        // Xóa các khóa không cần thiết trước khi mã hóa
+        unset($config['id'], $config['web_shield_payment_id']);
+        
+        $payment_configs[] = [
+            'type' => $payment['payment_code'],
+            'config' => encrypt_data($config)
+        ];
+    }
+}
+
+
+// 6️⃣ Trả JSON response
 echo json_encode([
     'success' => true,
     'web_shield' => [
@@ -64,5 +102,6 @@ echo json_encode([
         'name' => $webShield['name'],
         'manager_id' => $managerId
     ],
-    'whitelist' => $whitelist
+    'whitelist' => $whitelist,
+    'payment_configs' => $payment_configs
 ]);

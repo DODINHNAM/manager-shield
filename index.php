@@ -22,6 +22,7 @@ require_once __DIR__ . '/models/ManagerWhitelist.php';
 
 $action = $_GET['action'] ?? 'home';
 
+
 switch($action) {
     case 'login':
         $error = $_GET['error'] ?? '';
