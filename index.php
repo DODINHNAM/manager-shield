@@ -185,50 +185,39 @@ switch($action) {
 
     case 'manager_payments':
         requireLogin();
-        requireRole('manager');
         $user = currentUser();
         $web_id = intval($_GET['web_id'] ?? 0);
         $w = WebShield::find($web_id);
-        if (!$w || $w['manager_id'] != $user['id']) {
-            echo "Không tìm thấy web shield hoặc bạn không có quyền.";
-            exit;
+        if ($user['role'] !== 'admin') {
+            requireRole('manager');
+            if (!$w || $w['manager_id'] != $user['id']) {
+                echo "Không tìm thấy web shield hoặc bạn không có quyền.";
+                exit;
+            }
         }
         $payments = PaymentController::listForWeb($web_id);
         $data = ['webshield'=>$w,'payments'=>$payments];
         require __DIR__ . '/views/manager/payments.php';
         break;
 
-    case 'manager_edit_payment':
-        requireLogin();
-        requireRole('manager');
-        $wsp_id = intval($_GET['wsp_id'] ?? 0);
-        $wsp = WebShieldPayment::findById($wsp_id);
-        $user = currentUser();
-        $w = WebShield::find($wsp['web_shield_id']);
-        if (!$w || $w['manager_id'] != $user['id']) { echo "Không hợp lệ"; exit; }
-        $config = PaymentController::getConfig($wsp);
-        $data = ['wsp'=>$wsp,'config'=>$config];
-        // include view based on payment code
-        switch ($wsp['payment_code']) {
-            case 'paypal': require __DIR__ . '/views/manager/payment_paypal.php'; break;
-            case 'stripe': require __DIR__ . '/views/manager/payment_stripe.php'; break;
-            case 'momo': require __DIR__ . '/views/manager/payment_momo.php'; break;
-            default: echo "Unsupported"; break;
-        }
-        break;
-
     case 'manager_save_payment':
         requireLogin();
-        requireRole('manager');
         $wsp_id = intval($_GET['wsp_id'] ?? 0);
         $wsp = WebShieldPayment::findById($wsp_id);
         $user = currentUser();
         $w = WebShield::find($wsp['web_shield_id']);
-        if (!$w || $w['manager_id'] != $user['id']) { echo "Không hợp lệ"; exit; }
+        if ($user['role'] !== 'admin') {
+            requireRole('manager');
+            if (!$w || $w['manager_id'] != $user['id']) { echo "Không hợp lệ"; exit; }
+        }
         $typeCode = $wsp['payment_code'];
         $post = $_POST;
         ManagerController::savePayment($wsp_id, $typeCode, $post);
-        header('Location: index.php?action=manager_payments&web_id=' . $w['id']);
+        if ($user['role'] === 'admin') {
+            header('Location: index.php?action=admin_edit_webshield&id=' . $w['id']);
+        } else {
+            header('Location: index.php?action=manager_payments&web_id=' . $w['id']);
+        }
         break;
 
     case 'manager_whitelist':

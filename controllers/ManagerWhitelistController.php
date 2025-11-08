@@ -21,7 +21,11 @@ class ManagerWhitelistController {
             $data = ['domains' => $domains];
         }
         
-        include __DIR__ . '/../views/manager/whitelist_list.php';
+        if ($user['role'] === 'admin') {
+            include __DIR__ . '/../views/admin/manager_whitelist.php';
+        } else {
+            include __DIR__ . '/../views/manager/whitelist_list.php';
+        }
     }
 
     public static function add() {
@@ -59,7 +63,6 @@ class ManagerWhitelistController {
 
     public static function edit($id) {
         requireLogin();
-        requireRole('manager');
         $user = currentUser();
 
         $item = ManagerWhitelist::find($id);
@@ -72,7 +75,11 @@ class ManagerWhitelistController {
             $domain = trim($_POST['domain']);
             $active = isset($_POST['active']) ? 1 : 0;
             ManagerWhitelist::update($id, $domain, $active);
-            header("Location: index.php?action=manager_whitelist");
+            if ($user['role'] === 'admin') {
+                header("Location: index.php?action=admin_manager_whitelist&manager_id=" . $item['manager_id']);
+            } else {
+                header("Location: index.php?action=manager_whitelist");
+            }
             exit;
         }
 
@@ -81,7 +88,6 @@ class ManagerWhitelistController {
 
     public static function delete($id) {
         requireLogin();
-        requireRole('manager');
         $user = currentUser();
 
         $item = ManagerWhitelist::find($id);
@@ -91,7 +97,11 @@ class ManagerWhitelistController {
         }
 
         ManagerWhitelist::delete($id);
-        header("Location: index.php?action=manager_whitelist");
+        if ($user['role'] === 'admin') {
+            header("Location: index.php?action=admin_manager_whitelist&manager_id=" . $item['manager_id']);
+        } else {
+            header("Location: index.php?action=manager_whitelist");
+        }
         exit;
     }
 }
