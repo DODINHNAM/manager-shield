@@ -1,6 +1,6 @@
--- setup for php_shield_v2
-CREATE DATABASE IF NOT EXISTS php_shield_v2 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE php_shield_v2;
+-- setup for mana_manager
+CREATE DATABASE IF NOT EXISTS mana_manager DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE mana_manager;
 
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -80,6 +80,6 @@ INSERT INTO payment_types (code, name, description) VALUES
 ('stripe','Stripe','Stripe payment'),
 ('momo','Momo','Momo e-wallet');
 
--- seed admin
+-- seed admin/Admin@123456
 INSERT INTO users (username, password, role)
-VALUES ('admin', '$2y$10$ZrV6ydbkP3p1Qq7n3G0lXe5kFZ5h5w28v0J8sDqG/7Z6dS8YwYf9G', 'admin');
+VALUES ('admin', '$2y$10$5GZ7BXZ4t8MuDtFG3KWcHOXjB4SczrkOsAnk5mCAZQ7jqWyd4XWEW', 'admin');
