@@ -3,19 +3,21 @@ $webshield = $data['webshield'] ?? null;
 $attached_payments = $data['payments'] ?? [];
 ?>
 
+<div class="page-intro"><div class="eyebrow">PHƯƠNG THỨC THANH TOÁN</div><h2><?= htmlspecialchars($webshield['name']) ?></h2><p>Quản lý thông tin kết nối và môi trường thanh toán cho website này.</p></div>
 <div class="card">
-    <h3>Cấu hình thanh toán cho <?= htmlspecialchars($webshield['name']) ?></h3>
+    <div class="section-heading"><h3>Phương thức đã kết nối</h3><span class="badge neutral"><?= count($attached_payments) ?> phương thức</span></div>
     <table class="data-table mt-3">
         <thead>
             <tr>
                 <th>Loại thanh toán</th>
-                <th>Thao tác</th>
+                <th>Trạng thái</th><th>Thao tác</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($attached_payments as $p): ?>
                 <tr>
-                    <td><?= htmlspecialchars($p['payment_name']) ?></td>
+                    <td><div class="payment-heading"><span class="payment-logo" aria-hidden="true"><?= htmlspecialchars(strtoupper(substr($p['payment_name'], 0, 1))) ?></span><div><strong><?= htmlspecialchars($p['payment_name']) ?></strong><small>Cấu hình kết nối thanh toán</small></div></div></td>
+                    <td><span class="badge <?= $p['active'] ? '' : 'neutral' ?>"><?= $p['active'] ? 'Đang bật' : 'Đã tắt' ?></span></td>
                     <td>
                         <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#config-form-<?= $p['id'] ?>" data-title="Cấu hình <?= htmlspecialchars($p['payment_name']) ?>">Cấu hình</button>
                     </td>
