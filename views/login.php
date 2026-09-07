@@ -2,16 +2,16 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Đăng nhập · Cards Shield</title>
+  <title>Đăng nhập · LazyShield</title>
   <link rel="stylesheet" href="assets/css/core.css?v=<?= filemtime(__DIR__ . '/../assets/css/core.css') ?>">
   <link rel="stylesheet" href="assets/css/form.css?v=<?= filemtime(__DIR__ . '/../assets/css/form.css') ?>">
   <link rel="stylesheet" href="assets/css/login.css?v=<?= filemtime(__DIR__ . '/../assets/css/login.css') ?>">
 </head>
 <body class="login-page">
   <section class="login-brand">
-    <div class="sidebar-header"><div class="logo" aria-hidden="true">S</div><div class="brand-text">Cards Shield<span class="brand-caption">MANAGEMENT</span></div></div>
-    <div class="login-pitch"><div class="eyebrow">KHÔNG GIAN QUẢN LÝ THANH TOÁN</div><h1>Kết nối tập trung.<br>Quản lý dễ dàng.</h1><p>Một nơi để quản lý Web Shields, cấu hình thanh toán và kết nối các website của bạn.</p><div class="login-illustration" aria-hidden="true"><div class="illustration-node">Website</div><span>─</span><div class="illustration-shield">S</div><span>─</span><div class="illustration-node">Thanh toán</div></div></div>
-    <div class="login-copyright">© <?= date('Y') ?> Cards Shield</div>
+    <div class="sidebar-header"><div class="logo" aria-hidden="true">L</div><div class="brand-text">LazyShield<span class="brand-caption">MANAGEMENT</span></div></div>
+    <div class="login-pitch"><div class="eyebrow">KHÔNG GIAN QUẢN LÝ THANH TOÁN</div><h1>Kết nối tập trung.<br>Quản lý dễ dàng.</h1><p>Một nơi để quản lý Web Shields, cấu hình thanh toán và kết nối các website của bạn.</p><div class="login-illustration" aria-hidden="true"><div class="illustration-node">Website</div><span>─</span><div class="illustration-shield">L</div><span>─</span><div class="illustration-node">Thanh toán</div></div></div>
+    <div class="login-copyright">© <?= date('Y') ?> LazyShield</div>
   </section>
   <main class="login-main">
     <form method="post" action="index.php?action=login_post" class="login-box">

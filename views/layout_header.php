@@ -9,7 +9,7 @@ $titles = [
     'manager_payments' => 'Cấu hình thanh toán', 'manager_whitelist' => 'Domain được phép',
     'manager_whitelist_add' => 'Thêm domain', 'manager_whitelist_edit' => 'Chỉnh sửa domain',
 ];
-$page_title = $page_title ?? ($titles[$action] ?? 'Quản lý Cards Shield');
+$page_title = $page_title ?? ($titles[$action] ?? 'Quản lý LazyShield');
 $roleLabel = $isAdmin ? 'Quản trị viên' : 'Người quản lý';
 function uiIcon($name) {
     $paths = [
@@ -32,7 +32,7 @@ if (in_array($action, ['manager_whitelist_add','manager_whitelist_edit','admin_m
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <title><?= htmlspecialchars($page_title) ?> · Cards Shield</title>
+  <title><?= htmlspecialchars($page_title) ?> · LazyShield</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <?php foreach (['core','table','form'] as $stylesheet): ?>
   <link rel="stylesheet" href="/assets/css/<?= $stylesheet ?>.css?v=<?= filemtime(__DIR__ . '/../assets/css/' . $stylesheet . '.css') ?>">
@@ -43,7 +43,7 @@ if (in_array($action, ['manager_whitelist_add','manager_whitelist_edit','admin_m
   <button class="sidebar-backdrop" aria-label="Đóng menu" tabindex="-1"></button>
   <aside class="sidebar" id="sidebar" aria-label="Điều hướng chính">
     <div>
-      <div class="sidebar-header"><div class="logo" aria-hidden="true">S</div><div class="brand-text">Cards Shield<span class="brand-caption">MANAGEMENT</span></div></div>
+      <div class="sidebar-header"><div class="logo" aria-hidden="true">L</div><div class="brand-text">LazyShield<span class="brand-caption">MANAGEMENT</span></div></div>
       <div class="nav-label">KHÔNG GIAN LÀM VIỆC</div>
       <nav class="sidebar-nav">
         <?php foreach ($navigation as [$route,$label,$icon]): ?>

@@ -1,7 +1,7 @@
 <?php require_once __DIR__ . '/layout_header.php'; ?>
 <div class="page-intro"><div class="eyebrow">TỔNG QUAN</div><h2>Chào mừng trở lại, <?= htmlspecialchars($user['username'] ?? '') ?>.</h2><p>Quản lý Web Shields và cấu hình thanh toán trong một không gian.</p></div>
 <div class="card welcome-card">
-  <div class="eyebrow">CARDS SHIELD</div><h2>Mọi kết nối, trong tầm kiểm soát.</h2>
+  <div class="eyebrow">LAZYSHIELD</div><h2>Mọi kết nối, trong tầm kiểm soát.</h2>
   <p><?= $isAdmin ? 'Tổ chức hệ thống shield, phân quyền người quản lý và thiết lập phương thức thanh toán cho từng website.' : 'Theo dõi các shield được giao, cập nhật cấu hình thanh toán và quản lý website được phép kết nối.' ?></p>
   <a class="btn" href="index.php?action=<?= $isAdmin ? 'admin_webshields' : 'manager_my_webshields' ?>">Quản lý Web Shields &nbsp; →</a>
 </div>
