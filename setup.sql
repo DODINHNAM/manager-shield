@@ -1,6 +1,6 @@
--- setup for mana_manager
-CREATE DATABASE IF NOT EXISTS mana_manager DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE mana_manager;
+-- setup for manager_lazypaygate_com
+CREATE DATABASE IF NOT EXISTS manager_lazypaygate_com DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE manager_lazypaygate_com;
 
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,

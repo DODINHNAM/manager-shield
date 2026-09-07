@@ -1,0 +1,29 @@
+.button-paypal {
+    background-color: #0070ba;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.button-paypal:hover {
+    background-color: #005ea6;
+}
+
+.button-paypal:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.paypal-button-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.hide_paypal_btn {
+    display: none;
+}

@@ -4,9 +4,9 @@ ini_set('session.cookie_lifetime', 0);
 session_start();
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'mana_manager');
-define('DB_USER', 'mana_manager');
-define('DB_PASS', 'Nam@6122@@@'); // change if needed
+define('DB_NAME', 'manager_lazypaygate_com');
+define('DB_USER', 'wp_0b620887');
+define('DB_PASS', 'Y034DBY7as8OmHTFSoLvKzTg'); // change if needed
 
 define('BASE_URL', '/');
 

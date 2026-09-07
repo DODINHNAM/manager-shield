@@ -1,0 +1,16 @@
+{
+    "name": "wp-mecom-paypal-proxy",
+    "description": "A WordPress plugin for integrating PayPal credit payment functionality.",
+    "type": "wordpress-plugin",
+    "require": {
+        "php": ">=7.0",
+        "paypal/rest-api-sdk-php": "^1.14"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mecom\\": "inc/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

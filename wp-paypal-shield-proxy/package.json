@@ -1,0 +1,25 @@
+{
+  "name": "wp-mecom-paypal-proxy",
+  "version": "1.0.0",
+  "description": "A WordPress plugin for integrating PayPal credit payment functionality.",
+  "main": "wp-mecom-paypal-proxy.php",
+  "scripts": {
+    "build": "echo 'Building project...'",
+    "test": "echo 'Running tests...'"
+  },
+  "keywords": [
+    "wordpress",
+    "paypal",
+    "payment",
+    "plugin"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "paypal-rest-sdk": "^1.8.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0"
+  }
+}
