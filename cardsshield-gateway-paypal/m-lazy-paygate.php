@@ -4,7 +4,7 @@
  * Plugin URI:
  * Description: LazyShield Gateway PayPal
  * Author: LazyShield
- * Version: 2.8.6
+ * Version: 2.10.11
  *
  /*
  * This action hook registers our PHP class as a WooCommerce payment gateway
@@ -30,169 +30,6 @@ function cs_lazy_normalize_legacy_request_keys( &$request ) {
 
 cs_lazy_normalize_legacy_request_keys( $_GET );
 cs_lazy_normalize_legacy_request_keys( $_POST );
-
-if ( ! class_exists( 'CSLazyPayPalUpdateChecker' ) && is_admin()) {
-    class CSLazyPayPalUpdateChecker {
-
-        public $plugin_slug;
-        public $version;
-        public $cache_key;
-        public $cache_allowed;
-
-        private static $instance = null;
-
-        public static function load()
-        {
-            if (null === self::$instance) {
-                self::$instance = new self();
-            }
-
-            return self::$instance;
-        }
-
-        public function __construct() {
-
-            $this->plugin_slug   = plugin_basename( __DIR__ );
-            $this->version       = OPT_LAZY_PAYPAL_VERSION;
-            $this->cache_key     = 'cs_paypal_update_checker';
-            $this->cache_allowed = true;
-
-            add_filter( 'plugins_api', [ $this, 'info' ], 20, 3 );
-            add_filter( 'site_transient_update_plugins', [ $this, 'update' ], 10, 1 );
-            add_action( 'upgrader_process_complete', [ $this, 'purge' ], 10, 2 );
-
-        }
-
-        public function request() {
-
-            $remote = get_transient( $this->cache_key );
-
-            if ( false === $remote || ! $this->cache_allowed ) {
-
-                $remote = wp_remote_get(
-                    'https://update.cardsshield.com/cs_pp/info.php?site=' . urlencode(get_site_url()),
-                    [
-                        'timeout' => 10,
-                        'headers' => [
-                            'Accept' => 'application/json'
-                        ]
-                    ]
-                );
-
-                if (
-                    is_wp_error( $remote )
-                    || 200 !== wp_remote_retrieve_response_code( $remote )
-                    || empty( wp_remote_retrieve_body( $remote ) )
-                ) {
-                    return false;
-                }
-
-                set_transient( $this->cache_key, $remote, HOUR_IN_SECONDS );
-
-            }
-
-            $remote = json_decode( wp_remote_retrieve_body( $remote ) );
-
-            return $remote;
-
-        }
-
-
-        function info( $res, $action, $args ) {
-
-            // do nothing if you're not getting plugin information right now
-            if ( 'plugin_information' !== $action ) {
-                return $res;
-            }
-
-            // do nothing if it is not our plugin
-            if ( $this->plugin_slug !== $args->slug ) {
-                return $res;
-            }
-
-            // get updates
-            $remote = $this->request();
-
-            if ( ! $remote ) {
-                return $res;
-            }
-
-            $res = new stdClass();
-
-            $res->name           = $remote->name;
-            $res->slug           = $remote->slug;
-            $res->version        = $remote->version;
-            $res->tested         = $remote->tested;
-            $res->requires       = $remote->requires;
-            $res->author         = $remote->author;
-            $res->author_profile = $remote->author_profile;
-            $res->download_link  = $remote->download_url;
-            $res->trunk          = $remote->download_url;
-            $res->requires_php   = $remote->requires_php;
-            $res->last_updated   = $remote->last_updated;
-
-            $res->sections = [
-                'description'  => $remote->sections->description,
-                'installation' => $remote->sections->installation,
-                'changelog'    => $remote->sections->changelog
-            ];
-
-            if ( ! empty( $remote->banners ) ) {
-                $res->banners = [
-                    'low'  => $remote->banners->low,
-                    'high' => $remote->banners->high
-                ];
-            }
-
-            return $res;
-
-        }
-
-        public function update( $transient ) {
-
-            if ( empty( $transient->checked ) ) {
-                return $transient;
-            }
-
-            $remote = $this->request();
-
-            if (
-                $remote
-                && version_compare( $this->version, $remote->version, '<' )
-                && version_compare( $remote->requires, get_bloginfo( 'version' ), '<=' )
-                && version_compare( $remote->requires_php, PHP_VERSION, '<' )
-            ) {
-                $res              = new stdClass();
-                $res->slug        = $this->plugin_slug;
-                $res->plugin      = plugin_basename( __FILE__ ); // misha-update-plugin/misha-update-plugin.php
-                $res->new_version = $remote->version;
-                $res->tested      = $remote->tested;
-                $res->package     = $remote->download_url;
-
-                $transient->response[ $res->plugin ] = $res;
-
-            }
-
-            return $transient;
-
-        }
-
-        public function purge($upgrader_object, $options) {
-
-            if (
-                $this->cache_allowed
-                && 'update' === $options['action']
-                && 'plugin' === $options['type']
-            ) {
-                // just clean the cache when new plugin version is installed
-                delete_transient( $this->cache_key );
-            }
-
-        }
-    }
-
-    new CSLazyPayPalUpdateChecker();
-}
 
 //Cron
 add_filter('cron_schedules', 'lazy_add_cron_interval');
@@ -1189,7 +1026,6 @@ function lazy_init_gateway_class()
             'add_settings_link');
         require_once("m-lazy-paygate-options.php");
 //        require_once("cs-pp-update-checker.php");
-//        CSLazyPayPalUpdateChecker::load();
     }
 
     function add_settings_link($links)
