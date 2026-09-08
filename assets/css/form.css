@@ -105,6 +105,13 @@ textarea.form-control {
 .endpoint-summary-accent strong { color:#168166; font-size:20px }
 .endpoint-configs-card { padding-top:22px }
 .endpoint-config-table td:first-child { min-width:190px }
+.endpoint-actions { white-space:nowrap }
+.endpoint-key-card { max-width:900px }
+.endpoint-key-grid { display:grid; gap:12px; margin-top:20px }
+.endpoint-key-item { padding:14px; border:1px solid var(--border); border-radius:10px; background:#f8fbfa }
+.endpoint-key-item > span { display:block; margin-bottom:7px; color:var(--muted); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase }
+.endpoint-key-item code { display:block; padding:10px; background:#fff; border:1px solid var(--border); border-radius:7px; word-break:break-all; color:var(--text) }
+.endpoint-key-note { margin:16px 0 0 }
 .table-subtext { display:block; margin-top:3px; color:var(--muted); font-size:11px }
 .endpoint-method-badge { display:inline-flex; padding:5px 9px; border-radius:6px; background:#eef6f3; color:#16735b; font-size:11px; font-weight:700 }
 .endpoint-provider-badge { display:inline-flex; padding:5px 9px; border-radius:6px; background:#edf3fb; color:#285985; font-size:11px; font-weight:700 }

@@ -48,4 +48,23 @@ class EndpointRotationController {
         header('Location: index.php?action=endpoint_rotation');
         exit;
     }
+
+    public static function keys() {
+        requireLogin();
+        $user = currentUser();
+        if (($user['role'] ?? '') !== 'admin') {
+            http_response_code(403);
+            exit('Admin only.');
+        }
+        $config = EndpointRotationConfig::findForUser((int) ($_GET['id'] ?? 0), $user);
+        if (!$config) {
+            http_response_code(404);
+            exit('Config not found.');
+        }
+        $data = [
+            'config' => $config,
+            'credentials' => EndpointRotationConfig::credentials($config['id']),
+        ];
+        require __DIR__ . '/../views/manager/endpoint_rotation_keys.php';
+    }
 }

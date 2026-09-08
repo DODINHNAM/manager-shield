@@ -241,6 +241,9 @@ switch($action) {
     case 'endpoint_rotation_delete':
         EndpointRotationController::delete();
         break;
+    case 'endpoint_rotation_keys':
+        EndpointRotationController::keys();
+        break;
 
     case 'manager_webshield_whitelist':
     case 'admin_webshield_whitelist':

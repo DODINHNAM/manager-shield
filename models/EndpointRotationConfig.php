@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/encrypt.php';
 
 class EndpointRotationConfig {
     public static function listForUser($user) {
@@ -38,8 +39,10 @@ class EndpointRotationConfig {
         $secretAlphabet = 'ZQXJKVWPY ./-:?=&%# 123456789ABCDEFGHILMNORSTUabcdefghijklmnopqrstuvwxyz';
         $plainAlphabet = './-:?=&%# ZQXJKVWPY abcdefghijklmnopqrstuvwxyz123456789ABCDEFGHILMNORSTU';
         $secret = base64_encode(strtr(base64_encode(rtrim($gatewayDomain, '/') . $token), $plainAlphabet, $secretAlphabet));
-        db_execute("INSERT INTO endpoint_rotation_configs (name, token_hash, token_preview, payment_provider, rotation_method, created_by)
-            VALUES (?, ?, ?, ?, ?, ?)", [$name, hash('sha256', $token), substr($token, 0, 12), $provider, $method, $userId]);
+        $encryptedToken = encrypt_data(['value' => $token]);
+        $encryptedSecret = encrypt_data(['value' => $secret, 'gateway_domain' => $gatewayDomain]);
+        db_execute("INSERT INTO endpoint_rotation_configs (name, token_hash, token_preview, token_encrypted, secret_encrypted, payment_provider, rotation_method, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [$name, hash('sha256', $token), substr($token, 0, 12), $encryptedToken, $encryptedSecret, $provider, $method, $userId]);
         $id = (int) db_query("SELECT LAST_INSERT_ID() AS id")[0]['id'];
         self::replaceMembers($id, $shieldRows);
         return ['id' => $id, 'token' => $token, 'secret' => $secret, 'gateway_domain' => $gatewayDomain];
@@ -73,5 +76,19 @@ class EndpointRotationConfig {
     public static function findForApi($id) {
         $rows = db_query("SELECT * FROM endpoint_rotation_configs WHERE id = ? AND active = 1 LIMIT 1", [(int) $id]);
         return $rows[0] ?? null;
+    }
+
+    public static function credentials($id) {
+        $rows = db_query("SELECT token_encrypted, secret_encrypted FROM endpoint_rotation_configs WHERE id = ? LIMIT 1", [(int) $id]);
+        $row = $rows[0] ?? null;
+        if (!$row || empty($row['token_encrypted']) || empty($row['secret_encrypted'])) return null;
+        $token = decrypt_data($row['token_encrypted']);
+        $secret = decrypt_data($row['secret_encrypted']);
+        if (!is_array($token) || !is_array($secret)) return null;
+        return [
+            'token' => $token['value'] ?? $token['token'] ?? null,
+            'secret' => $secret['value'] ?? $secret['secret'] ?? null,
+            'gateway_domain' => $secret['gateway_domain'] ?? null,
+        ];
     }
 }

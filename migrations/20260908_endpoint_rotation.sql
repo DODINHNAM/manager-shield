@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS endpoint_rotation_configs (
   name VARCHAR(100) NOT NULL,
   token_hash CHAR(64) NOT NULL UNIQUE,
   token_preview VARCHAR(16) NOT NULL,
+  token_encrypted TEXT DEFAULT NULL,
+  secret_encrypted TEXT DEFAULT NULL,
   payment_provider VARCHAR(40) NOT NULL DEFAULT 'paypal',
   rotation_method ENUM('by_time','by_amount') NOT NULL DEFAULT 'by_time',
   active TINYINT(1) NOT NULL DEFAULT 1,
@@ -32,3 +34,6 @@ CREATE TABLE IF NOT EXISTS endpoint_rotation_members (
 
 ALTER TABLE endpoint_rotation_configs
   ADD COLUMN IF NOT EXISTS payment_provider VARCHAR(40) NOT NULL DEFAULT 'paypal' AFTER token_preview;
+ALTER TABLE endpoint_rotation_configs
+  ADD COLUMN IF NOT EXISTS token_encrypted TEXT DEFAULT NULL AFTER token_preview,
+  ADD COLUMN IF NOT EXISTS secret_encrypted TEXT DEFAULT NULL AFTER token_encrypted;

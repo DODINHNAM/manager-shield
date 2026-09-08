@@ -11,6 +11,7 @@ $titles = [
 ];
 $titles['transactions'] = 'Payment reports';
 $titles['endpoint_rotation'] = 'Endpoint rotation';
+$titles['endpoint_rotation_keys'] = 'Endpoint credentials';
 $page_title = $page_title ?? ($titles[$action] ?? 'Quản lý LazyShield');
 $roleLabel = $isAdmin ? 'Quản trị viên' : 'Người quản lý';
 function uiIcon($name) {

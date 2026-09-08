@@ -52,7 +52,12 @@ unset($_SESSION['endpoint_rotation_secret'], $_SESSION['endpoint_rotation_gatewa
           <td><span class="endpoint-method-badge"><?= $config['rotation_method'] === 'by_amount' ? 'Amount / day' : 'Time' ?></span></td>
           <td><?= (int) $config['member_count'] ?></td>
           <td><?= htmlspecialchars($config['creator_name'] ?? '') ?></td>
-          <td><a class="btn btn-sm btn-danger" href="index.php?action=endpoint_rotation_delete&id=<?= (int) $config['id'] ?>" onclick="return confirm('Delete this endpoint config?')">Delete</a></td>
+          <td class="endpoint-actions">
+            <?php if (($user['role'] ?? '') === 'admin'): ?>
+              <a class="btn btn-sm btn-info" href="index.php?action=endpoint_rotation_keys&id=<?= (int) $config['id'] ?>">View keys</a>
+            <?php endif; ?>
+            <a class="btn btn-sm btn-danger" href="index.php?action=endpoint_rotation_delete&id=<?= (int) $config['id'] ?>" onclick="return confirm('Delete this endpoint config?')">Delete</a>
+          </td>
         </tr>
       <?php endforeach; ?>
       </tbody>
