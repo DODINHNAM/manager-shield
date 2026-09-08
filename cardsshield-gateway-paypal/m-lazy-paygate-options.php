@@ -613,7 +613,7 @@ function lazy_page_init()
                         <input type="radio" id="connectionMode2" name="connectionMode" value="<?= OPT_CS_PAYPAL_CONNECTION_MODE_ENDPOINT_TOKEN ?>" class="custom-control-input" <?= $connectionMode === OPT_CS_PAYPAL_CONNECTION_MODE_ENDPOINT_TOKEN ? 'checked' : '' ?>>
                         <label class="custom-control-label" for="connectionMode2">Endpoint token</label>
                     </div>
-                    <div>Connect with shields by endpoint token. please go to <a href="https://manager.cardsshield.com">manager.cardsshield.com</a> to setup an endpoint token.</div>
+                    <div>Connect with shields by endpoint token. please go to <a href="https://manager.lazypaygate.com">manager.lazypaygate.com</a> to setup an endpoint token.</div>
                 </div>
             </div>
         </div>
