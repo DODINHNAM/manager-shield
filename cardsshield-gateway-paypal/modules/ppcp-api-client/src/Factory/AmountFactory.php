@@ -2,22 +2,22 @@
 /**
  * The Amount factory.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Factory
+ * @package WooCommerce\LazyPaypal\ApiClient\Factory
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Factory;
+namespace WooCommerce\LazyPaypal\ApiClient\Factory;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\Amount;
-use WooCommerce\MecomPaypal\ApiClient\Entity\AmountBreakdown;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Item;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Money;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
-// MECOM comment code
-//use WooCommerce\MecomPaypal\WcGateway\Gateway\CardButtonGateway;
-//use WooCommerce\MecomPaypal\WcGateway\Gateway\CreditCardGateway;
-//use WooCommerce\MecomPaypal\WcGateway\Gateway\PayPalGateway;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Amount;
+use WooCommerce\LazyPaypal\ApiClient\Entity\AmountBreakdown;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Item;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Money;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
+// LAZY comment code
+//use WooCommerce\LazyPaypal\WcGateway\Gateway\CardButtonGateway;
+//use WooCommerce\LazyPaypal\WcGateway\Gateway\CreditCardGateway;
+//use WooCommerce\LazyPaypal\WcGateway\Gateway\PayPalGateway;
 
 /**
  * Class AmountFactory
@@ -131,7 +131,7 @@ class AmountFactory {
 
 		$total_value = (float) $order->get_total();
 		/*
-		 * MECOM comment code because not use
+		 * LAZY comment code because not use
 		if ( (
 				in_array( $order->get_payment_method(), array( CreditCardGateway::ID, CardButtonGateway::ID ), true )
 				|| ( PayPalGateway::ID === $order->get_payment_method() && 'card' === $order->get_meta( PayPalGateway::ORDER_PAYMENT_SOURCE_META_KEY ) )

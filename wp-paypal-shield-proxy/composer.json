@@ -1,5 +1,5 @@
 {
-    "name": "wp-mecom-paypal-proxy",
+    "name": "wp-lazy-paypal-proxy",
     "description": "A WordPress plugin for integrating PayPal credit payment functionality.",
     "type": "wordpress-plugin",
     "require": {
@@ -8,7 +8,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Mecom\\": "inc/"
+            "Lazy\\": "inc/"
         }
     },
     "minimum-stability": "stable",

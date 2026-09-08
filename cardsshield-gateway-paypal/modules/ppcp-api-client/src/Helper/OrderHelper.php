@@ -2,14 +2,14 @@
 /**
  * PayPal order helper.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Helper
+ * @package WooCommerce\LazyPaypal\ApiClient\Helper
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Helper;
+namespace WooCommerce\LazyPaypal\ApiClient\Helper;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\Order;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Order;
 
 /**
  * Class OrderHelper

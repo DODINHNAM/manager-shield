@@ -2,16 +2,16 @@
 /**
  * The capture factory.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Factory
+ * @package WooCommerce\LazyPaypal\ApiClient\Factory
  */
 
 declare( strict_types=1 );
 
-namespace WooCommerce\MecomPaypal\ApiClient\Factory;
+namespace WooCommerce\LazyPaypal\ApiClient\Factory;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\Capture;
-use WooCommerce\MecomPaypal\ApiClient\Entity\CaptureStatus;
-use WooCommerce\MecomPaypal\ApiClient\Entity\CaptureStatusDetails;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Capture;
+use WooCommerce\LazyPaypal\ApiClient\Entity\CaptureStatus;
+use WooCommerce\LazyPaypal\ApiClient\Entity\CaptureStatusDetails;
 
 /**
  * Class CaptureFactory

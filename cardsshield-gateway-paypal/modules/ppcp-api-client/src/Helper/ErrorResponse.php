@@ -2,12 +2,12 @@
 /**
  * A Collection of all error responses for the order endpoint.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Helper
+ * @package WooCommerce\LazyPaypal\ApiClient\Helper
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Helper;
+namespace WooCommerce\LazyPaypal\ApiClient\Helper;
 
 /**
  * Class ErrorResponse

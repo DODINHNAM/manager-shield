@@ -2,14 +2,14 @@
 /**
  * The OrderStatus object.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Entity
+ * @package WooCommerce\LazyPaypal\ApiClient\Entity
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Entity;
+namespace WooCommerce\LazyPaypal\ApiClient\Entity;
 
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
 
 /**
  * Class OrderStatus

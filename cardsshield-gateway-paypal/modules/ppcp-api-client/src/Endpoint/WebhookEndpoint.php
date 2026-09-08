@@ -2,20 +2,20 @@
 /**
  * The webhook endpoint.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Endpoint
+ * @package WooCommerce\LazyPaypal\ApiClient\Endpoint
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Endpoint;
+namespace WooCommerce\LazyPaypal\ApiClient\Endpoint;
 
-use WooCommerce\MecomPaypal\ApiClient\Authentication\Bearer;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Webhook;
-use WooCommerce\MecomPaypal\ApiClient\Entity\WebhookEvent;
-use WooCommerce\MecomPaypal\ApiClient\Exception\PayPalApiException;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
-use WooCommerce\MecomPaypal\ApiClient\Factory\WebhookEventFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\WebhookFactory;
+use WooCommerce\LazyPaypal\ApiClient\Authentication\Bearer;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Webhook;
+use WooCommerce\LazyPaypal\ApiClient\Entity\WebhookEvent;
+use WooCommerce\LazyPaypal\ApiClient\Exception\PayPalApiException;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
+use WooCommerce\LazyPaypal\ApiClient\Factory\WebhookEventFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\WebhookFactory;
 use Psr\Log\LoggerInterface;
 
 /**

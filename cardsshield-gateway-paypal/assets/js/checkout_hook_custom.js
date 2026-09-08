@@ -8,10 +8,10 @@ jQuery(document).ready(function ($) {
     }
 
     function listenerPaypalCustom(event) {
-        if (event.data === "mecom-paypalOpenCreditForm-custom") {
+        if (event.data === "lazy-paypalOpenCreditForm-custom") {
             $('#payment-paypal-area-custom').attr('height', 400);
-            if ($('#mecom-paypal-button-setting-context').data('value') === 'product_page') {
-                window.mecom_paypal_custom_checkout_purchase_units = undefined;
+            if ($('#lazy-paypal-button-setting-context').data('value') === 'product_page') {
+                window.lazy_paypal_custom_checkout_purchase_units = undefined;
                 var hasAddonPass = true;
 				if (isProductPageAndHasAddons()) {
 					if (isProductAddonsValidated()) {
@@ -43,7 +43,7 @@ jQuery(document).ready(function ($) {
                     resetCartAndGetPurchaseUnits();
 				}
             } else {
-                window.mecom_paypal_custom_checkout_purchase_units = undefined;
+                window.lazy_paypal_custom_checkout_purchase_units = undefined;
                 var order_id = null;
                 if($('#cs_pay_for_order_page').length) {
                     order_id = $('#cs_pay_for_order_page').data('value')
@@ -52,50 +52,50 @@ jQuery(document).ready(function ($) {
                     url: '/',
                     method: 'POST',
                     data: {
-                        'mecom-paypal-button-calculate-to-get-purchase-units': 1,
+                        'lazy-paypal-button-calculate-to-get-purchase-units': 1,
                         'order_id': order_id 
                     },
                     success: function (res) {
-                        window.mecom_paypal_custom_checkout_purchase_units = JSON.parse(res)
+                        window.lazy_paypal_custom_checkout_purchase_units = JSON.parse(res)
                     }
                 })
             }
         }
-        if (event.data === "mecom-paypalRequestFromBlacklist") {
+        if (event.data === "lazy-paypalRequestFromBlacklist") {
             $('#payment-paypal-area-custom').remove();
             $('.cs_pp_element').remove();
         }
-        if (event.data === "mecom-paypalOpenCreditFormReject-custom") {
+        if (event.data === "lazy-paypalOpenCreditFormReject-custom") {
             $('form.checkout').submit();
         }
-        if (event.data === "mecom-paypalCloseCreditForm-custom") {
+        if (event.data === "lazy-paypalCloseCreditForm-custom") {
             $('#payment-paypal-area-custom').attr('height', 120);
         }
-        if (event.data === "mecom-paypalMakeFullIframeCreditForm-custom") {
+        if (event.data === "lazy-paypalMakeFullIframeCreditForm-custom") {
             $('#payment-paypal-area-custom').addClass('full_screen_iframe_paypal_checkout')
         }
-        if (event.data === "mecom-paypalMakeIframeCreditFormNormal-custom") {
+        if (event.data === "lazy-paypalMakeIframeCreditFormNormal-custom") {
             $('#payment-paypal-area-custom').removeClass('full_screen_iframe_paypal_checkout')
         }
-        if ((typeof event.data === 'object') && event.data.name === 'mecom-paypalBodyResizeCreditForm-custom') {
+        if ((typeof event.data === 'object') && event.data.name === 'lazy-paypalBodyResizeCreditForm-custom') {
             if (event.data.value >= 20) {
                 $('#payment-paypal-area-custom').attr('height',
                     event.data.value +
-                    ($('#mecom-paypal-button-setting-context').data('value') === 'express_checkout_page' ? 40 : 20));
+                    ($('#lazy-paypal-button-setting-context').data('value') === 'express_checkout_page' ? 40 : 20));
             }
         }
-        if ((typeof event.data === 'object') && event.data.name === 'mecom-paypalOpenCreditFormError-custom') {
+        if ((typeof event.data === 'object') && event.data.name === 'lazy-paypalOpenCreditFormError-custom') {
             $.ajax({
-                url: '/?mecom-paypal-button-create-order=1',
+                url: '/?lazy-paypal-button-create-order=1',
                 method: 'POST',
                 data: {
                     'cs_order': event.data.value,
-                    'current_proxy_id': $('#mecom_express_paypal_current_proxy_id').data('value'),
-                    'current_proxy_url': $('#mecom_express_paypal_current_proxy_url').data('value'),
+                    'current_proxy_id': $('#lazy_express_paypal_current_proxy_id').data('value'),
+                    'current_proxy_url': $('#lazy_express_paypal_current_proxy_url').data('value'),
                 }
             })
         }
-        if ((typeof event.data === 'object') && event.data.name === 'mecom-paypalApprovedOrder-custom') {
+        if ((typeof event.data === 'object') && event.data.name === 'lazy-paypalApprovedOrder-custom') {
             $('.blockUI').hide();
             $('#cs-pp-loader-credit-custom').show();
             setTimeout((function () {
@@ -111,9 +111,9 @@ jQuery(document).ready(function ($) {
                 data: {
                     'pp_order_id': event.data.value.order_id,
                     'order_id': order_id,
-                    'mecom-paypal-button-create-woo-order': 1,
-                    'current_proxy_id': $('#mecom_express_paypal_current_proxy_id').data('value'),
-                    'current_proxy_url': $('#mecom_express_paypal_current_proxy_url').data('value')
+                    'lazy-paypal-button-create-woo-order': 1,
+                    'current_proxy_id': $('#lazy_express_paypal_current_proxy_id').data('value'),
+                    'current_proxy_url': $('#lazy_express_paypal_current_proxy_url').data('value')
                 },
                 success: function (res) {
                     res = JSON.parse(res)
@@ -132,23 +132,23 @@ jQuery(document).ready(function ($) {
         }
     }
 
-    if ($('#mecom_enable_paypal_card_payment').length) {
+    if ($('#lazy_enable_paypal_card_payment').length) {
         setInterval(function () {
-            if ($('#mecom-paypal-button-setting-custom').data('value') === OPT_CS_PAYPAL_SETTING_CHECKOUT && $('#payment-paypal-area-custom')[0]) {
-                var merchantSite = $('#mecom_merchant_site_url').data('value');
+            if ($('#lazy-paypal-button-setting-custom').data('value') === OPT_CS_PAYPAL_SETTING_CHECKOUT && $('#payment-paypal-area-custom')[0]) {
+                var merchantSite = $('#lazy_merchant_site_url').data('value');
                 if (merchantSite.endsWith("/")) {
                     merchantSite = merchantSite.slice(0, -1);
                 }
                 $('#payment-paypal-area-custom')[0].contentWindow.postMessage({
-                    name: 'mecom-paypalSendOrderInfo-custom',
+                    name: 'lazy-paypalSendOrderInfo-custom',
                     value: {
                         whitelist_obj: {
                             merchant_site: Sha1.hash(merchantSite),
                         },
-                        merchant_token: $('#mecom_merchant_site_encode').data('value'),
-                        purchase_units: window.mecom_paypal_custom_checkout_purchase_units,
-                        orderIntent: $('#mecom-paypal-order-intent-custom').data('value'),
-                        shipping_preference: $('#mecom_express_paypal_shipping_preference').data('value'),
+                        merchant_token: $('#lazy_merchant_site_encode').data('value'),
+                        purchase_units: window.lazy_paypal_custom_checkout_purchase_units,
+                        orderIntent: $('#lazy-paypal-order-intent-custom').data('value'),
+                        shipping_preference: $('#lazy_express_paypal_shipping_preference').data('value'),
                     }
                 }, '*')
             }
@@ -178,9 +178,9 @@ jQuery(document).ready(function ($) {
                 }
             }
 			if (isAddonPass) {
-                $('#mecom-paypal-credit-form-container-custom').show();
+                $('#lazy-paypal-credit-form-container-custom').show();
             } else {
-                $('#mecom-paypal-credit-form-container-custom').hide();
+                $('#lazy-paypal-credit-form-container-custom').hide();
             }
         }, 100);
     }
@@ -220,8 +220,8 @@ jQuery(document).ready(function ($) {
     }
 
     function isProductPageAndHasVariations() {
-        return $('#mecom-paypal-product-page-has-variations') &&
-            $('#mecom-paypal-product-page-has-variations').data('value') === 'yes';
+        return $('#lazy-paypal-product-page-has-variations') &&
+            $('#lazy-paypal-product-page-has-variations').data('value') === 'yes';
     }
 	
 	function isProductPageAndHasAddons() {
@@ -347,7 +347,7 @@ jQuery(document).ready(function ($) {
 			url: '/',
 			method: 'POST',
 			data: {
-				'mecom-paypal-button-reset-carts': 1,
+				'lazy-paypal-button-reset-carts': 1,
 			},
 			success: function (res) {
 				$('.cart').append(
@@ -364,10 +364,10 @@ jQuery(document).ready(function ($) {
 							url: '/',
 							method: 'POST',
 							data: {
-								'mecom-paypal-button-calculate-to-get-purchase-units': 1,
+								'lazy-paypal-button-calculate-to-get-purchase-units': 1,
 							},
 							success: function (res) {
-								window.mecom_paypal_custom_checkout_purchase_units = JSON.parse(res)
+								window.lazy_paypal_custom_checkout_purchase_units = JSON.parse(res)
 							}
 						})
 					},
@@ -384,13 +384,13 @@ jQuery(document).ready(function ($) {
             url: '/',
             method: 'POST',
             data: {
-                'mecom-paypal-button-reset-carts-and-get-purchase-units': 1,
-                'product_id': $('#mecom-paypal-product-page-current-id').data('value'),
+                'lazy-paypal-button-reset-carts-and-get-purchase-units': 1,
+                'product_id': $('#lazy-paypal-product-page-current-id').data('value'),
                 'quantity': $('input[name="quantity"]').val(),
                 'variations': getVariations()
             },
             success: function (res) {
-                window.mecom_paypal_custom_checkout_purchase_units = JSON.parse(res)
+                window.lazy_paypal_custom_checkout_purchase_units = JSON.parse(res)
             }
         })	
     }

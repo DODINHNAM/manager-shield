@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
-class MEcom_PayPal_API_Error {
+class Lazy_PayPal_API_Error {
 	public $error_code;
 	public $short_message;
 	public $long_message;

@@ -2,12 +2,12 @@
 /**
  * The modules runtime exception.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Exception
+ * @package WooCommerce\LazyPaypal\ApiClient\Exception
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Exception;
+namespace WooCommerce\LazyPaypal\ApiClient\Exception;
 
 /**
  * Class RuntimeException

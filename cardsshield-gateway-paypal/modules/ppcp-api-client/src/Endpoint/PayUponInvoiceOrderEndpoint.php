@@ -2,12 +2,12 @@
 /**
  * Create order for PUI.
  *
- * @package WooCommerce\MecomPaypal\WcGateway\Gateway\PayUponInvoice
+ * @package WooCommerce\LazyPaypal\WcGateway\Gateway\PayUponInvoice
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Endpoint;
+namespace WooCommerce\LazyPaypal\ApiClient\Endpoint;
 
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -18,16 +18,16 @@ use WC_Order_Item_Fee;
 use WC_Order_Item_Product;
 use WC_Product;
 use WC_Tax;
-use WooCommerce\MecomPaypal\ApiClient\Authentication\Bearer;
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\RequestTrait;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Item;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Money;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Order;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PurchaseUnit;
-use WooCommerce\MecomPaypal\ApiClient\Exception\PayPalApiException;
-use WooCommerce\MecomPaypal\ApiClient\Factory\OrderFactory;
-use WooCommerce\MecomPaypal\WcGateway\Gateway\PayUponInvoice\FraudNet;
-use WooCommerce\MecomPaypal\WcGateway\Gateway\PayUponInvoice\PaymentSource;
+use WooCommerce\LazyPaypal\ApiClient\Authentication\Bearer;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\RequestTrait;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Item;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Money;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Order;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PurchaseUnit;
+use WooCommerce\LazyPaypal\ApiClient\Exception\PayPalApiException;
+use WooCommerce\LazyPaypal\ApiClient\Factory\OrderFactory;
+use WooCommerce\LazyPaypal\WcGateway\Gateway\PayUponInvoice\FraudNet;
+use WooCommerce\LazyPaypal\WcGateway\Gateway\PayUponInvoice\PaymentSource;
 use WP_Error;
 
 /**

@@ -2,15 +2,15 @@
 /**
  * The Address factory.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Factory
+ * @package WooCommerce\LazyPaypal\ApiClient\Factory
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Factory;
+namespace WooCommerce\LazyPaypal\ApiClient\Factory;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\Address;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Address;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
 
 /**
  * Class AddressFactory

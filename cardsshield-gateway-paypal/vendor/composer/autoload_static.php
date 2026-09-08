@@ -9,7 +9,7 @@ class ComposerStaticInit018d6f4c8fbd800ed0b49882a60994aa
     public static $prefixLengthsPsr4 = array (
         'W' => 
         array (
-            'WooCommerce\\MecomPaypal\\ApiClient\\' => 34,
+            'WooCommerce\\LazyPaypal\\ApiClient\\' => 33,
             'Wikimedia\\Composer\\Merge\\V2\\' => 28,
         ),
         'P' => 
@@ -32,7 +32,7 @@ class ComposerStaticInit018d6f4c8fbd800ed0b49882a60994aa
     );
 
     public static $prefixDirsPsr4 = array (
-        'WooCommerce\\MecomPaypal\\ApiClient\\' => 
+        'WooCommerce\\LazyPaypal\\ApiClient\\' =>
         array (
             0 => __DIR__ . '/../..' . '/modules/ppcp-api-client/src',
         ),

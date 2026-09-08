@@ -2,18 +2,18 @@
 /**
  * The Order factory.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Factory
+ * @package WooCommerce\LazyPaypal\ApiClient\Factory
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Factory;
+namespace WooCommerce\LazyPaypal\ApiClient\Factory;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\Order;
-use WooCommerce\MecomPaypal\ApiClient\Entity\OrderStatus;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PurchaseUnit;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
-use WooCommerce\MecomPaypal\ApiClient\Repository\ApplicationContextRepository;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Order;
+use WooCommerce\LazyPaypal\ApiClient\Entity\OrderStatus;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PurchaseUnit;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
+use WooCommerce\LazyPaypal\ApiClient\Repository\ApplicationContextRepository;
 
 /**
  * Class OrderFactory

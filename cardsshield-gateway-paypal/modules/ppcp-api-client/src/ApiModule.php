@@ -2,12 +2,12 @@
 /**
  * The API module.
  *
- * @package WooCommerce\MecomPaypal\ApiClient
+ * @package WooCommerce\LazyPaypal\ApiClient
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient;
+namespace WooCommerce\LazyPaypal\ApiClient;
 
 use Dhii\Container\ServiceProvider;
 use Dhii\Modular\Module\ModuleInterface;

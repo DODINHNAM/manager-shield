@@ -2,16 +2,16 @@
 /**
  * Returns shipping_preference for the given state.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Factory
+ * @package WooCommerce\LazyPaypal\ApiClient\Factory
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Factory;
+namespace WooCommerce\LazyPaypal\ApiClient\Factory;
 
 use WC_Cart;
-use WooCommerce\MecomPaypal\ApiClient\Entity\ApplicationContext;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PurchaseUnit;
+use WooCommerce\LazyPaypal\ApiClient\Entity\ApplicationContext;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PurchaseUnit;
 
 /**
  * Class ShippingPreferenceFactory

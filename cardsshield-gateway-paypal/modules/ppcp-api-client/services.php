@@ -2,60 +2,60 @@
 /**
  * The services of the API client.
  *
- * @package WooCommerce\MecomPaypal\ApiClient
+ * @package WooCommerce\LazyPaypal\ApiClient
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient;
+namespace WooCommerce\LazyPaypal\ApiClient;
 
 use Psr\Container\ContainerInterface;
-use WooCommerce\MecomPaypal\ApiClient\Authentication\Bearer;
-use WooCommerce\MecomPaypal\ApiClient\Authentication\PayPalBearer;
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\BillingAgreementsEndpoint;
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\IdentityToken;
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\LoginSeller;
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\OrderEndpoint;
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\PartnerReferrals;
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\PartnersEndpoint;
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\PaymentsEndpoint;
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\PaymentTokenEndpoint;
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\WebhookEndpoint;
-use WooCommerce\MecomPaypal\ApiClient\Factory\AddressFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\AmountFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\ApplicationContextFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\AuthorizationFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\CaptureFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\ExchangeRateFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\FraudProcessorResponseFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\ItemFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\MoneyFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\OrderFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PatchCollectionFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PayeeFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PayerFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PaymentsFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PaymentSourceFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PaymentTokenActionLinksFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PaymentTokenFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PlatformFeeFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PurchaseUnitFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\SellerReceivableBreakdownFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\SellerStatusFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\ShippingFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\ShippingPreferenceFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\WebhookEventFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\WebhookFactory;
-use WooCommerce\MecomPaypal\ApiClient\Helper\Cache;
-use WooCommerce\MecomPaypal\ApiClient\Helper\DccApplies;
-use WooCommerce\MecomPaypal\ApiClient\Helper\OrderHelper;
-use WooCommerce\MecomPaypal\ApiClient\Repository\ApplicationContextRepository;
-use WooCommerce\MecomPaypal\ApiClient\Repository\CustomerRepository;
-use WooCommerce\MecomPaypal\ApiClient\Repository\OrderRepository;
-use WooCommerce\MecomPaypal\ApiClient\Repository\PartnerReferralsData;
-use WooCommerce\MecomPaypal\ApiClient\Repository\PayeeRepository;
-use WooCommerce\MecomPaypal\ApiClient\Repository\PayPalRequestIdRepository;
-use WooCommerce\MecomPaypal\WcGateway\Settings\Settings;
+use WooCommerce\LazyPaypal\ApiClient\Authentication\Bearer;
+use WooCommerce\LazyPaypal\ApiClient\Authentication\PayPalBearer;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\BillingAgreementsEndpoint;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\IdentityToken;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\LoginSeller;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\OrderEndpoint;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\PartnerReferrals;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\PartnersEndpoint;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\PaymentsEndpoint;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\PaymentTokenEndpoint;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\WebhookEndpoint;
+use WooCommerce\LazyPaypal\ApiClient\Factory\AddressFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\AmountFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\ApplicationContextFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\AuthorizationFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\CaptureFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\ExchangeRateFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\FraudProcessorResponseFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\ItemFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\MoneyFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\OrderFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PatchCollectionFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PayeeFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PayerFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PaymentsFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PaymentSourceFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PaymentTokenActionLinksFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PaymentTokenFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PlatformFeeFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PurchaseUnitFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\SellerReceivableBreakdownFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\SellerStatusFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\ShippingFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\ShippingPreferenceFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\WebhookEventFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\WebhookFactory;
+use WooCommerce\LazyPaypal\ApiClient\Helper\Cache;
+use WooCommerce\LazyPaypal\ApiClient\Helper\DccApplies;
+use WooCommerce\LazyPaypal\ApiClient\Helper\OrderHelper;
+use WooCommerce\LazyPaypal\ApiClient\Repository\ApplicationContextRepository;
+use WooCommerce\LazyPaypal\ApiClient\Repository\CustomerRepository;
+use WooCommerce\LazyPaypal\ApiClient\Repository\OrderRepository;
+use WooCommerce\LazyPaypal\ApiClient\Repository\PartnerReferralsData;
+use WooCommerce\LazyPaypal\ApiClient\Repository\PayeeRepository;
+use WooCommerce\LazyPaypal\ApiClient\Repository\PayPalRequestIdRepository;
+use WooCommerce\LazyPaypal\WcGateway\Settings\Settings;
 
 return array(
 	'api.host'                                  => function( ContainerInterface $container ) : string {

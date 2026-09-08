@@ -1,10 +1,9 @@
 <?php
 /**
- * Plugin Name: WP PayPal Shield Proxy
+ * Plugin Name: LazyShield PayPal Proxy
  * Description: A WordPress plugin to integrate PayPal's credit payment form.
  * Version: 1.0.21
- * Author: DDNAM
- * Author URI: Your Website
+ * Author: LazyShield
  */
 
 // Exit if accessed directly
@@ -13,16 +12,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants
-define( 'WPME_COM_PAYPAL_PROXY_VERSION', '1.0.21' );
-define( 'WPME_COM_PAYPAL_PROXY_DIR', plugin_dir_path( __FILE__ ) );
-define( 'WPME_COM_PAYPAL_PROXY_URL', plugin_dir_url( __FILE__ ) );
+define( 'WPLAZY_PAYPAL_PROXY_VERSION', '1.0.21' );
+define( 'WPLAZY_PAYPAL_PROXY_DIR', plugin_dir_path( __FILE__ ) );
+define( 'WPLAZY_PAYPAL_PROXY_URL', plugin_dir_url( __FILE__ ) );
 
 // Include necessary files
-require_once WPME_COM_PAYPAL_PROXY_DIR . 'inc/admin.php';
-require_once WPME_COM_PAYPAL_PROXY_DIR . 'inc/api.php';
+require_once WPLAZY_PAYPAL_PROXY_DIR . 'inc/admin.php';
+require_once WPLAZY_PAYPAL_PROXY_DIR . 'inc/api.php';
 
 // Enqueue scripts and styles
-function wpme_com_paypal_proxy_enqueue_scripts() {
+function wplazy_paypal_proxy_enqueue_scripts() {
     $webshield_full_config = get_webshield_config();
     $paypal_config = ( ! is_wp_error( $webshield_full_config ) && isset( $webshield_full_config['paypal_config'] ) ) ? $webshield_full_config['paypal_config'] : null;
 
@@ -38,30 +37,30 @@ function wpme_com_paypal_proxy_enqueue_scripts() {
     // Enqueue PayPal SDK with dynamic client ID
     wp_enqueue_script( 'paypal-sdk', esc_url( $paypal_sdk_base_url . '?client-id=' . $paypal_client_id . '&currency=USD' ), array(), null, true );
 
-    wp_enqueue_script( 'paypal-credit-payment-form', WPME_COM_PAYPAL_PROXY_URL . 'assets/js/paypal-credit-payment-form.js', array( 'paypal-sdk' ), null, true );
-    wp_enqueue_style( 'paypal-credit-payment-form', WPME_COM_PAYPAL_PROXY_URL . 'assets/css/paypal-credit-payment-form.css' );
+    wp_enqueue_script( 'paypal-credit-payment-form', WPLAZY_PAYPAL_PROXY_URL . 'assets/js/paypal-credit-payment-form.js', array( 'paypal-sdk' ), null, true );
+    wp_enqueue_style( 'paypal-credit-payment-form', WPLAZY_PAYPAL_PROXY_URL . 'assets/css/paypal-credit-payment-form.css' );
 }
-add_action( 'wp_enqueue_scripts', 'wpme_com_paypal_proxy_enqueue_scripts' );
+add_action( 'wp_enqueue_scripts', 'wplazy_paypal_proxy_enqueue_scripts' );
 
 // Register shortcode for checkout
-function wpme_com_paypal_proxy_checkout_shortcode() {
+function wplazy_paypal_proxy_checkout_shortcode() {
     ob_start();
-    include WPME_COM_PAYPAL_PROXY_DIR . 'templates/checkout.php';
+    include WPLAZY_PAYPAL_PROXY_DIR . 'templates/checkout.php';
     return ob_get_clean();
 }
-add_shortcode( 'paypal_checkout', 'wpme_com_paypal_proxy_checkout_shortcode' );
+add_shortcode( 'paypal_checkout', 'wplazy_paypal_proxy_checkout_shortcode' );
 
 // Activation hook
-function wpme_com_paypal_proxy_activate() {
+function wplazy_paypal_proxy_activate() {
     // Code to run on plugin activation
 }
-register_activation_hook( __FILE__, 'wpme_com_paypal_proxy_activate' );
+register_activation_hook( __FILE__, 'wplazy_paypal_proxy_activate' );
 
 // Deactivation hook
-function wpme_com_paypal_proxy_deactivate() {
+function wplazy_paypal_proxy_deactivate() {
     // Code to run on plugin deactivation
 }
-register_deactivation_hook( __FILE__, 'wpme_com_paypal_proxy_deactivate' );
+register_deactivation_hook( __FILE__, 'wplazy_paypal_proxy_deactivate' );
 
 // Redirect to checkout template if URL has ?checkout=yes
 add_action( 'template_redirect', function() {
@@ -102,7 +101,7 @@ add_action( 'template_redirect', function() {
         }
 
         // If all checks pass, include the template
-        include WPME_COM_PAYPAL_PROXY_DIR . 'templates/checkout.php';
+        include WPLAZY_PAYPAL_PROXY_DIR . 'templates/checkout.php';
         exit;
     }
 } );

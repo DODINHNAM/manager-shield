@@ -2,14 +2,14 @@
 /**
  * The partner referrals data object.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Repository
+ * @package WooCommerce\LazyPaypal\ApiClient\Repository
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Repository;
+namespace WooCommerce\LazyPaypal\ApiClient\Repository;
 
-use WooCommerce\MecomPaypal\ApiClient\Helper\DccApplies;
+use WooCommerce\LazyPaypal\ApiClient\Helper\DccApplies;
 
 /**
  * Class PartnerReferralsData

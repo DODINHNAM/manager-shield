@@ -2,12 +2,12 @@
 /**
  * The DCC Applies helper checks if the current installation can use DCC or not.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Helper
+ * @package WooCommerce\LazyPaypal\ApiClient\Helper
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Helper;
+namespace WooCommerce\LazyPaypal\ApiClient\Helper;
 
 /**
  * Class DccApplies

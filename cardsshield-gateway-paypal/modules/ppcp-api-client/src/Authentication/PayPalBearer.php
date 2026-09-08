@@ -2,19 +2,19 @@
 /**
  * The PayPal bearer.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Authentication
+ * @package WooCommerce\LazyPaypal\ApiClient\Authentication
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Authentication;
+namespace WooCommerce\LazyPaypal\ApiClient\Authentication;
 
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\RequestTrait;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Token;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
-use WooCommerce\MecomPaypal\ApiClient\Helper\Cache;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\RequestTrait;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Token;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
+use WooCommerce\LazyPaypal\ApiClient\Helper\Cache;
 use Psr\Log\LoggerInterface;
-use WooCommerce\MecomPaypal\WcGateway\Settings\Settings;
+use WooCommerce\LazyPaypal\WcGateway\Settings\Settings;
 
 /**
  * Class PayPalBearer

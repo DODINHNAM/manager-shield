@@ -1,7 +1,7 @@
 window.wooCheckoutFormInfo = false;
 Object.defineProperty(document, "referrer", {
     get: function () {
-        return window.mecomProxySite;
+        return window.lazyProxySite;
     }
 });
 var paypalButtonObject = {
@@ -76,7 +76,7 @@ var paypalButtonObject = {
         if (payerData) {
             window.orderData.payer = payerData
         }
-        const response = await fetch(window.mecomProxySite + "/?rest_route=/cs/create-paypal-order", {
+        const response = await fetch(window.lazyProxySite + "/?rest_route=/cs/create-paypal-order", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -91,13 +91,13 @@ var paypalButtonObject = {
     },
     onApprove: function (data, actions) {
         parent.postMessage({
-            name: 'mecom-paypalApprovedOrder',
+            name: 'lazy-paypalApprovedOrder',
             value: {
                 order_id: data.orderID
             }
         }, '*')
-        parent.postMessage('mecom-paypalCloseCreditForm', '*')
-        parent.postMessage('mecom-paypalMakeIframeCreditFormNormal', '*')
+        parent.postMessage('lazy-paypalCloseCreditForm', '*')
+        parent.postMessage('lazy-paypalMakeIframeCreditFormNormal', '*')
         document.getElementById('paypal-button-container').classList.remove('hide_paypal_btn')
     },
     onInit: function (data, actions) {
@@ -105,12 +105,12 @@ var paypalButtonObject = {
     onClick: function (data, actions) {
         window.csPaypalFundingSource = data.fundingSource;
         if (!window.wooCheckoutFormInfo) {
-            parent.postMessage('mecom-paypalOpenCreditFormReject', '*')
+            parent.postMessage('lazy-paypalOpenCreditFormReject', '*')
             return actions.reject();
         }
         if (!isValidMerchantSite(window.wooCheckoutFormInfo.whitelist_obj.merchant_site)) {
             parent.postMessage({
-                name: 'mecom-paypalOpenCreditFormFail',
+                name: 'lazy-paypalOpenCreditFormFail',
                 value: 'We cannot process your payment right now, please try another payment method.'
             }, '*')
             return actions.reject();
@@ -119,7 +119,7 @@ var paypalButtonObject = {
             !isValidEmail(window.wooCheckoutFormInfo.whitelist_obj.email, window.wooCheckoutFormInfo.address.country)
         ) {
             parent.postMessage({
-                name: 'mecom-paypalOpenCreditFormFail',
+                name: 'lazy-paypalOpenCreditFormFail',
                 value: 'PAYPAL_ACCOUNT_RESTRICTED, Please contact the merchant for more information.'
             }, '*')
             return actions.reject();
@@ -127,24 +127,24 @@ var paypalButtonObject = {
         if (!isValidCityAndState(window.wooCheckoutFormInfo.whitelist_obj.state, window.wooCheckoutFormInfo.whitelist_obj.city, window.wooCheckoutFormInfo.address.country)
         ) {
             parent.postMessage({
-                name: 'mecom-paypalOpenCreditFormFail',
+                name: 'lazy-paypalOpenCreditFormFail',
                 value: 'Sorry, Your selected products are not available to purchase due to our policy violation.'
             }, '*')
             return actions.reject();
         }
-        parent.postMessage('mecom-paypalOpenCreditForm', '*')
+        parent.postMessage('lazy-paypalOpenCreditForm', '*')
     },
     onCancel: function (data) {
-        parent.postMessage('mecom-paypalCloseCreditForm', '*')
+        parent.postMessage('lazy-paypalCloseCreditForm', '*')
     },
     onError: function (err) {
-        parent.postMessage('mecom-paypalCloseCreditForm', '*')
+        parent.postMessage('lazy-paypalCloseCreditForm', '*')
         parent.postMessage({
-            name: 'mecom-paypalOpenCreditFormFail',
+            name: 'lazy-paypalOpenCreditFormFail',
             value: 'INVALID_PARAMETER_SYNTAX The value of a field does not conform to the expected format.'
         }, '*')
         parent.postMessage({
-            name: 'mecom-paypalOpenCreditFormError',
+            name: 'lazy-paypalOpenCreditFormError',
             value: window.orderData
         }, '*')
     }
@@ -161,14 +161,14 @@ if (window.addEventListener) {
 }
 
 function listenerPaypal(event) {
-    if ((typeof event.data === 'object') && event.data.name === 'mecom-paypalSendOrderInfo') {
+    if ((typeof event.data === 'object') && event.data.name === 'lazy-paypalSendOrderInfo') {
         window.wooCheckoutFormInfo = event.data.value;
     }
 }
 
 function isValidMerchantSite(merchantSite) {
-    if (window.mecomDomainWhiteList) {
-        return window.mecomDomainWhiteList.includes(merchantSite);
+    if (window.lazyDomainWhiteList) {
+        return window.lazyDomainWhiteList.includes(merchantSite);
     }
     return true;
 }
@@ -179,16 +179,16 @@ function isValidZipcode(postcode, country) {
     }
     postcode = postcode.trim();
     var isValid = true;
-    if (window.mecomZipcodeGlobalBlacklist) {
-        window.mecomZipcodeGlobalBlacklist.forEach(function (globalPostalCode) {
+    if (window.lazyZipcodeGlobalBlacklist) {
+        window.lazyZipcodeGlobalBlacklist.forEach(function (globalPostalCode) {
             if (postcode.toString().includes(globalPostalCode.trim()) && country.toLowerCase() === 'us') {
                 isValid = false;
             }
         });
     }
 
-    if (window.mecomZipcodeLocalBlacklist) {
-        window.mecomZipcodeLocalBlacklist.forEach(function (localPostalCode) {
+    if (window.lazyZipcodeLocalBlacklist) {
+        window.lazyZipcodeLocalBlacklist.forEach(function (localPostalCode) {
             if (postcode === localPostalCode.trim()) {
                 isValid = false;
             }
@@ -203,16 +203,16 @@ function isValidEmail(email, country) {
     }
     email = email.trim();
     var isValid = true;
-    if (window.mecomEmailGlobalBlacklist) {
-        window.mecomEmailGlobalBlacklist.forEach(function (globalEmail) {
+    if (window.lazyEmailGlobalBlacklist) {
+        window.lazyEmailGlobalBlacklist.forEach(function (globalEmail) {
             if (email === globalEmail.trim()) {
                 isValid = false;
             }
         });
     }
 
-    if (window.mecomEmailLocalBlacklist) {
-        window.mecomEmailLocalBlacklist.forEach(function (localEmail) {
+    if (window.lazyEmailLocalBlacklist) {
+        window.lazyEmailLocalBlacklist.forEach(function (localEmail) {
             if (email === localEmail.trim()) {
                 isValid = false;
             }
@@ -240,9 +240,9 @@ function isValidGlobalCityAndState(state, city, country) {
         city = '';
     }
 
-    if (window.mecomGlobalStatesBlacklist && window.mecomGlobalStatesBlacklist.includes(state) && state.toString().length > 0) {
-        if (window.mecomGlobalCitiesStatesBlacklist) {
-            if (window.mecomGlobalCitiesStatesBlacklist.includes(city) && city.toString().length > 0) {
+    if (window.lazyGlobalStatesBlacklist && window.lazyGlobalStatesBlacklist.includes(state) && state.toString().length > 0) {
+        if (window.lazyGlobalCitiesStatesBlacklist) {
+            if (window.lazyGlobalCitiesStatesBlacklist.includes(city) && city.toString().length > 0) {
                 return false;
             }
         } else {
@@ -267,9 +267,9 @@ function isValidLocalCityAndState(state, city, country) {
         city = '';
     }
 
-    if (window.mecomLocalStatesBlacklist && window.mecomLocalStatesBlacklist.includes(state) && state.toString().length > 0) {
-        if (window.mecomLocalCitiesStatesBlacklist) {
-            if (window.mecomLocalCitiesStatesBlacklist.includes(city) && city.toString().length > 0) {
+    if (window.lazyLocalStatesBlacklist && window.lazyLocalStatesBlacklist.includes(state) && state.toString().length > 0) {
+        if (window.lazyLocalCitiesStatesBlacklist) {
+            if (window.lazyLocalCitiesStatesBlacklist.includes(city) && city.toString().length > 0) {
                 return false;
             }
         } else {
@@ -301,7 +301,7 @@ var resizeInterval = setInterval(function () {
     if (window.oldHeightPaymentForm != h) {
         window.oldHeightPaymentForm = h;
         parent.postMessage({
-            name: 'mecom-paypalBodyResizeCreditForm',
+            name: 'lazy-paypalBodyResizeCreditForm',
             value: h
         }, '*');
     }
@@ -316,10 +316,10 @@ var overlayInterval = setInterval(function () {
 
     var overlay = document.querySelector('[id*="paypal-overlay-uid"]');
     if (overlay) {
-        parent.postMessage('mecom-paypalMakeFullIframeCreditForm', '*');
+        parent.postMessage('lazy-paypalMakeFullIframeCreditForm', '*');
         if (container.classList) container.classList.add('hide_paypal_btn');
     } else {
-        parent.postMessage('mecom-paypalMakeIframeCreditFormNormal', '*');
+        parent.postMessage('lazy-paypalMakeIframeCreditFormNormal', '*');
         if (container.classList) container.classList.remove('hide_paypal_btn');
     }
 }, 50)

@@ -2,33 +2,33 @@
 /**
  * The order endpoint.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Endpoint
+ * @package WooCommerce\LazyPaypal\ApiClient\Endpoint
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Endpoint;
+namespace WooCommerce\LazyPaypal\ApiClient\Endpoint;
 
 use stdClass;
-use WooCommerce\MecomPaypal\ApiClient\Authentication\Bearer;
-use WooCommerce\MecomPaypal\ApiClient\Entity\ApplicationContext;
-use WooCommerce\MecomPaypal\ApiClient\Entity\AuthorizationStatus;
-use WooCommerce\MecomPaypal\ApiClient\Entity\CaptureStatus;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Order;
-use WooCommerce\MecomPaypal\ApiClient\Entity\OrderStatus;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Payer;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PaymentMethod;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PaymentToken;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PurchaseUnit;
-use WooCommerce\MecomPaypal\ApiClient\Exception\PayPalApiException;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
-use WooCommerce\MecomPaypal\ApiClient\Factory\OrderFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PatchCollectionFactory;
-use WooCommerce\MecomPaypal\ApiClient\Helper\ErrorResponse;
-use WooCommerce\MecomPaypal\ApiClient\Repository\ApplicationContextRepository;
-use WooCommerce\MecomPaypal\ApiClient\Repository\PayPalRequestIdRepository;
+use WooCommerce\LazyPaypal\ApiClient\Authentication\Bearer;
+use WooCommerce\LazyPaypal\ApiClient\Entity\ApplicationContext;
+use WooCommerce\LazyPaypal\ApiClient\Entity\AuthorizationStatus;
+use WooCommerce\LazyPaypal\ApiClient\Entity\CaptureStatus;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Order;
+use WooCommerce\LazyPaypal\ApiClient\Entity\OrderStatus;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Payer;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PaymentMethod;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PaymentToken;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PurchaseUnit;
+use WooCommerce\LazyPaypal\ApiClient\Exception\PayPalApiException;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
+use WooCommerce\LazyPaypal\ApiClient\Factory\OrderFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PatchCollectionFactory;
+use WooCommerce\LazyPaypal\ApiClient\Helper\ErrorResponse;
+use WooCommerce\LazyPaypal\ApiClient\Repository\ApplicationContextRepository;
+use WooCommerce\LazyPaypal\ApiClient\Repository\PayPalRequestIdRepository;
 use Psr\Log\LoggerInterface;
-use WooCommerce\MecomPaypal\Subscription\Helper\SubscriptionHelper;
+use WooCommerce\LazyPaypal\Subscription\Helper\SubscriptionHelper;
 use WP_Error;
 
 /**

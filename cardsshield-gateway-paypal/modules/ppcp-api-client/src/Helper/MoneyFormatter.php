@@ -2,12 +2,12 @@
 /**
  * Class MoneyFormatter.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Entity
+ * @package WooCommerce\LazyPaypal\ApiClient\Entity
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Helper;
+namespace WooCommerce\LazyPaypal\ApiClient\Helper;
 
 /**
  * Class MoneyFormatter

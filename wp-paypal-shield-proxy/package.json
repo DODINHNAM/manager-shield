@@ -1,8 +1,8 @@
 {
-  "name": "wp-mecom-paypal-proxy",
+  "name": "wp-lazy-paypal-proxy",
   "version": "1.0.0",
   "description": "A WordPress plugin for integrating PayPal credit payment functionality.",
-  "main": "wp-mecom-paypal-proxy.php",
+  "main": "wp-lazy-paypal-proxy.php",
   "scripts": {
     "build": "echo 'Building project...'",
     "test": "echo 'Running tests...'"

@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
     $ver = file_exists( $js_file ) ? filemtime( $js_file ) : time();
 
     // Build URL relative to plugin root (use plugin main file as reference)
-    $plugin_main_file = dirname( __DIR__ ) . '/wp-mecom-paypal-proxy.php';
+    $plugin_main_file = dirname( __DIR__ ) . '/wp-lazy-paypal-proxy.php';
     $css_url = esc_url( plugins_url( 'assets/css/paypal-credit-payment-form.css', $plugin_main_file ) ) . '?v=' . $ver;
     ?>
     <link rel="stylesheet" data-build="<?php echo esc_attr( $ver ); ?>" href="<?php echo $css_url; ?>" />
@@ -37,19 +37,19 @@ defined( 'ABSPATH' ) || exit;
     $paypal_sdk_base_url = ($paypal_environment === 'live') ? 'https://www.paypal.com/sdk/js' : 'https://www.sandbox.paypal.com/sdk/js';
 
     // Prepare data for JavaScript
-    $mecom_proxy_site_url = esc_url( home_url('/') );
+    $lazy_proxy_site_url = esc_url( home_url('/') );
     ?>
     <script>
-        window.mecomProxySite = "<?php echo esc_url( rtrim(home_url('/'), '/') ); ?>";
-        window.mecomDomainWhiteList = undefined;
-        window.mecomZipcodeGlobalBlacklist = undefined;
-        window.mecomZipcodeLocalBlacklist = undefined;
-        window.mecomEmailGlobalBlacklist = undefined;
-        window.mecomEmailLocalBlacklist = undefined;
-        window.mecomGlobalStatesBlacklist = undefined;
-        window.mecomGlobalCitiesStatesBlacklist = undefined;
-        window.mecomLocalStatesBlacklist = ["d0cf1ef21f0ce65584e2453a3fb427f6591adca8","53c1d6afa31aaad85a6930481133ca5da8e088ce"];
-        window.mecomLocalCitiesStatesBlacklist = undefined;
+        window.lazyProxySite = "<?php echo esc_url( rtrim(home_url('/'), '/') ); ?>";
+        window.lazyDomainWhiteList = undefined;
+        window.lazyZipcodeGlobalBlacklist = undefined;
+        window.lazyZipcodeLocalBlacklist = undefined;
+        window.lazyEmailGlobalBlacklist = undefined;
+        window.lazyEmailLocalBlacklist = undefined;
+        window.lazyGlobalStatesBlacklist = undefined;
+        window.lazyGlobalCitiesStatesBlacklist = undefined;
+        window.lazyLocalStatesBlacklist = ["d0cf1ef21f0ce65584e2453a3fb427f6591adca8","53c1d6afa31aaad85a6930481133ca5da8e088ce"];
+        window.lazyLocalCitiesStatesBlacklist = undefined;
         window.csDisablePaypalButton = false;
     </script>
     <div id="paypal-button-container"></div>
@@ -61,9 +61,9 @@ defined( 'ABSPATH' ) || exit;
     $ver = file_exists( $js_file ) ? filemtime( $js_file ) : time();
 
     // Build URL relative to plugin root (use plugin main file as reference)
-    $plugin_main_file = dirname( __DIR__ ) . '/wp-mecom-paypal-proxy.php';
+    $plugin_main_file = dirname( __DIR__ ) . '/wp-lazy-paypal-proxy.php';
     $js_url = esc_url( plugins_url( 'assets/js/paypal-credit-payment-form.js', $plugin_main_file ) ) . '?v=' . $ver;
     ?>
-    <script id="mecom-paypal-js" data-build="<?php echo esc_attr( $ver ); ?>" src="<?php echo $js_url; ?>"></script>
+    <script id="lazy-paypal-js" data-build="<?php echo esc_attr( $ver ); ?>" src="<?php echo $js_url; ?>"></script>
 </body>
 </html>

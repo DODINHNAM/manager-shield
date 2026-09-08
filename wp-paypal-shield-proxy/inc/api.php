@@ -165,31 +165,31 @@ function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkou
 }
 
 add_action('init', function() {
-    if (isset($_GET['mecom-paypal-get-order'])) {
+    if (isset($_GET['lazy-paypal-get-order'])) {
         handle_get_order();
     }
-    if (isset($_GET['mecom-paypal-capture-order'])) {
+    if (isset($_GET['lazy-paypal-capture-order'])) {
         handle_capture_order();
     }
-    if (isset($_GET['mecom-paypal-authorize-order'])) {
+    if (isset($_GET['lazy-paypal-authorize-order'])) {
         handle_authorize_order();
     }
-    if (isset($_GET['mecom-pp-refund'])) {
+    if (isset($_GET['lazy-pp-refund'])) {
         handle_refund();
     }
-    if (isset($_GET['mecom-pp-capture-authorization-payment'])) {
+    if (isset($_GET['lazy-pp-capture-authorization-payment'])) {
         handle_capture_authorization_payment();
     }
-    if (isset($_GET['mecom-pp-cancel-authorization-payment'])) {
+    if (isset($_GET['lazy-pp-cancel-authorization-payment'])) {
         handle_cancel_authorization_payment();
     }
-    if (isset($_GET['mecom-pp-reauthorize-authorization-payment'])) {
+    if (isset($_GET['lazy-pp-reauthorize-authorization-payment'])) {
         handle_reauthorize_authorization_payment();
     }
 });
 
 function handle_get_order() {
-    // Logic to handle 'mecom-paypal-get-order' will be added here.
+    // Logic to handle 'lazy-paypal-get-order' will be added here.
     // This will involve getting the order details from PayPal.
     $order_id = json_decode(file_get_contents('php://input'))->order_id;
     $response = call_paypal_api(null, 'GET', '/v2/checkout/orders/' . $order_id);
@@ -197,7 +197,7 @@ function handle_get_order() {
 }
 
 function handle_capture_order() {
-    // Logic to handle 'mecom-paypal-capture-order' will be added here.
+    // Logic to handle 'lazy-paypal-capture-order' will be added here.
     // This will involve capturing the payment for a PayPal order.
     $order_id = $_GET['pp_order_id'];
     call_paypal_api(null, 'POST', '/v2/checkout/orders/' . $order_id . '/capture');
@@ -246,13 +246,13 @@ add_action('rest_api_init', function () {
 add_action( 'rest_api_init', function() {
     register_rest_route( 'cs', '/woo-paypal-get-form', array(
         'methods'  => WP_REST_Server::READABLE,
-        'callback' => 'wpme_com_paypal_proxy_rest_get_form',
+        'callback' => 'wplazy_paypal_proxy_rest_get_form',
         // Cho phép truy cập công khai; thay đổi nếu cần kiểm quyền
-        'permission_callback' => 'wpme_com_paypal_proxy_whitelist_permission_check',
+        'permission_callback' => 'wplazy_paypal_proxy_whitelist_permission_check',
     ) );
 } );
 
-function wpme_com_paypal_proxy_rest_get_form( WP_REST_Request $request ) {
+function wplazy_paypal_proxy_rest_get_form( WP_REST_Request $request ) {
     // Lấy và sanitize tham số
     $paypal_checkout = $request->get_param( 'paypal_checkout' );
     $intent = $request->get_param( 'intent' );
@@ -423,7 +423,7 @@ function get_webshield_config() {
  * @param WP_REST_Request $request The current REST API request.
  * @return bool|WP_Error True if the origin is whitelisted, WP_Error otherwise.
  */
-function wpme_com_paypal_proxy_whitelist_permission_check( WP_REST_Request $request ) {
+function wplazy_paypal_proxy_whitelist_permission_check( WP_REST_Request $request ) {
     $origin = $request->get_header( 'Origin' );
 
     if ( empty( $origin ) ) {

@@ -2,15 +2,15 @@
 /**
  * Returns the current application context.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Repository
+ * @package WooCommerce\LazyPaypal\ApiClient\Repository
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Repository;
+namespace WooCommerce\LazyPaypal\ApiClient\Repository;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\ApplicationContext;
-use WooCommerce\MecomPaypal\WcGateway\Endpoint\ReturnUrlEndpoint;
+use WooCommerce\LazyPaypal\ApiClient\Entity\ApplicationContext;
+use WooCommerce\LazyPaypal\WcGateway\Endpoint\ReturnUrlEndpoint;
 use Psr\Container\ContainerInterface;
 
 /**

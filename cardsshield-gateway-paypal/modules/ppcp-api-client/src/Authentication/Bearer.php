@@ -2,14 +2,14 @@
 /**
  * The bearer interface.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Authentication
+ * @package WooCommerce\LazyPaypal\ApiClient\Authentication
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Authentication;
+namespace WooCommerce\LazyPaypal\ApiClient\Authentication;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\Token;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Token;
 
 /**
  * Interface Bearer

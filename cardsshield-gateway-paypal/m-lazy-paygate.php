@@ -1,10 +1,9 @@
 <?php
 /*
- * Plugin Name: CardsShield Gateway PayPal
+ * Plugin Name: LazyShield Gateway PayPal
  * Plugin URI:
- * Description: CardsShield Gateway PayPal
- * Author: CardsShield
- * Author URI: https://cardsshield.com
+ * Description: LazyShield Gateway PayPal
+ * Author: LazyShield
  * Version: 2.8.4
  *
  /*
@@ -20,8 +19,8 @@ if (!defined('ABSPATH')) {
 require_once('class-wc-gateway-ppec-api-exception.php');
 require_once(plugin_dir_path(__FILE__) . 'utils.php');
 
-if ( ! class_exists( 'CSPayPalUpdateChecker' ) && is_admin()) {
-    class CSPayPalUpdateChecker {
+if ( ! class_exists( 'CSLazyPayPalUpdateChecker' ) && is_admin()) {
+    class CSLazyPayPalUpdateChecker {
 
         public $plugin_slug;
         public $version;
@@ -42,7 +41,7 @@ if ( ! class_exists( 'CSPayPalUpdateChecker' ) && is_admin()) {
         public function __construct() {
 
             $this->plugin_slug   = plugin_basename( __DIR__ );
-            $this->version       = OPT_MECOM_PAYPAL_VERSION;
+            $this->version       = OPT_LAZY_PAYPAL_VERSION;
             $this->cache_key     = 'cs_paypal_update_checker';
             $this->cache_allowed = true;
 
@@ -180,13 +179,13 @@ if ( ! class_exists( 'CSPayPalUpdateChecker' ) && is_admin()) {
         }
     }
 
-    new CSPayPalUpdateChecker();
+    new CSLazyPayPalUpdateChecker();
 }
 
 //Cron
-add_filter('cron_schedules', 'mecom_add_cron_interval');
+add_filter('cron_schedules', 'lazy_add_cron_interval');
 
-function mecom_add_cron_interval($schedules)
+function lazy_add_cron_interval($schedules)
 {
     $schedules['one_minute'] = array(
         'interval' => 60,
@@ -196,66 +195,66 @@ function mecom_add_cron_interval($schedules)
     return $schedules;
 }
 
-if (!wp_next_scheduled('mecom_gateway_paypal_rotation')) {
-    wp_schedule_event(time(), 'one_minute', 'mecom_gateway_paypal_rotation');
+if (!wp_next_scheduled('lazy_gateway_paypal_rotation')) {
+    wp_schedule_event(time(), 'one_minute', 'lazy_gateway_paypal_rotation');
 }
 
 // add an action hook for expiration check and notification check
-add_action('mecom_gateway_paypal_rotation', 'mecom_paypal_rotation_checker');
+add_action('lazy_gateway_paypal_rotation', 'lazy_paypal_rotation_checker');
 
-if (!wp_next_scheduled('mecom_gateway_paypal_daily')) {
-    wp_schedule_event(strtotime('23:59:59 ' . get_option('timezone_string')), 'daily', 'mecom_gateway_paypal_daily');
+if (!wp_next_scheduled('lazy_gateway_paypal_daily')) {
+    wp_schedule_event(strtotime('23:59:59 ' . get_option('timezone_string')), 'daily', 'lazy_gateway_paypal_daily');
 }
-add_action('mecom_gateway_paypal_daily', 'mecom_gateway_paypal_daily_process');
+add_action('lazy_gateway_paypal_daily', 'lazy_gateway_paypal_daily_process');
 
-$mecomPpSettings = get_option('woocommerce_mecom_paypal_settings');
-if (isset($mecomPpSettings['sync_tracking_automatic']) && $mecomPpSettings['sync_tracking_automatic'] === 'yes' && !wp_next_scheduled('mecom_gateway_paypal_cron_auto_sync')) {
-    wp_schedule_event(strtotime('7:00:00'), 'daily', 'mecom_gateway_paypal_cron_auto_sync');
-    wp_schedule_event(strtotime('8:00:00'), 'daily', 'mecom_gateway_paypal_cron_auto_sync');
-    wp_schedule_event(strtotime('9:00:00'), 'daily', 'mecom_gateway_paypal_cron_auto_sync');
+$lazyPpSettings = get_option('woocommerce_lazy_paypal_settings');
+if (isset($lazyPpSettings['sync_tracking_automatic']) && $lazyPpSettings['sync_tracking_automatic'] === 'yes' && !wp_next_scheduled('lazy_gateway_paypal_cron_auto_sync')) {
+    wp_schedule_event(strtotime('7:00:00'), 'daily', 'lazy_gateway_paypal_cron_auto_sync');
+    wp_schedule_event(strtotime('8:00:00'), 'daily', 'lazy_gateway_paypal_cron_auto_sync');
+    wp_schedule_event(strtotime('9:00:00'), 'daily', 'lazy_gateway_paypal_cron_auto_sync');
 }
-add_action('mecom_gateway_paypal_cron_auto_sync', 'mecom_gateway_paypal_cron_auto_sync_process');
-function mecom_gateway_paypal_daily_process()
+add_action('lazy_gateway_paypal_cron_auto_sync', 'lazy_gateway_paypal_cron_auto_sync_process');
+function lazy_gateway_paypal_daily_process()
 {
     // Reset paid amount
-    $rotationMethod = get_option(OPT_MECOM_PAYPAL_ROTATION_METHOD, OPT_CS_PAYPAL_BY_TIME);
+    $rotationMethod = get_option(OPT_LAZY_PAYPAL_ROTATION_METHOD, OPT_CS_PAYPAL_BY_TIME);
     if ( $rotationMethod === OPT_CS_PAYPAL_BY_AMOUNT) {
         resetPaidAmount();
     }
 }
-function mecom_gateway_paypal_cron_auto_sync_process()
+function lazy_gateway_paypal_cron_auto_sync_process()
 {
     syncTrackingInfo();                
 }
 
-add_filter('woocommerce_payment_gateways', 'mecom_add_gateway_class');
-function mecom_add_gateway_class($gateways)
+add_filter('woocommerce_payment_gateways', 'lazy_add_gateway_class');
+function lazy_add_gateway_class($gateways)
 {
-    $gateways[] = 'WC_MEcom_Gateway'; // your class name is here
+    $gateways[] = 'WC_Lazy_Gateway'; // your class name is here
     return $gateways;
 }
 
 add_action('get_header', 'handleReturn');
 add_action('wp', 'ensure_session'); // Ensure there is a customer session so that nonce is not invalidated by new session created on AJAX POST request.
 
-function mecom_paypal_rotation_checker()
+function lazy_paypal_rotation_checker()
 {
 
-    $rotationMethod = get_option(OPT_MECOM_PAYPAL_ROTATION_METHOD, OPT_CS_PAYPAL_BY_TIME);
+    $rotationMethod = get_option(OPT_LAZY_PAYPAL_ROTATION_METHOD, OPT_CS_PAYPAL_BY_TIME);
     if ( $rotationMethod != OPT_CS_PAYPAL_BY_TIME) {
         return;
     }
     // Auto Switching Proxy
-    $proxies = get_option(OPT_MECOM_PAYPAL_PROXIES, []);
+    $proxies = get_option(OPT_LAZY_PAYPAL_PROXIES, []);
     if (empty($proxies)) {
         return;
     }
-    $activatedProxy = get_option(OPT_MECOM_PAYPAL_ACTIVATED_PROXY, null);
+    $activatedProxy = get_option(OPT_LAZY_PAYPAL_ACTIVATED_PROXY, null);
     // if only has 1 proxy, don't rotate
     if (count($proxies) === 1 && isset($activatedProxy['id']) && $activatedProxy['id'] === $proxies[0]['id']) {
         return;
     }
-    $lastActivatedTimestamp = get_option(OPT_MECOM_PAYPAL_CURRENT_ROTATION_VALUE, 0);
+    $lastActivatedTimestamp = get_option(OPT_LAZY_PAYPAL_CURRENT_ROTATION_VALUE, 0);
 
     $hasDeletedActivateProxy = false;
 
@@ -278,8 +277,8 @@ function mecom_paypal_rotation_checker()
                         // Active the next one
                         $needToActivateProxy = $proxies[$i + 1];
                     }
-                    update_option(OPT_MECOM_PAYPAL_ACTIVATED_PROXY, $needToActivateProxy, true);
-                    update_option(OPT_MECOM_PAYPAL_CURRENT_ROTATION_VALUE, time(), true);
+                    update_option(OPT_LAZY_PAYPAL_ACTIVATED_PROXY, $needToActivateProxy, true);
+                    update_option(OPT_LAZY_PAYPAL_CURRENT_ROTATION_VALUE, time(), true);
                     logRotation(OPT_CS_PAYPAL_BY_TIME, $needToActivateProxy, "Auto");
                     $hasDeletedActivateProxy = false;
                     break;
@@ -289,8 +288,8 @@ function mecom_paypal_rotation_checker()
     }
 
     if (empty($activatedProxy) || $hasDeletedActivateProxy) {
-        update_option(OPT_MECOM_PAYPAL_ACTIVATED_PROXY, $proxies[0], true);
-        update_option(OPT_MECOM_PAYPAL_CURRENT_ROTATION_VALUE, time(), true);
+        update_option(OPT_LAZY_PAYPAL_ACTIVATED_PROXY, $proxies[0], true);
+        update_option(OPT_LAZY_PAYPAL_CURRENT_ROTATION_VALUE, time(), true);
         logRotation(OPT_CS_PAYPAL_BY_TIME, $proxies[0], "Auto");
     }
 }
@@ -314,7 +313,7 @@ function ensure_session()
 function handleReturn()
 {
     global $woocommerce;
-    if (isset($_GET["woo-mecom-return"]) && !empty($_GET['order_id'])) {
+    if (isset($_GET["woo-lazy-return"]) && !empty($_GET['order_id'])) {
         
         $isError = $_GET['error'] == 1;
         $isCancel = $_GET['cancel'] == 1;
@@ -322,14 +321,14 @@ function handleReturn()
         $order = wc_get_order($order_id);
         $proxyUrl = $order->get_meta( METAKEY_PAYPAL_PROXY_URL);
         $proxyId = $order->get_meta( METAKEY_PAYPAL_PROXY_ID);
-        $order->add_order_note(sprintf(__('Paypal process info at proxy %s, message: %s', 'mecom'),
+        $order->add_order_note(sprintf(__('Paypal process info at proxy %s, message: %s', 'lazy'),
             $proxyUrl,
             'Start handle Paypal checkout result'
         ));
         if ($isError) {
-            wc_add_notice(__('We cannot process your payment right now, please try another payment method.[1]', 'mecom'), 'error');
+            wc_add_notice(__('We cannot process your payment right now, please try another payment method.[1]', 'lazy'), 'error');
             $order->update_status('failed');
-            $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+            $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $proxyUrl,
                 isset( $_GET['err_msg'] ) ? $_GET['err_msg'] : 'Unknown error'
                 )); 
@@ -351,7 +350,7 @@ function handleReturn()
             $payer_data["merchant_site"] = get_home_url();
             $purchaseUnitsFromWooOrder = get_purchase_unit_from_order($order);
             $payer_data["purchase_units"] = $purchaseUnitsFromWooOrder;
-            $method = $paymentIntent == OPT_CS_PAYPAL_AUTHORIZE ? 'mecom-pp-authorize-payment' : 'mecom-pp-capture-payment';
+            $method = $paymentIntent == OPT_CS_PAYPAL_AUTHORIZE ? 'lazy-pp-authorize-payment' : 'lazy-pp-capture-payment';
             $proxyCapturePaymentAPI = $proxyUrl . "?$method=1&" . http_build_query($payer_data);
 
             $request = wp_remote_post($proxyCapturePaymentAPI, [
@@ -366,8 +365,8 @@ function handleReturn()
             ] );
             if (is_wp_error($request)) {
                 csPaypalErrorLog($request, "$method error");
-                wc_add_notice(__('We cannot process your payment right now, please try another payment method.[2]', 'mecom'), 'error');
-                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                wc_add_notice(__('We cannot process your payment right now, please try another payment method.[2]', 'lazy'), 'error');
+                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $proxyUrl,
                     'Paypal checkout capture API Error'
                 )); 
@@ -378,9 +377,9 @@ function handleReturn()
             $data = json_decode($responseBody);
             if (empty($data)) {
                 csPaypalErrorLog($responseBody, "$method empty response!");
-                wc_add_notice(__('We cannot process your payment right now, please try another payment method.[3]', 'mecom'), 'error');
+                wc_add_notice(__('We cannot process your payment right now, please try another payment method.[3]', 'lazy'), 'error');
                 $order->update_status('failed');
-                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $proxyUrl,
                     'Paypal checkout capture API response empty'
                 ));
@@ -388,9 +387,9 @@ function handleReturn()
             }
 
             if ( ! $data->success ) {
-                wc_add_notice(__($data->message, 'mecom'), 'error');
+                wc_add_notice(__($data->message, 'lazy'), 'error');
                 if ($order->has_status('pending')) {
-                    $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                    $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                         $proxyUrl,
                         $data->message
                     ));
@@ -401,7 +400,7 @@ function handleReturn()
             $transaction_id = $data->transaction_id;
 
             if ($paymentIntent == OPT_CS_PAYPAL_AUTHORIZE) {
-                $order->add_order_note(sprintf(__('PayPal authorized by proxy %s, ID: %s', 'mecom'), $proxyUrl, $transaction_id), 0, false);
+                $order->add_order_note(sprintf(__('PayPal authorized by proxy %s, ID: %s', 'lazy'), $proxyUrl, $transaction_id), 0, false);
 
                 $order->update_status( 'on-hold', 'Payment can be captured.');
 
@@ -409,9 +408,9 @@ function handleReturn()
                 $order->save_meta_data();
             } else {
                 //Save the processed proxy for this order (using for refund later)
-                $order->add_order_note(sprintf(__('PayPal charged by proxy %s', 'mecom'), $proxyUrl), 0, false);
+                $order->add_order_note(sprintf(__('PayPal charged by proxy %s', 'lazy'), $proxyUrl), 0, false);
                 // some notes to customer (replace true with false to make it private)
-                $order->add_order_note(sprintf(__('PayPal Checkout charge complete (Charge ID: %s)', 'mecom'), $transaction_id));
+                $order->add_order_note(sprintf(__('PayPal Checkout charge complete (Charge ID: %s)', 'lazy'), $transaction_id));
 
                 $sellerPayableBreakdown = $data->seller_receivable_breakdown;
                 $paypalFee              = $sellerPayableBreakdown->paypal_fee->value;
@@ -434,7 +433,7 @@ function handleReturn()
                 csEndpointPerformShieldRotateByAmount($order);
             } else {
                 if (isEnabledAmountRotation()) {
-                    $activatedProxy = findActivatedProxyDataById(get_option(OPT_MECOM_PAYPAL_PROXIES, []), $proxyId);
+                    $activatedProxy = findActivatedProxyDataById(get_option(OPT_LAZY_PAYPAL_PROXIES, []), $proxyId);
                     if ($activatedProxy) {
                         updateRotationAmount($proxyId, $order->get_total());
                         performProxyAmountRotation($activatedProxy, $order->get_total());
@@ -451,7 +450,7 @@ function handleReturn()
             wp_redirect($order->get_checkout_order_received_url());
             exit();
         } else {
-            $order->add_order_note(sprintf(__('Paypal process info at proxy %s, message: %s', 'mecom'),
+            $order->add_order_note(sprintf(__('Paypal process info at proxy %s, message: %s', 'lazy'),
                 $proxyUrl,
                 'Customer canceled and returned to merchant'
             ));
@@ -484,8 +483,8 @@ function handleReturn()
             echo 'FAILED'; exit();
         }
         $ppPayment = $data->order->purchase_units[0]->payments->captures[0];
-        $order->add_order_note(sprintf(__('Paypal charged by proxy %s', 'mecom'), $data['shield_url']), 0, false);
-        $order->add_order_note(sprintf(__('Paypal Checkout charge complete (Payment ID: %s)', 'mecom'), $ppPayment->id));
+        $order->add_order_note(sprintf(__('Paypal charged by proxy %s', 'lazy'), $data['shield_url']), 0, false);
+        $order->add_order_note(sprintf(__('Paypal Checkout charge complete (Payment ID: %s)', 'lazy'), $ppPayment->id));
 
         $sellerPayableBreakdown = $data->seller_receivable_breakdown;
         $paypalFee = $sellerPayableBreakdown->paypal_fee->value;
@@ -507,11 +506,11 @@ function handleReturn()
         exit;
     }
     
-    if (isset($_GET['mecom-paypal-return-oc-result']) && !empty($_GET['order_id']) && !empty($_GET['pp_order_id'])) {
+    if (isset($_GET['lazy-paypal-return-oc-result']) && !empty($_GET['order_id']) && !empty($_GET['pp_order_id'])) {
         $order = wc_get_order($_GET['order_id']);
         if (!$order) {
-            wc_add_notice(__('We cannot process your payment right now, please try another payment method.[4]', 'mecom'), 'error');
-            $order->add_order_note(sprintf(__('Paypal over charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+            wc_add_notice(__('We cannot process your payment right now, please try another payment method.[4]', 'lazy'), 'error');
+            $order->add_order_note(sprintf(__('Paypal over charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                 $proxyUrl,
                 'Paypal confirm over charged failed.'
             ));
@@ -519,12 +518,12 @@ function handleReturn()
             redirectToCheckoutPage();
         }
         $activeProxyId = $order->get_meta(METAKEY_PAYPAL_PROXY_ID);
-        $activatedProxy = findActivatedProxyDataById(get_option(OPT_MECOM_PAYPAL_PROXIES, []), $activeProxyId);
+        $activatedProxy = findActivatedProxyDataById(get_option(OPT_LAZY_PAYPAL_PROXIES, []), $activeProxyId);
         $getActivateProxyUrl = $activatedProxy['url'];
         $orderData['order_id'] = $_GET['order_id'];
         $orderData['pp_order_id'] = $_GET['pp_order_id'];
         $orderData['merchant_site'] = get_home_url();
-        $orderData['bfp'] = WC()->session->get('mecom-paypal-browser-fingerprint');
+        $orderData['bfp'] = WC()->session->get('lazy-paypal-browser-fingerprint');
         $urlCheckout = $getActivateProxyUrl . "?rest_route=/cs/paypal-complete-oc-order"
             . '&' . http_build_query($orderData);
         $proxyProcess = wp_remote_post($urlCheckout, [
@@ -540,7 +539,7 @@ function handleReturn()
         if (is_wp_error($proxyProcess)) {
             csPaypalErrorLog($proxyProcess, "pp request checkout error[10]");
         }
-        $order->add_order_note(sprintf(__('Paypal handle order over charge at proxy url %s', 'mecom'),
+        $order->add_order_note(sprintf(__('Paypal handle order over charge at proxy url %s', 'lazy'),
             $getActivateProxyUrl
         ));
         $responseBody = wp_remote_retrieve_body($proxyProcess);
@@ -552,8 +551,8 @@ function handleReturn()
         $order->update_meta_data('_shield_paypal_funding_source', $data->order->purchase_units[0]->custom_id ?? null);
         $order->save_meta_data();
         if ($data->status === 'success' && isset($ppPayment)) {
-            $order->add_order_note(sprintf(__('Paypal over charged by proxy %s', 'mecom'), $getActivateProxyUrl), 0, false);
-            $order->add_order_note(sprintf(__('Paypal Checkout over charge complete (Payment ID: %s)', 'mecom'), $ppPayment->id));
+            $order->add_order_note(sprintf(__('Paypal over charged by proxy %s', 'lazy'), $getActivateProxyUrl), 0, false);
+            $order->add_order_note(sprintf(__('Paypal Checkout over charge complete (Payment ID: %s)', 'lazy'), $ppPayment->id));
 
             $sellerPayableBreakdown = $data->seller_receivable_breakdown;
             $paypalFee = $sellerPayableBreakdown->paypal_fee->value;
@@ -583,8 +582,8 @@ function handleReturn()
             $woocommerce->cart->empty_cart();
             return wp_redirect($order->get_checkout_order_received_url());
         } else {
-            wc_add_notice(__('We cannot process your payment right now, please try another payment method.[5]', 'mecom'), 'error');
-            $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+            wc_add_notice(__('We cannot process your payment right now, please try another payment method.[5]', 'lazy'), 'error');
+            $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                 $getActivateProxyUrl,
                 'Paypal confirm over charged failed.[2]'
             ));
@@ -593,23 +592,23 @@ function handleReturn()
         }
     }
     
-    if (isset($_GET['mecom-paypal-cancel-oc']) && !empty($_GET['order_id']) && !empty($_GET['pp_order_id'])) {
+    if (isset($_GET['lazy-paypal-cancel-oc']) && !empty($_GET['order_id']) && !empty($_GET['pp_order_id'])) {
         redirectToCheckoutPage();
     }
     
-    if(isset($_GET['mecom-return-paypal-whitelist-error']) && isset($_GET['err_type']) &&  isset($_GET['order_id'])) {
+    if(isset($_GET['lazy-return-paypal-whitelist-error']) && isset($_GET['err_type']) &&  isset($_GET['order_id'])) {
         $order = wc_get_order($_GET['order_id']);
         $order->update_status('failed');
         switch ($_GET['err_type']) {
             case 'domain_whitelist_not_allow': 
-                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $_GET['proxy_site'],
                     'Domain whitelist is required'
                 )); 
                 wc_add_notice('We cannot process your payment right now, please try another payment method.[6]', 'error');
                 break;
             case 'customer_zipcode_not_allow': 
-                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $_GET['proxy_site'],
                     "Customer's zipcode is blacklisted"
                 )); 
@@ -617,7 +616,7 @@ function handleReturn()
                 wc_add_notice('We cannot process your payment right now, please try another payment method.[7]', 'error');
                 break;
             case 'customer_email_not_allow': 
-                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $_GET['proxy_site'],
                     "Customer's email is blacklisted"
                 )); 
@@ -625,7 +624,7 @@ function handleReturn()
                 wc_add_notice('We cannot process your payment right now, please try another payment method.[8]', 'error');
                 break;
             case 'states_cities_not_allow': 
-                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $_GET['proxy_site'],
                     "Customer's State and City is blacklisted"
                 )); 
@@ -633,14 +632,14 @@ function handleReturn()
                 wc_add_notice('We cannot process your payment right now, please try another payment method.[9]', 'error');
                 break;
             case 'order_total_not_allow': 
-                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $_GET['proxy_site'],
                     "Order value exceeds PayPal capability"
                 )); 
                 wc_add_notice('We cannot process your payment right now, please try another payment method.[10]', 'error');
                 break;
             case 'customer_ip_blacklisted': 
-                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $_GET['proxy_site'],
                     "Smart Shield+ blocked this payment due to high risk exposure."
                 )); 
@@ -650,19 +649,19 @@ function handleReturn()
         redirectToCheckoutPage();
     }
     
-    if (isset($_GET['mecom-paypal-note-debug'])) {
+    if (isset($_GET['lazy-paypal-note-debug'])) {
         csPaypalDebugLog(file_get_contents('php://input'), "paypal pp_order_id debug");
         exit();
     }
     
-    if (isset($_GET['mecom-paypal-button-create-order']) && isset($_POST['current_proxy_id'])) {
+    if (isset($_GET['lazy-paypal-button-create-order']) && isset($_POST['current_proxy_id'])) {
         $isEnableEndpointMode = isCsPaypalEnableEndpointMode();
         if ($isEnableEndpointMode) {
             $activatedProxy = ['id' => null, 'url' => $_POST['current_proxy_url']];
         } else {
-            $activatedProxy = findActivatedProxyDataById(get_option(OPT_MECOM_PAYPAL_PROXIES, []), $_POST['current_proxy_id']);
+            $activatedProxy = findActivatedProxyDataById(get_option(OPT_LAZY_PAYPAL_PROXIES, []), $_POST['current_proxy_id']);
         }
-        $response = wp_remote_post($activatedProxy['url'] . '?mecom-paypal-create-order=1&merchant_site=' . get_home_url(), [
+        $response = wp_remote_post($activatedProxy['url'] . '?lazy-paypal-create-order=1&merchant_site=' . get_home_url(), [
             'sslverify' => csPaypalGetSSLVerifyStatus(),
             'timeout' => 5 * 60,
             'headers' => [
@@ -678,7 +677,7 @@ function handleReturn()
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body);
         if($data->status === 'failed' && isset($data->error_detail)) {
-            csPaypalErrorLog($body, 'mecom-paypal-button-create-order FAIL');
+            csPaypalErrorLog($body, 'lazy-paypal-button-create-order FAIL');
             if (in_array($data->error_detail, ['PAYEE_ACCOUNT_LOCKED_OR_CLOSED', 'PAYEE_ACCOUNT_RESTRICTED'])) {
                 if ($isEnableEndpointMode) {
                     csEndpointMoveToUnusedShield($activatedProxy['url']);
@@ -697,7 +696,7 @@ function handleReturn()
         exit();
     }
     
-    if (isset($_POST['mecom-paypal-button-create-woo-order']) && $_POST['pp_order_id']) {
+    if (isset($_POST['lazy-paypal-button-create-woo-order']) && $_POST['pp_order_id']) {
         $cart = WC()->cart;
         if (!empty($_POST['order_id'])) {
             handlePaypalButtonCreateWooOrderAtPayForOrder($_POST['order_id'], $_POST['pp_order_id'], $_POST['current_proxy_id'], $_POST['current_proxy_url']);            
@@ -706,7 +705,7 @@ function handleReturn()
         }
     }
     
-   if (isset($_POST['mecom-paypal-button-reset-carts-and-get-purchase-units']) && $_POST['product_id'] && $_POST['quantity'] ) {
+   if (isset($_POST['lazy-paypal-button-reset-carts-and-get-purchase-units']) && $_POST['product_id'] && $_POST['quantity'] ) {
         WC()->cart->empty_cart();
         $product = wc_get_product($_POST['product_id']);
         if(isset($_POST['variations']) && is_array($_POST['variations'])) {
@@ -724,12 +723,12 @@ function handleReturn()
         echo json_encode([$purchaseUnits]); exit();
     }
 	
-	if (isset($_POST['mecom-paypal-button-reset-carts'])) {
+	if (isset($_POST['lazy-paypal-button-reset-carts'])) {
         WC()->cart->empty_cart();
         echo json_encode(['status' => 'success']); exit();
     }
    
-    if (isset($_POST['mecom-paypal-button-calculate-to-get-purchase-units'])) {
+    if (isset($_POST['lazy-paypal-button-calculate-to-get-purchase-units'])) {
         if(isset($_POST['order_id']) && !empty($_POST['order_id'])) {
             $purchaseUnits = get_purchase_unit_from_order(wc_get_order(get_query_var('order-pay')));
         } else {
@@ -745,10 +744,10 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
         if ($isEnableEndpointMode) {
             $activatedProxy = ['id' => null, 'url' => $currentProxyUrl];
         } else {
-            $activatedProxy = findActivatedProxyDataById(get_option(OPT_MECOM_PAYPAL_PROXIES, []), $currentProxyId);
+            $activatedProxy = findActivatedProxyDataById(get_option(OPT_LAZY_PAYPAL_PROXIES, []), $currentProxyId);
         }
         $getActivateProxyUrl = $activatedProxy['url'];
-        $response = wp_remote_post($activatedProxy['url'] . '?mecom-paypal-get-order=1&merchant_site=' . get_home_url(), [
+        $response = wp_remote_post($activatedProxy['url'] . '?lazy-paypal-get-order=1&merchant_site=' . get_home_url(), [
             'sslverify' => csPaypalGetSSLVerifyStatus(),
             'timeout' => 5 * 60,
             'headers' => [
@@ -763,7 +762,7 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
         }
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body);
-        csPaypalDebugLog([$activatedProxy, $response, $body], 'mecom-paypal-get-order RESPONSE: ' . __LINE__);
+        csPaypalDebugLog([$activatedProxy, $response, $body], 'lazy-paypal-get-order RESPONSE: ' . __LINE__);
         if ($data->status === 'failed') {
             echo json_encode([
                 'result' => 'failed',
@@ -793,7 +792,7 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
         $order->set_address($address, 'billing');
         $order->set_address($address, 'shipping');
         $payment_gateways = WC()->payment_gateways->payment_gateways();
-        $order->set_payment_method($payment_gateways['mecom_paypal']);
+        $order->set_payment_method($payment_gateways['lazy_paypal']);
         $order->set_created_via('paypal_express_checkout');
         $order->set_customer_id(apply_filters('woocommerce_checkout_customer_id', get_current_user_id()));
         $order->set_currency(get_woocommerce_currency());
@@ -810,7 +809,7 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
                         $item = new WC_Order_Item_Shipping();
                         $item->set_shipping_rate($chosen_method);
                         if (empty($chosen_method->get_taxes())) {
-                            add_action('woocommerce_order_item_shipping_after_calculate_taxes', 'mecom_pp_remove_shipping_taxes');                            
+                            add_action('woocommerce_order_item_shipping_after_calculate_taxes', 'lazy_pp_remove_shipping_taxes');                            
                         }
                         foreach ($chosen_method->get_meta_data() as $key => $value) {
                                 $item->add_meta_data($key, $value, true);
@@ -823,14 +822,14 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
         $order->calculate_totals();
         
         // Process paypal payment at Proxy
-        $mecomPPGateway = WC_MEcom_Gateway::load();
-        $order->update_meta_data( METAKEY_PAYPAL_PROCESSING_ORDER_KEY, WC()->session->get('mecom-paypal-processing-order-key'));
+        $lazyPPGateway = WC_Lazy_Gateway::load();
+        $order->update_meta_data( METAKEY_PAYPAL_PROCESSING_ORDER_KEY, WC()->session->get('lazy-paypal-processing-order-key'));
         $order->update_meta_data(METAKEY_PAYPAL_PROXY_URL, $getActivateProxyUrl);
         $order->update_meta_data('_shield_payment_method', 'paypal');
         $order->update_meta_data('_shield_payment_url', $getActivateProxyUrl);
         $order->update_meta_data( METAKEY_PAYPAL_PROXY_ID, $activatedProxy['id']);
-        $order->update_meta_data( METAKEY_CS_PAYPAL_INTENT, $mecomPPGateway->intent);
-        $order->add_order_note(sprintf(__('Express Paypal processing info at proxy %s, message: %s', 'mecom'),
+        $order->update_meta_data( METAKEY_CS_PAYPAL_INTENT, $lazyPPGateway->intent);
+        $order->add_order_note(sprintf(__('Express Paypal processing info at proxy %s, message: %s', 'lazy'),
             $getActivateProxyUrl,
             'Start checkout paypal'
         ));
@@ -838,7 +837,7 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
         $productNameArr = [];
         foreach ($order_items as $it) {
             $product = wc_get_product($it['product_id']);
-            $product_name = $mecomPPGateway->getProductTitle($product->get_title(), $order_id);
+            $product_name = $lazyPPGateway->getProductTitle($product->get_title(), $order_id);
             $item_quantity = $it['quantity'];
             $productNameArr[] = $product_name . ' x ' . $item_quantity;
         }
@@ -846,7 +845,7 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
         $orderData = [
             'total' => $order->get_total(),
             'currency' => $order->get_currency(),
-            'invoice_id' => $mecomPPGateway->invoice_prefix . $order->get_order_number(),
+            'invoice_id' => $lazyPPGateway->invoice_prefix . $order->get_order_number(),
             'items' => [
                 ['name' => implode(", ", $productNameArr)]
             ],
@@ -859,12 +858,12 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
         $orderData['customer_zipcode'] = $address['postcode'];
         $orderData['customer_email'] = $address['email'];
         $orderData['shipping_address_country'] = $address['country'];
-        $orderData['bfp'] = WC()->session->get('mecom-paypal-browser-fingerprint');
-        if ($mecomPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
-            $urlCheckout = $getActivateProxyUrl . "?mecom-paypal-authorize-order=1"
+        $orderData['bfp'] = WC()->session->get('lazy-paypal-browser-fingerprint');
+        if ($lazyPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
+            $urlCheckout = $getActivateProxyUrl . "?lazy-paypal-authorize-order=1"
                 . '&' . http_build_query($orderData);
         } else {
-            $urlCheckout = $getActivateProxyUrl . "?mecom-paypal-capture-order=1"
+            $urlCheckout = $getActivateProxyUrl . "?lazy-paypal-capture-order=1"
                 . '&' . http_build_query($orderData);
 
         }
@@ -881,13 +880,13 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
         if (is_wp_error($proxyProcess)) {
             csPaypalErrorLog($proxyProcess, "pp request checkout error[13]");
         }
-        $order->add_order_note(sprintf(__('Express Paypal handle order at proxy url %s', 'mecom'),
+        $order->add_order_note(sprintf(__('Express Paypal handle order at proxy url %s', 'lazy'),
             $getActivateProxyUrl
         ));
         $responseBody = wp_remote_retrieve_body($proxyProcess);
         $data = json_decode($responseBody);
         if ($data->status === 'success') {
-            if ($mecomPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
+            if ($lazyPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
                 $ppPayment = $data->order->purchase_units[0]->payments->authorizations[0];
             } else {
                 $ppPayment = $data->order->purchase_units[0]->payments->captures[0];
@@ -897,13 +896,13 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
         $order->update_meta_data('_shield_paypal_funding_source', $data->order->purchase_units[0]->custom_id ?? null);
         $order->save_meta_data();
         if ($data->status === 'success' && isset($ppPayment)) {
-            if ($mecomPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
-                $order->add_order_note(sprintf(__('Express PayPal authorized by proxy %s, ID: %s', 'mecom'), $getActivateProxyUrl, $ppPayment->id), 0, false);
+            if ($lazyPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
+                $order->add_order_note(sprintf(__('Express PayPal authorized by proxy %s, ID: %s', 'lazy'), $getActivateProxyUrl, $ppPayment->id), 0, false);
                 $order->update_status('on-hold', 'Express Payment can be captured.');
                 $order->update_meta_data( METAKEY_CS_PAYPAL_CAPTURED, 'false');
             } else {
-                $order->add_order_note(sprintf(__('Express Paypal charged by proxy %s', 'mecom'), $getActivateProxyUrl), 0, false);
-                $order->add_order_note(sprintf(__('Express Paypal Checkout charge complete (Payment ID: %s)', 'mecom'), $ppPayment->id));
+                $order->add_order_note(sprintf(__('Express Paypal charged by proxy %s', 'lazy'), $getActivateProxyUrl), 0, false);
+                $order->add_order_note(sprintf(__('Express Paypal Checkout charge complete (Payment ID: %s)', 'lazy'), $ppPayment->id));
 
                 $sellerPayableBreakdown = $data->seller_receivable_breakdown;
                 $paypalFee = $sellerPayableBreakdown->paypal_fee->value;
@@ -937,40 +936,40 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
         } else {
             $msg_err = 'We cannot process your PayPal payment now, please try again with another method.';
             if ($data->code === 'domain_whitelist_not_allow') {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     'Domain whitelist is required'
                 ));
                 $msg_err = 'We cannot process your payment right now, please try another payment method.[21]';
             } else if ($data->code === 'order_total_not_allow') {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     "Order value exceeds PayPal capability"
                 ));
                 $msg_err = 'We cannot process your payment right now, please try another payment method.[22]';
             } else if ($data->code === 'customer_zipcode_not_allow') {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     "Customer's zipcode is blacklisted"
                 ));
                 csPaypalSendMailOrderBlacklisted($order->get_id());
                 $msg_err = 'We cannot process your payment right now, please try another payment method.[23]';
             } else if ($data->code === 'customer_email_not_allow') {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     "Customer's email is blacklisted"
                 ));
                 csPaypalSendMailOrderBlacklisted($order->get_id());
                 $msg_err = 'We cannot process your payment right now, please try another payment method.[24]';
             } else if ($data->code === 'states_cities_not_allow') {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     "Customer's State and City is blacklisted"
                 ));
                 csPaypalSendMailOrderBlacklisted($order->get_id());
                 $msg_err = 'We cannot process your payment right now, please try another payment method.[25]';
             } else {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     $data->code
                 ));
@@ -992,20 +991,20 @@ function handlePaypalButtonCreateWooOrderAtPayForOrder($order_id, $ppOrderId, $c
         if ($isEnableEndpointMode) {
             $activatedProxy = ['id' => null, 'url' => $currentProxyUrl];
         } else {
-            $activatedProxy = findActivatedProxyDataById(get_option(OPT_MECOM_PAYPAL_PROXIES, []), $currentProxyId);
+            $activatedProxy = findActivatedProxyDataById(get_option(OPT_LAZY_PAYPAL_PROXIES, []), $currentProxyId);
         }
         $getActivateProxyUrl = $activatedProxy['url'];
         // Add Order Shipping
         // Process paypal payment at Proxy
         $order = wc_get_order($order_id);
-        $mecomPPGateway = WC_MEcom_Gateway::load();
-        $order->update_meta_data( METAKEY_PAYPAL_PROCESSING_ORDER_KEY, WC()->session->get('mecom-paypal-processing-order-key'));
+        $lazyPPGateway = WC_Lazy_Gateway::load();
+        $order->update_meta_data( METAKEY_PAYPAL_PROCESSING_ORDER_KEY, WC()->session->get('lazy-paypal-processing-order-key'));
         $order->update_meta_data( METAKEY_PAYPAL_PROXY_URL, $getActivateProxyUrl);
         $order->update_meta_data('_shield_payment_method', 'paypal');
         $order->update_meta_data('_shield_payment_url', $getActivateProxyUrl);
         $order->update_meta_data( METAKEY_PAYPAL_PROXY_ID, $activatedProxy['id']);
-        $order->update_meta_data( METAKEY_CS_PAYPAL_INTENT, $mecomPPGateway->intent);
-        $order->add_order_note(sprintf(__('Express Paypal processing info at proxy %s, message: %s', 'mecom'),
+        $order->update_meta_data( METAKEY_CS_PAYPAL_INTENT, $lazyPPGateway->intent);
+        $order->add_order_note(sprintf(__('Express Paypal processing info at proxy %s, message: %s', 'lazy'),
             $getActivateProxyUrl,
             'Start checkout paypal'
         ));
@@ -1014,7 +1013,7 @@ function handlePaypalButtonCreateWooOrderAtPayForOrder($order_id, $ppOrderId, $c
         foreach ( $order_items as $it ) {
             $product = wc_get_product( $it->get_product_id() );
             //$product_name = $product->get_name(); // Get the product name
-            $product_name = $mecomPPGateway->getProductTitle( $product->get_title() , $order_id);
+            $product_name = $lazyPPGateway->getProductTitle( $product->get_title() , $order_id);
 
             $item_quantity = $it->get_quantity(); // Get the item quantity
 
@@ -1024,7 +1023,7 @@ function handlePaypalButtonCreateWooOrderAtPayForOrder($order_id, $ppOrderId, $c
         $orderData = [
             'total' => $order->get_total(),
             'currency' => $order->get_currency(),
-            'invoice_id' => $mecomPPGateway->invoice_prefix . $order->get_order_number(),
+            'invoice_id' => $lazyPPGateway->invoice_prefix . $order->get_order_number(),
             'items' => [
                 ['name' => implode(", ", $productNameArr)]
             ],
@@ -1034,12 +1033,12 @@ function handlePaypalButtonCreateWooOrderAtPayForOrder($order_id, $ppOrderId, $c
         $orderData['order_id'] = $order_id;
         $orderData['pp_order_id'] = $ppOrderId;
         $orderData['merchant_site'] = get_home_url();
-        $orderData['bfp'] = WC()->session->get('mecom-paypal-browser-fingerprint');
-        if ($mecomPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
-            $urlCheckout = $getActivateProxyUrl . "?mecom-paypal-authorize-order=1"
+        $orderData['bfp'] = WC()->session->get('lazy-paypal-browser-fingerprint');
+        if ($lazyPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
+            $urlCheckout = $getActivateProxyUrl . "?lazy-paypal-authorize-order=1"
                 . '&' . http_build_query($orderData);
         } else {
-            $urlCheckout = $getActivateProxyUrl . "?mecom-paypal-capture-order=1"
+            $urlCheckout = $getActivateProxyUrl . "?lazy-paypal-capture-order=1"
                 . '&' . http_build_query($orderData);
 
         }
@@ -1056,13 +1055,13 @@ function handlePaypalButtonCreateWooOrderAtPayForOrder($order_id, $ppOrderId, $c
         if (is_wp_error($proxyProcess)) {
             csPaypalErrorLog($proxyProcess, "pp request checkout error[11]");
         }
-        $order->add_order_note(sprintf(__('Express Paypal handle order at proxy url %s', 'mecom'),
+        $order->add_order_note(sprintf(__('Express Paypal handle order at proxy url %s', 'lazy'),
             $getActivateProxyUrl
         ));
         $responseBody = wp_remote_retrieve_body($proxyProcess);
         $data = json_decode($responseBody);
         if ($data->status === 'success') {
-            if ($mecomPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
+            if ($lazyPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
                 $ppPayment = $data->order->purchase_units[0]->payments->authorizations[0];
             } else {
                 $ppPayment = $data->order->purchase_units[0]->payments->captures[0];
@@ -1072,13 +1071,13 @@ function handlePaypalButtonCreateWooOrderAtPayForOrder($order_id, $ppOrderId, $c
         $order->update_meta_data('_shield_paypal_funding_source', $data->order->purchase_units[0]->custom_id ?? null);
         $order->save_meta_data();
         if ($data->status === 'success' && isset($ppPayment)) {
-            if ($mecomPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
-                $order->add_order_note(sprintf(__('Express PayPal authorized by proxy %s, ID: %s', 'mecom'), $getActivateProxyUrl, $ppPayment->id), 0, false);
+            if ($lazyPPGateway->intent == OPT_CS_PAYPAL_AUTHORIZE) {
+                $order->add_order_note(sprintf(__('Express PayPal authorized by proxy %s, ID: %s', 'lazy'), $getActivateProxyUrl, $ppPayment->id), 0, false);
                 $order->update_status('on-hold', 'Express Payment can be captured.');
                 $order->update_meta_data( METAKEY_CS_PAYPAL_CAPTURED, 'false');
             } else {
-                $order->add_order_note(sprintf(__('Express Paypal charged by proxy %s', 'mecom'), $getActivateProxyUrl), 0, false);
-                $order->add_order_note(sprintf(__('Express Paypal Checkout charge complete (Payment ID: %s)', 'mecom'), $ppPayment->id));
+                $order->add_order_note(sprintf(__('Express Paypal charged by proxy %s', 'lazy'), $getActivateProxyUrl), 0, false);
+                $order->add_order_note(sprintf(__('Express Paypal Checkout charge complete (Payment ID: %s)', 'lazy'), $ppPayment->id));
 
                 $sellerPayableBreakdown = $data->seller_receivable_breakdown;
                 $paypalFee = $sellerPayableBreakdown->paypal_fee->value;
@@ -1112,37 +1111,37 @@ function handlePaypalButtonCreateWooOrderAtPayForOrder($order_id, $ppOrderId, $c
         } else {
             $msg_err = 'We cannot process your PayPal payment now, please try again with another method.';
             if ($data->code === 'domain_whitelist_not_allow') {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     'Domain whitelist is required'
                 ));
                 $msg_err = 'We cannot process your payment right now, please try another payment method.[21]';
             } else if ($data->code === 'order_total_not_allow') {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     "Order value exceeds PayPal capability"
                 ));
                 $msg_err = 'We cannot process your payment right now, please try another payment method.[22]';
             }else if ($data->code === 'customer_zipcode_not_allow') {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     "Customer's zipcode is blacklisted"
                 ));
                 $msg_err = 'We cannot process your payment right now, please try another payment method.[23]';
             } else if ($data->code === 'customer_email_not_allow') {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     "Customer's email is blacklisted"
                 ));
                 $msg_err = 'We cannot process your payment right now, please try another payment method.[24]';
             } else if ($data->code === 'states_cities_not_allow') {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     "Customer's State and City is blacklisted"
                 ));
                 $msg_err = 'We cannot process your payment right now, please try another payment method.[25]';
             }  else {
-                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'mecom'),
+                $order->add_order_note(sprintf(__('Express Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
                     $data->code
                 ));
@@ -1169,51 +1168,51 @@ function redirectToCheckoutPage()
 /*
  * The class itself, please note that it is inside plugins_loaded action hook
  */
-add_action('plugins_loaded', 'mecom_init_gateway_class');
-function mecom_init_gateway_class()
+add_action('plugins_loaded', 'lazy_init_gateway_class');
+function lazy_init_gateway_class()
 {
 
     if (is_admin()) {
         add_filter('plugin_action_links_' . plugin_basename(__FILE__),
             'add_settings_link');
-        require_once("m-ecom-paygate-options.php");
+        require_once("m-lazy-paygate-options.php");
 //        require_once("cs-pp-update-checker.php");
-//        CSPayPalUpdateChecker::load();
+//        CSLazyPayPalUpdateChecker::load();
     }
 
     function add_settings_link($links)
     {
         $settings = array(
             'settings' => sprintf('<a href="%s">%s</a>',
-                admin_url('admin.php?page=wc-settings&tab=checkout&section=mecom_paypal'), 'Settings')
+                admin_url('admin.php?page=wc-settings&tab=checkout&section=lazy_paypal'), 'Settings')
         );
         return array_merge($settings, $links);
     }
     require_once("cs-pp-gateway.php");
-    $ppGatewayObj = WC_MEcom_Gateway::load();
+    $ppGatewayObj = WC_Lazy_Gateway::load();
     add_action('wp_head', 'cs_pp_action_wp_head');
     add_action('wp_footer', 'cs_pp_action_wp_footer');
     if(isset($_GET['pay_for_order'])) {
-        add_action('woocommerce_pay_order_after_submit',  'mecom_paypal_add_button_credit');
+        add_action('woocommerce_pay_order_after_submit',  'lazy_paypal_add_button_credit');
     } else {
-        add_action('woocommerce_review_order_after_payment',  'mecom_paypal_add_button_credit');        
+        add_action('woocommerce_review_order_after_payment',  'lazy_paypal_add_button_credit');        
     }
     if ($ppGatewayObj->get_option('enabled_express_on_cart_page') === 'yes') {
         add_action('woocommerce_after_cart_totals', function() { 
-            mecom_paypal_add_checkout_button_at_carts(false); 
+            lazy_paypal_add_checkout_button_at_carts(false); 
         });
     }
     if ($ppGatewayObj->get_option('enabled_express_on_product_page') === 'yes') {
-        add_action('woocommerce_after_add_to_cart_button',  'mecom_paypal_add_checkout_button_at_product_page');        
+        add_action('woocommerce_after_add_to_cart_button',  'lazy_paypal_add_checkout_button_at_product_page');        
     }
     if ($ppGatewayObj->get_option('enabled_express_on_checkout_page') === 'yes') {
         if(isset($_GET['pay_for_order'])) {
             add_action('before_woocommerce_pay',  function() { 
-                mecom_paypal_add_checkout_button_at_carts(true); 
+                lazy_paypal_add_checkout_button_at_carts(true); 
             });
         } else {
             add_action('woocommerce_before_checkout_form',  function() { 
-                mecom_paypal_add_checkout_button_at_carts(true); 
+                lazy_paypal_add_checkout_button_at_carts(true); 
             });
         }
     }
@@ -1221,9 +1220,9 @@ function mecom_init_gateway_class()
     {
         $gateways = WC()->payment_gateways->get_available_payment_gateways();
         $isEnableEndpointMode = isCsPaypalEnableEndpointMode();
-        if ( isset( $gateways['mecom_paypal']->enabled ) && $gateways['mecom_paypal']->enabled == 'yes' ) {
+        if ( isset( $gateways['lazy_paypal']->enabled ) && $gateways['lazy_paypal']->enabled == 'yes' ) {
             echo '<meta name="referrer" content="no-referrer" />';
-            WC()->session->set('mecom-paypal-browser-fingerprint', getBrowserFingerprint());
+            WC()->session->set('lazy-paypal-browser-fingerprint', getBrowserFingerprint());
             $orderIdProcessing = null;
             if (isset($_GET['pay_for_order']) && get_query_var('order-pay')) {
                 $orderIdProcessing = get_query_var('order-pay');
@@ -1234,17 +1233,17 @@ function mecom_init_gateway_class()
                     $proxyProcessing = ['id' => null, 'url' => $orderProcessing->get_meta( METAKEY_PAYPAL_PROXY_URL)];
                 } else {
                     $proxyProcessingId = $orderProcessing->get_meta( METAKEY_PAYPAL_PROXY_ID);
-                    $proxyProcessing = findActivatedProxyDataById(get_option(OPT_MECOM_PAYPAL_PROXIES, []), $proxyProcessingId);
+                    $proxyProcessing = findActivatedProxyDataById(get_option(OPT_LAZY_PAYPAL_PROXIES, []), $proxyProcessingId);
                 }
             }
             
             if(empty($proxyProcessing)) {
                 if ($isEnableEndpointMode) {
                     $csOrderKey = md5(get_option(OPT_CS_PAYPAL_ENDPOINT_TOKEN, null)) . '_' . md5(uniqid(rand(), true));
-                    WC()->session->set('mecom-paypal-processing-order-key', $csOrderKey);
+                    WC()->session->set('lazy-paypal-processing-order-key', $csOrderKey);
                     $proxyProcessing = ['id' => null, 'url' => csEndpointGetShieldPaypalToProcess($csOrderKey,0)];
                 } else {
-                    $proxyProcessing = get_option(OPT_MECOM_PAYPAL_ACTIVATED_PROXY, null);
+                    $proxyProcessing = get_option(OPT_LAZY_PAYPAL_ACTIVATED_PROXY, null);
                     if (isEnabledAmountRotation() && !isPayableProxy($proxyProcessing, 0)) {
                         $proxyProcessing = getNextProxyAmountRotation($proxyProcessing, 0);
                     }
@@ -1257,13 +1256,13 @@ function mecom_init_gateway_class()
                 csPaypalErrorLog([
                     WC()->session->get('order_awaiting_payment'),
                     get_query_var('order-pay'),
-                    get_option(OPT_MECOM_PAYPAL_PROXIES, []),
+                    get_option(OPT_LAZY_PAYPAL_PROXIES, []),
                 ], 'Can not find paypal proxy for charge!');
                 return;
             }
             csPaypalDebugLog($proxyProcessing, 'cs_pp_action_wp_head shield result');
-            WC()->session->set('mecom-paypal-proxy-active-id', $proxyProcessing['id']);
-            WC()->session->set('mecom-paypal-proxy-active-url', $proxyProcessing['url']);
+            WC()->session->set('lazy-paypal-proxy-active-id', $proxyProcessing['id']);
+            WC()->session->set('lazy-paypal-proxy-active-url', $proxyProcessing['url']);
             echo '<link class="cs_pp_element" rel="preload" href="' . $proxyProcessing['url'] . '?checkout=yes" as="document">';
             
         }
@@ -1272,10 +1271,10 @@ function mecom_init_gateway_class()
     
     function cs_pp_action_wp_footer()
     {
-        $ppGatewayObj = WC_MEcom_Gateway::load();
+        $ppGatewayObj = WC_Lazy_Gateway::load();
         if ((is_checkout() || is_cart())) {
             echo '<div id="cs_pp_action_wp_footer_container" class="cs_pp_element">';
-            handleSomeSettingMecomPaypal();
+            handleSomeSettingLazyPaypal();
             echo '</div>';
         } else {
             if ($ppGatewayObj->get_option('enabled_express_on_product_page') !== 'yes') {
@@ -1283,30 +1282,30 @@ function mecom_init_gateway_class()
             }
             $gateways = WC()->payment_gateways->get_available_payment_gateways();
             $isEnableEndpointMode = isCsPaypalEnableEndpointMode();
-            if ( isset( $gateways['mecom_paypal']->enabled ) && $gateways['mecom_paypal']->enabled == 'yes' ) {
+            if ( isset( $gateways['lazy_paypal']->enabled ) && $gateways['lazy_paypal']->enabled == 'yes' ) {
                 if ($isEnableEndpointMode) {
-                    $nextProxy = ['id' => null, 'url' => WC()->session->get('mecom-paypal-proxy-active-url')];
+                    $nextProxy = ['id' => null, 'url' => WC()->session->get('lazy-paypal-proxy-active-url')];
                 } else {
-                    $nextProxy = findActivatedProxyDataById(get_option(OPT_MECOM_PAYPAL_PROXIES, []), WC()->session->get('mecom-paypal-proxy-active-id'));
+                    $nextProxy = findActivatedProxyDataById(get_option(OPT_LAZY_PAYPAL_PROXIES, []), WC()->session->get('lazy-paypal-proxy-active-id'));
                     if (empty($nextProxy)) {
                         return;
                     }
                 }
                 echo '<div id="cs_pp_action_wp_footer_container" class="cs_pp_element">';
-                echo '<div id="mecom_express_paypal_current_proxy_id" data-value="' . $nextProxy['id'] . '"></div>';
-                echo '<div id="mecom_express_paypal_current_proxy_url" data-value="' . $nextProxy['url'] . '"></div>';
+                echo '<div id="lazy_express_paypal_current_proxy_id" data-value="' . $nextProxy['id'] . '"></div>';
+                echo '<div id="lazy_express_paypal_current_proxy_url" data-value="' . $nextProxy['url'] . '"></div>';
                 if ($ppGatewayObj->get_option('paypal_button') === OPT_CS_PAYPAL_SETTING_CHECKOUT) {
-                    echo '<div id="mecom_enable_paypal_card_payment" ></div>';
+                    echo '<div id="lazy_enable_paypal_card_payment" ></div>';
                 }
                 if($ppGatewayObj->get_option('not_send_bill_address_to_paypal') === 'yes') {
-                    echo '<div id="mecom_express_paypal_shipping_preference" data-value="NO_SHIPPING"></div>';                
+                    echo '<div id="lazy_express_paypal_shipping_preference" data-value="NO_SHIPPING"></div>';                
                 } else {
-                    echo '<div id="mecom_express_paypal_shipping_preference" data-value="GET_FROM_FILE"></div>';
+                    echo '<div id="lazy_express_paypal_shipping_preference" data-value="GET_FROM_FILE"></div>';
                 }
-                echo '<div id="mecom_merchant_site_url" data-value="' . get_home_url() . '"></div>';
-                echo '<div id="mecom_merchant_site_encode" data-value="' . csMerchantSiteEncode(get_home_url()) . '"></div>';
+                echo '<div id="lazy_merchant_site_url" data-value="' . get_home_url() . '"></div>';
+                echo '<div id="lazy_merchant_site_encode" data-value="' . csMerchantSiteEncode(get_home_url()) . '"></div>';
                 ?>
-                <div id="cs-pp-loader-credit-custom" class="mecom-display-none" style="display: none">
+                <div id="cs-pp-loader-credit-custom" class="lazy-display-none" style="display: none">
                   <div class="cs-pp-spinnerWithLockIcon cs-pp-spinner" aria-busy="true">
                       <p>We're processing your payment...<br/>Please <b>DO NOT</b> close this page!</p>
                   </div>
@@ -1319,31 +1318,31 @@ function mecom_init_gateway_class()
     
     function cs_pp_action_backup_wp_footer()
     {
-        $ppGatewayObj = WC_MEcom_Gateway::load();
+        $ppGatewayObj = WC_Lazy_Gateway::load();
         if ((is_checkout() || is_cart())) {
             $gateways = WC()->payment_gateways->get_available_payment_gateways();
             $isEnableEndpointMode = isCsPaypalEnableEndpointMode();
-            if ( isset( $gateways['mecom_paypal']->enabled ) && $gateways['mecom_paypal']->enabled == 'yes' ) {
+            if ( isset( $gateways['lazy_paypal']->enabled ) && $gateways['lazy_paypal']->enabled == 'yes' ) {
                 if ($isEnableEndpointMode) {
-                    $nextProxy = ['id' => null, 'url' => WC()->session->get('mecom-paypal-proxy-active-url')];
+                    $nextProxy = ['id' => null, 'url' => WC()->session->get('lazy-paypal-proxy-active-url')];
                 } else {
-                    $nextProxy = findActivatedProxyDataById(get_option(OPT_MECOM_PAYPAL_PROXIES, []), WC()->session->get('mecom-paypal-proxy-active-id'));
+                    $nextProxy = findActivatedProxyDataById(get_option(OPT_LAZY_PAYPAL_PROXIES, []), WC()->session->get('lazy-paypal-proxy-active-id'));
                     if (empty($nextProxy)) {
                         return;
                     }
                 }
-                $html = '<div id="mecom_express_paypal_current_proxy_id" data-value="' . $nextProxy['id'] . '"></div>';
-                $html = '<div id="mecom_express_paypal_current_proxy_url" data-value="' . $nextProxy['url'] . '"></div>';
+                $html = '<div id="lazy_express_paypal_current_proxy_id" data-value="' . $nextProxy['id'] . '"></div>';
+                $html = '<div id="lazy_express_paypal_current_proxy_url" data-value="' . $nextProxy['url'] . '"></div>';
                 if($ppGatewayObj->get_option('paypal_button') === OPT_CS_PAYPAL_SETTING_CHECKOUT) {
-                    $html .= '<div id="mecom_enable_paypal_card_payment" ></div>';
+                    $html .= '<div id="lazy_enable_paypal_card_payment" ></div>';
                 }
-                $html .= '<div id="mecom_merchant_site_url" data-value="' . get_home_url() . '"></div>';
-                $html .= '<div id="mecom_merchant_site_encode" data-value="' . csMerchantSiteEncode(get_home_url()) . '"></div>';
+                $html .= '<div id="lazy_merchant_site_url" data-value="' . get_home_url() . '"></div>';
+                $html .= '<div id="lazy_merchant_site_encode" data-value="' . csMerchantSiteEncode(get_home_url()) . '"></div>';
 
                 if($ppGatewayObj->get_option('not_send_bill_address_to_paypal') === 'yes') {
-                    $html .= '<div id="mecom_express_paypal_shipping_preference" data-value="NO_SHIPPING"></div>';                
+                    $html .= '<div id="lazy_express_paypal_shipping_preference" data-value="NO_SHIPPING"></div>';                
                 } else {
-                    $html .= '<div id="mecom_express_paypal_shipping_preference" data-value="GET_FROM_FILE"></div>';
+                    $html .= '<div id="lazy_express_paypal_shipping_preference" data-value="GET_FROM_FILE"></div>';
                 }
                 echo "<script class='cs_pp_element'>
                     document.addEventListener('DOMContentLoaded', function() {
@@ -1361,35 +1360,35 @@ function mecom_init_gateway_class()
             }
             $gateways = WC()->payment_gateways->get_available_payment_gateways();
             $isEnableEndpointMode = isCsPaypalEnableEndpointMode();
-            if ( isset( $gateways['mecom_paypal']->enabled ) && $gateways['mecom_paypal']->enabled == 'yes' ) {
+            if ( isset( $gateways['lazy_paypal']->enabled ) && $gateways['lazy_paypal']->enabled == 'yes' ) {
                 if ($isEnableEndpointMode) {
-                    $nextProxy = ['id' => null, 'url' => WC()->session->get('mecom-paypal-proxy-active-url')];
+                    $nextProxy = ['id' => null, 'url' => WC()->session->get('lazy-paypal-proxy-active-url')];
                 } else {
-                    $nextProxy = findActivatedProxyDataById(get_option(OPT_MECOM_PAYPAL_PROXIES, []), WC()->session->get('mecom-paypal-proxy-active-id'));
+                    $nextProxy = findActivatedProxyDataById(get_option(OPT_LAZY_PAYPAL_PROXIES, []), WC()->session->get('lazy-paypal-proxy-active-id'));
                     if (empty($nextProxy)) {
                         return;
                     }
                 }
-                $html = '<div id="mecom_express_paypal_current_proxy_id" data-value="' . $nextProxy['id'] . '"></div>';
-                $html = '<div id="mecom_express_paypal_current_proxy_url" data-value="' . $nextProxy['url'] . '"></div>';
+                $html = '<div id="lazy_express_paypal_current_proxy_id" data-value="' . $nextProxy['id'] . '"></div>';
+                $html = '<div id="lazy_express_paypal_current_proxy_url" data-value="' . $nextProxy['url'] . '"></div>';
                 if ($ppGatewayObj->get_option('paypal_button') === OPT_CS_PAYPAL_SETTING_CHECKOUT) {
-                    $html .= '<div id="mecom_enable_paypal_card_payment" ></div>';
+                    $html .= '<div id="lazy_enable_paypal_card_payment" ></div>';
                 }
-                wp_register_script( 'mecom_js_sha1_custom', plugins_url( '/assets/js/sha1.js', __FILE__ ) . '?v=' . uniqid(), [] );
-                wp_enqueue_script( 'mecom_js_sha1_custom' );
-                wp_register_script( 'mecom_js_paypal_checkout_hook_custom', plugins_url( '/assets/js/checkout_hook_custom.js', __FILE__ ) . '?v=' . uniqid(), [ 'jquery' ] );
-                wp_enqueue_script( 'mecom_js_paypal_checkout_hook_custom' );
-                wp_register_style( 'mecom_styles_pp_custom', plugins_url( 'assets/css/styles.css', __FILE__ ) . '?v=' . uniqid(), [] );
-                wp_enqueue_style( 'mecom_styles_pp_custom' );
+                wp_register_script( 'lazy_js_sha1_custom', plugins_url( '/assets/js/sha1.js', __FILE__ ) . '?v=' . uniqid(), [] );
+                wp_enqueue_script( 'lazy_js_sha1_custom' );
+                wp_register_script( 'lazy_js_paypal_checkout_hook_custom', plugins_url( '/assets/js/checkout_hook_custom.js', __FILE__ ) . '?v=' . uniqid(), [ 'jquery' ] );
+                wp_enqueue_script( 'lazy_js_paypal_checkout_hook_custom' );
+                wp_register_style( 'lazy_styles_pp_custom', plugins_url( 'assets/css/styles.css', __FILE__ ) . '?v=' . uniqid(), [] );
+                wp_enqueue_style( 'lazy_styles_pp_custom' );
                 if($ppGatewayObj->get_option('not_send_bill_address_to_paypal') === 'yes') {
-                    $html .= '<div id="mecom_express_paypal_shipping_preference" data-value="NO_SHIPPING"></div>';                
+                    $html .= '<div id="lazy_express_paypal_shipping_preference" data-value="NO_SHIPPING"></div>';                
                 } else {
-                    $html .= '<div id="mecom_express_paypal_shipping_preference" data-value="GET_FROM_FILE"></div>';
+                    $html .= '<div id="lazy_express_paypal_shipping_preference" data-value="GET_FROM_FILE"></div>';
                 }
-                $html .= '<div id="mecom_merchant_site_url" data-value="' . get_home_url() . '"></div>';
-                $html .= '<div id="mecom_merchant_site_encode" data-value="' . csMerchantSiteEncode(get_home_url()) . '"></div>';
+                $html .= '<div id="lazy_merchant_site_url" data-value="' . get_home_url() . '"></div>';
+                $html .= '<div id="lazy_merchant_site_encode" data-value="' . csMerchantSiteEncode(get_home_url()) . '"></div>';
 
-                $html .= '<div id="cs-pp-loader-credit-custom" class="mecom-display-none" style="display: none">';
+                $html .= '<div id="cs-pp-loader-credit-custom" class="lazy-display-none" style="display: none">';
                 $html .= '<div class="cs-pp-spinnerWithLockIcon cs-pp-spinner" aria-busy="true">';
                 $html .= '<p>We\\\'re processing your payment...<br/>Please <b>DO NOT</b> close this page!</p>';
                 $html .= '</div>';
@@ -1407,44 +1406,44 @@ function mecom_init_gateway_class()
         }
     }
     
-    function handleSomeSettingMecomPaypal() {
+    function handleSomeSettingLazyPaypal() {
         $gateways = WC()->payment_gateways->get_available_payment_gateways();
         $isEnableEndpointMode = isCsPaypalEnableEndpointMode();
-        if ( isset( $gateways['mecom_paypal']->enabled ) && $gateways['mecom_paypal']->enabled == 'yes' ) {
-            $ppGatewayObj = WC_MEcom_Gateway::load();
+        if ( isset( $gateways['lazy_paypal']->enabled ) && $gateways['lazy_paypal']->enabled == 'yes' ) {
+            $ppGatewayObj = WC_Lazy_Gateway::load();
             if ($isEnableEndpointMode) {
-                $nextProxy = ['id' => null, 'url' => WC()->session->get('mecom-paypal-proxy-active-url')];
+                $nextProxy = ['id' => null, 'url' => WC()->session->get('lazy-paypal-proxy-active-url')];
             } else {
-                $nextProxy = findActivatedProxyDataById(get_option(OPT_MECOM_PAYPAL_PROXIES, []), WC()->session->get('mecom-paypal-proxy-active-id'));
+                $nextProxy = findActivatedProxyDataById(get_option(OPT_LAZY_PAYPAL_PROXIES, []), WC()->session->get('lazy-paypal-proxy-active-id'));
                 if (empty($nextProxy)) {
                     return;
                 }
             }
-            echo '<div id="mecom_express_paypal_current_proxy_id" data-value="' . $nextProxy['id'] . '"></div>';
-            echo '<div id="mecom_express_paypal_current_proxy_url" data-value="' . $nextProxy['url'] . '"></div>';
+            echo '<div id="lazy_express_paypal_current_proxy_id" data-value="' . $nextProxy['id'] . '"></div>';
+            echo '<div id="lazy_express_paypal_current_proxy_url" data-value="' . $nextProxy['url'] . '"></div>';
             if($ppGatewayObj->get_option('paypal_button') === OPT_CS_PAYPAL_SETTING_CHECKOUT) {
-                echo '<div id="mecom_enable_paypal_card_payment" ></div>';
+                echo '<div id="lazy_enable_paypal_card_payment" ></div>';
             }
-            echo '<div id="mecom_merchant_site_url" data-value="' . get_home_url() . '"></div>';
-            echo '<div id="mecom_merchant_site_encode" data-value="' . csMerchantSiteEncode(get_home_url()) . '"></div>';
+            echo '<div id="lazy_merchant_site_url" data-value="' . get_home_url() . '"></div>';
+            echo '<div id="lazy_merchant_site_encode" data-value="' . csMerchantSiteEncode(get_home_url()) . '"></div>';
             if($ppGatewayObj->get_option('not_send_bill_address_to_paypal') === 'yes') {
-                echo '<div id="mecom_express_paypal_shipping_preference" data-value="NO_SHIPPING"></div>';                
+                echo '<div id="lazy_express_paypal_shipping_preference" data-value="NO_SHIPPING"></div>';                
             } else {
-                echo '<div id="mecom_express_paypal_shipping_preference" data-value="GET_FROM_FILE"></div>';
+                echo '<div id="lazy_express_paypal_shipping_preference" data-value="GET_FROM_FILE"></div>';
             }
         }
     }
     
-    function mecom_paypal_add_button_credit() {
+    function lazy_paypal_add_button_credit() {
         if ( is_checkout() ) {
             $gateways = WC()->payment_gateways->get_available_payment_gateways();
-            if ( isset( $gateways['mecom_paypal']->enabled ) && $gateways['mecom_paypal']->enabled == 'yes' ) {
-                 $nextProxyUrl = WC()->session->get('mecom-paypal-proxy-active-url');
-                 $ppGatewayObj = WC_MEcom_Gateway::load();
+            if ( isset( $gateways['lazy_paypal']->enabled ) && $gateways['lazy_paypal']->enabled == 'yes' ) {
+                 $nextProxyUrl = WC()->session->get('lazy-paypal-proxy-active-url');
+                 $ppGatewayObj = WC_Lazy_Gateway::load();
                  $ppBtnSetting = $ppGatewayObj->get_option('paypal_button');
                  ?>
-                 <div id="mecom-paypal-button-setting" data-value="<?= $ppBtnSetting ?>" style="display:none"></div>
-                 <div id="mecom-paypal-button-setting-context" data-value="checkout_page" style="display:none"></div>
+                 <div id="lazy-paypal-button-setting" data-value="<?= $ppBtnSetting ?>" style="display:none"></div>
+                 <div id="lazy-paypal-button-setting-context" data-value="checkout_page" style="display:none"></div>
                  <?php
                  if ($nextProxyUrl && $ppBtnSetting === OPT_CS_PAYPAL_SETTING_CHECKOUT) {
                     $intentIframe = strtolower( $ppGatewayObj->get_option('intent'));
@@ -1456,33 +1455,33 @@ function mecom_init_gateway_class()
                         $proxyFullUrl .= '&disable_credit_card_express=1';
                     }
                     ?>
-                    <div id="mecom-paypal-credit-form-container" style="display:none">
+                    <div id="lazy-paypal-credit-form-container" style="display:none">
                         <iframe id="payment-paypal-area"  referrerpolicy="no-referrer"
                                 src="<?=  $proxyFullUrl ?>"
                                 height="130" frameBorder="0" style="width: 100%"></iframe>
-                        <div style="display: none" id="mecom-paypal-order-intent" data-value="<?= strtoupper($ppGatewayObj->get_option('intent')) ?>"></div>
+                        <div style="display: none" id="lazy-paypal-order-intent" data-value="<?= strtoupper($ppGatewayObj->get_option('intent')) ?>"></div>
                     </div>
                     <?php
                  }
             }
         }
     }
-    function mecom_paypal_add_checkout_button_at_carts($isCheckoutPage) {
+    function lazy_paypal_add_checkout_button_at_carts($isCheckoutPage) {
         if(!$isCheckoutPage) {
-            handleSomeSettingMecomPaypal();            
+            handleSomeSettingLazyPaypal();            
         }
         $gateways = WC()->payment_gateways->get_available_payment_gateways();
-        if ( isset( $gateways['mecom_paypal']->enabled ) && $gateways['mecom_paypal']->enabled == 'yes' ) {
-             $nextProxyUrl = WC()->session->get('mecom-paypal-proxy-active-url');
-             $ppGatewayObj = WC_MEcom_Gateway::load();
+        if ( isset( $gateways['lazy_paypal']->enabled ) && $gateways['lazy_paypal']->enabled == 'yes' ) {
+             $nextProxyUrl = WC()->session->get('lazy-paypal-proxy-active-url');
+             $ppGatewayObj = WC_Lazy_Gateway::load();
              $ppBtnSetting = $ppGatewayObj->get_option('paypal_button');
              ?>
-            <div id="mecom-paypal-button-setting-custom" data-value="<?= $ppBtnSetting ?>" style="display:none"></div>
-            <div id="mecom-paypal-button-setting-context" data-value="<?= $isCheckoutPage ? 'express_checkout_page' : 'carts_page' ?>" style="display:none"></div>
+            <div id="lazy-paypal-button-setting-custom" data-value="<?= $ppBtnSetting ?>" style="display:none"></div>
+            <div id="lazy-paypal-button-setting-context" data-value="<?= $isCheckoutPage ? 'express_checkout_page' : 'carts_page' ?>" style="display:none"></div>
              <?php
              if ($nextProxyUrl && $ppBtnSetting === OPT_CS_PAYPAL_SETTING_CHECKOUT) {
-                wp_register_script( 'mecom_js_paypal_checkout_hook_custom', plugins_url( '/assets/js/checkout_hook_custom.js', __FILE__ ) . '?v=' . uniqid(), [ 'jquery' ] );
-                wp_enqueue_script( 'mecom_js_paypal_checkout_hook_custom' );
+                wp_register_script( 'lazy_js_paypal_checkout_hook_custom', plugins_url( '/assets/js/checkout_hook_custom.js', __FILE__ ) . '?v=' . uniqid(), [ 'jquery' ] );
+                wp_enqueue_script( 'lazy_js_paypal_checkout_hook_custom' );
                 $intentIframe = strtolower( $ppGatewayObj->get_option('intent'));
                 $proxyFullUrl =  $nextProxyUrl . '/checkout?session=' .csPpGenerateRandomString(35). '&checkout=yes&express_checkout=1&intent=' . $intentIframe . '&currency=' . get_woocommerce_currency() . ($isCheckoutPage ? '&express_button_style=1' : '') . '&Origin=' . get_site_url();
                 if ($ppGatewayObj->get_option('disable_credit_card') == 'yes') {
@@ -1497,7 +1496,7 @@ function mecom_init_gateway_class()
                       <p>We're processing your payment...<br/>Please <b>DO NOT</b> close this page!</p>
                   </div>
                 </div>
-                <div id="mecom-paypal-credit-form-container-custom" style="position: relative;">
+                <div id="lazy-paypal-credit-form-container-custom" style="position: relative;">
                 <?php
                     if($isCheckoutPage) {
                         ?>
@@ -1519,25 +1518,25 @@ function mecom_init_gateway_class()
                             <?php
                         }
                     ?>
-                    <div style="display: none" id="mecom-paypal-order-intent-custom" data-value="<?= strtoupper($ppGatewayObj->get_option('intent')) ?>"></div>
+                    <div style="display: none" id="lazy-paypal-order-intent-custom" data-value="<?= strtoupper($ppGatewayObj->get_option('intent')) ?>"></div>
                 </div>
                 <?php
              }
         }
     }
     
-    function mecom_paypal_add_checkout_button_at_product_page() {
+    function lazy_paypal_add_checkout_button_at_product_page() {
         $gateways = WC()->payment_gateways->get_available_payment_gateways();
-        if ( isset( $gateways['mecom_paypal']->enabled ) && $gateways['mecom_paypal']->enabled == 'yes' ) {
-             $ppGatewayObj = WC_MEcom_Gateway::load();
-             $nextProxyUrl = WC()->session->get('mecom-paypal-proxy-active-url');
+        if ( isset( $gateways['lazy_paypal']->enabled ) && $gateways['lazy_paypal']->enabled == 'yes' ) {
+             $ppGatewayObj = WC_Lazy_Gateway::load();
+             $nextProxyUrl = WC()->session->get('lazy-paypal-proxy-active-url');
              $ppBtnSetting = $ppGatewayObj->get_option('paypal_button');
              $isProdHasVariations = is_a( wc_get_product(), 'WC_Product_Variable' );
              ?>
-            <div id="mecom-paypal-button-setting-custom" data-value="<?= $ppBtnSetting ?>" style="display:none"></div>
-            <div id="mecom-paypal-button-setting-context" data-value="product_page" style="display:none"></div>
-            <div id="mecom-paypal-product-page-current-id" data-value="<?= wc_get_product()->get_id(); ?>"></div>
-            <div id="mecom-paypal-product-page-has-variations" data-value="<?= $isProdHasVariations ? 'yes' : 'no' ?>"></div>
+            <div id="lazy-paypal-button-setting-custom" data-value="<?= $ppBtnSetting ?>" style="display:none"></div>
+            <div id="lazy-paypal-button-setting-context" data-value="product_page" style="display:none"></div>
+            <div id="lazy-paypal-product-page-current-id" data-value="<?= wc_get_product()->get_id(); ?>"></div>
+            <div id="lazy-paypal-product-page-has-variations" data-value="<?= $isProdHasVariations ? 'yes' : 'no' ?>"></div>
              <?php
              if ($nextProxyUrl && $ppBtnSetting === OPT_CS_PAYPAL_SETTING_CHECKOUT) {
                 $intentIframe = strtolower( $ppGatewayObj->get_option('intent'));
@@ -1549,12 +1548,12 @@ function mecom_init_gateway_class()
                     $proxyFullUrl .= '&disable_credit_card_express=1';
                 }
                 ?>
-                <div id="mecom-paypal-credit-form-container-custom" <?= $isProdHasVariations ? 'style="display: none"' : '' ?>>
+                <div id="lazy-paypal-credit-form-container-custom" <?= $isProdHasVariations ? 'style="display: none"' : '' ?>>
                     <div id="paypal-button-express-or-text" style="text-align: center" class="cs_pp_element">- OR -</div>
                     <iframe id="payment-paypal-area-custom"  referrerpolicy="no-referrer"
                             src="<?= $proxyFullUrl ?>"
                             height="150" frameBorder="0" style="width: 100%"></iframe>
-                    <div style="display: none" id="mecom-paypal-order-intent-custom" data-value="<?= strtoupper($ppGatewayObj->get_option('intent')) ?>"></div>
+                    <div style="display: none" id="lazy-paypal-order-intent-custom" data-value="<?= strtoupper($ppGatewayObj->get_option('intent')) ?>"></div>
                 </div>
                 <?php
              }
@@ -1565,14 +1564,14 @@ function mecom_init_gateway_class()
 register_deactivation_hook( __FILE__, 'cs_paypal_plugin_deactivation' );
 register_activation_hook( __FILE__, 'cs_paypal_plugin_activation' );
 add_action('woocommerce_update_option', function ($event) {
-    if($event['id'] === 'woocommerce_mecom_paypal_settings') {
-        wp_clear_scheduled_hook( 'mecom_gateway_paypal_cron_auto_sync' );
+    if($event['id'] === 'woocommerce_lazy_paypal_settings') {
+        wp_clear_scheduled_hook( 'lazy_gateway_paypal_cron_auto_sync' );
     }
 });
 function cs_paypal_plugin_deactivation() {
-    wp_clear_scheduled_hook( 'mecom_gateway_paypal_cron_auto_sync' );
-    wp_clear_scheduled_hook( 'mecom_gateway_paypal_daily' );
-    wp_clear_scheduled_hook( 'mecom_gateway_paypal_rotation' );
+    wp_clear_scheduled_hook( 'lazy_gateway_paypal_cron_auto_sync' );
+    wp_clear_scheduled_hook( 'lazy_gateway_paypal_daily' );
+    wp_clear_scheduled_hook( 'lazy_gateway_paypal_rotation' );
 }
 
 function cs_paypal_plugin_activation() {
@@ -1615,6 +1614,6 @@ function cs_paypal_plugin_activation() {
     update_option('cs_paypal_db_version', $csPaypalDBVersion);
 }
 
-function mecom_pp_remove_shipping_taxes(WC_Order_Item_Shipping $item) {
+function lazy_pp_remove_shipping_taxes(WC_Order_Item_Shipping $item) {
     $item->set_taxes(false);
 }

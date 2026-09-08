@@ -2,14 +2,14 @@
 /**
  * The money object.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Entity
+ * @package WooCommerce\LazyPaypal\ApiClient\Entity
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Entity;
+namespace WooCommerce\LazyPaypal\ApiClient\Entity;
 
-use WooCommerce\MecomPaypal\ApiClient\Helper\MoneyFormatter;
+use WooCommerce\LazyPaypal\ApiClient\Helper\MoneyFormatter;
 
 /**
  * Class Money

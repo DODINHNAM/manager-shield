@@ -2,17 +2,17 @@
 /**
  * The PurchaseUnit factory.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Factory
+ * @package WooCommerce\LazyPaypal\ApiClient\Factory
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Factory;
+namespace WooCommerce\LazyPaypal\ApiClient\Factory;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\Item;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PurchaseUnit;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
-use WooCommerce\MecomPaypal\ApiClient\Repository\PayeeRepository;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Item;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PurchaseUnit;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
+use WooCommerce\LazyPaypal\ApiClient\Repository\PayeeRepository;
 
 /**
  * Class PurchaseUnitFactory
@@ -121,7 +121,7 @@ class PurchaseUnitFactory {
 		) {
 			$shipping = null;
 		}
-		$invoicePrefix = get_option('woocommerce_mecom_paypal_settings')['invoice_prefix'];
+		$invoicePrefix = get_option('woocommerce_lazy_paypal_settings')['invoice_prefix'];
 		$reference_id    = 'default';
 		$description     = '';
 		$payee           = $this->payee_repository->payee();

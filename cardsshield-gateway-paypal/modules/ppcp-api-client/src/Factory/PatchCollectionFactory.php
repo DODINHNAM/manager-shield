@@ -2,17 +2,17 @@
 /**
  * The PatchCollection factory.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Factory
+ * @package WooCommerce\LazyPaypal\ApiClient\Factory
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Factory;
+namespace WooCommerce\LazyPaypal\ApiClient\Factory;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\Order;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Patch;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PatchCollection;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PurchaseUnit;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Order;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Patch;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PatchCollection;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PurchaseUnit;
 
 /**
  * Class PatchCollectionFactory

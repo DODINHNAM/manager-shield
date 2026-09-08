@@ -9,7 +9,7 @@ jQuery(document).ready( function($)
         $(this).addClass('activeLoading');
 
         var data = {
-            'action': 'mecom_gateway_paypal_action',
+            'action': 'lazy_gateway_paypal_action',
             'command': 'syncTrackingInfo',
         };
         jQuery.ajaxSetup({timeout: 300000});

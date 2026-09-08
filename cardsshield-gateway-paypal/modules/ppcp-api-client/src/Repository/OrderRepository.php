@@ -2,18 +2,18 @@
 /**
  * PayPal order repository.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Repository
+ * @package WooCommerce\LazyPaypal\ApiClient\Repository
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Repository;
+namespace WooCommerce\LazyPaypal\ApiClient\Repository;
 
 use WC_Order;
-use WooCommerce\MecomPaypal\ApiClient\Endpoint\OrderEndpoint;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Order;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
-//use WooCommerce\MecomPaypal\WcGateway\Gateway\PayPalGateway;
+use WooCommerce\LazyPaypal\ApiClient\Endpoint\OrderEndpoint;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Order;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
+//use WooCommerce\LazyPaypal\WcGateway\Gateway\PayPalGateway;
 
 /**
  * Class OrderRepository
@@ -44,8 +44,8 @@ class OrderRepository {
 	 * @throws RuntimeException When there is a problem getting the PayPal order.
 	 */
 	public function for_wc_order( WC_Order $wc_order ): Order {
-//		$paypal_order_id = $wc_order->get_meta( PayPalGateway::ORDER_ID_META_KEY ); MECOM
-		$paypal_order_id = $wc_order->get_meta( '' );// MECOM
+//		$paypal_order_id = $wc_order->get_meta( PayPalGateway::ORDER_ID_META_KEY ); LAZY
+		$paypal_order_id = $wc_order->get_meta( '' );// LAZY
 		if ( ! $paypal_order_id ) {
 			throw new RuntimeException( 'PayPal order ID not found in meta.' );
 		}

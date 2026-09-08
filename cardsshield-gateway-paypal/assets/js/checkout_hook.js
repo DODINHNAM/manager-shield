@@ -1,18 +1,18 @@
 jQuery(document).ready(function ($) {
     if ($('#cs_pay_for_order_page').length) {
-        var mecom_checkout_form = $('#order_review');
+        var lazy_checkout_form = $('#order_review');
     } else {
-        var mecom_checkout_form = $('form.checkout');
+        var lazy_checkout_form = $('form.checkout');
     }
     var OPT_CS_PAYPAL_SETTING_CHECKOUT = 'PAYPAL_CHECKOUT';
 
-    mecom_checkout_form.on('checkout_place_order', function () {
-        if ($('input[name="payment_method"]:checked').val() === 'mecom_paypal') {
-            var paypalPaymentOrderIdEl = mecom_checkout_form.find('[name="mecom-paypal-payment-order-id"]');
+    lazy_checkout_form.on('checkout_place_order', function () {
+        if ($('input[name="payment_method"]:checked').val() === 'lazy_paypal') {
+            var paypalPaymentOrderIdEl = lazy_checkout_form.find('[name="lazy-paypal-payment-order-id"]');
             if (validateFormCheckoutPaypal() && paypalPaymentOrderIdEl.length && paypalPaymentOrderIdEl.val().length == 0) {
                 csPaypalClientLog({
-                    'note': 'can not submit case [name="mecom-paypal-payment-order-id"] not have data',
-                    'email': mecomGetUserField('email')
+                    'note': 'can not submit case [name="lazy-paypal-payment-order-id"] not have data',
+                    'email': lazyGetUserField('email')
                 });
                 if(confirm('An error occurred. Please try again!')) {
                     location.reload();
@@ -20,7 +20,7 @@ jQuery(document).ready(function ($) {
                 return false;
             }
             setTimeout(function () {
-                if (!window.mecom_paypal_checkout_error) {
+                if (!window.lazy_paypal_checkout_error) {
                     $('.blockUI').hide();
                     $('#cs-pp-loader').show();
                     setTimeout((function () {
@@ -32,10 +32,10 @@ jQuery(document).ready(function ($) {
     });
 
     $(document).on('checkout_error', function () {
-        if ($('input[name="payment_method"]:checked').val() == 'mecom_paypal') {
+        if ($('input[name="payment_method"]:checked').val() == 'lazy_paypal') {
             $('#cs-pp-loader').hide();
             $('#cs-pp-loader-credit').hide();
-            window.mecom_paypal_checkout_error = true;
+            window.lazy_paypal_checkout_error = true;
         }
     })
 
@@ -58,33 +58,33 @@ jQuery(document).ready(function ($) {
     }
 
     function handleShowHidePaypalButton() {
-        if ($('input[name="payment_method"]:checked').val() == 'mecom_paypal' && $('#mecom-paypal-button-setting').data('value') === OPT_CS_PAYPAL_SETTING_CHECKOUT) {
-            $('#mecom-paypal-credit-form-container').show();
+        if ($('input[name="payment_method"]:checked').val() == 'lazy_paypal' && $('#lazy-paypal-button-setting').data('value') === OPT_CS_PAYPAL_SETTING_CHECKOUT) {
+            $('#lazy-paypal-credit-form-container').show();
             $('#place_order').addClass('important-hide')
         } else {
-            $('#mecom-paypal-credit-form-container').hide();
+            $('#lazy-paypal-credit-form-container').hide();
             $('#place_order').removeClass('important-hide')
         }
     }
 
     function listenerPaypal(event) {
-        if (event.data === "mecom-paypalRequestFromBlacklist") {
+        if (event.data === "lazy-paypalRequestFromBlacklist") {
             setInterval(function () {
                 $('#payment-paypal-area').remove();
                 $('.cs_pp_element').remove();
-                $('.wc_payment_method.payment_method_mecom_paypal').hide();
+                $('.wc_payment_method.payment_method_lazy_paypal').hide();
             }, 100)
         }
-        if (event.data === "mecom-paypalOpenCreditForm") {
+        if (event.data === "lazy-paypalOpenCreditForm") {
             validateFormCheckoutPaypal();
             csPaypalClientLog({
-                'note': 'mecom-paypalOpenCreditForm',
-                'email': mecomGetUserField('email'),
+                'note': 'lazy-paypalOpenCreditForm',
+                'email': lazyGetUserField('email'),
                 'validateFormCheckoutPaypal': window.cs_validateFormCheckoutPaypal_debug_string
             });
             $('#payment-paypal-area').attr('height', 400);
         }
-        if (event.data === "mecom-paypalOpenCreditFormReject") {
+        if (event.data === "lazy-paypalOpenCreditFormReject") {
             if (!validateFormCheckoutPaypal()) {
                 var msg = '<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout"><div role="alert"><ul class="woocommerce-error" tabindex="-1">';
                 window.cs_validateFormCheckoutPaypal_msg.forEach(function (value, index) {
@@ -99,67 +99,67 @@ jQuery(document).ready(function ($) {
                 if (existsNotice.length) {
                     existsNotice.remove();
                 }
-                mecom_checkout_form.prepend(msg);
-                mecom_checkout_form.find('.input-text, select, input:checkbox').trigger('validate').trigger('blur');
+                lazy_checkout_form.prepend(msg);
+                lazy_checkout_form.find('.input-text, select, input:checkbox').trigger('validate').trigger('blur');
                 var scrollElement = $('.woocommerce-NoticeGroup-updateOrderReview, .woocommerce-NoticeGroup-checkout');
                 if (!scrollElement.length) {
-                    scrollElement = mecom_checkout_form;
+                    scrollElement = lazy_checkout_form;
                 }
                 $.scroll_to_notices(scrollElement);
                 csPaypalClientLog({
-                    'note': 'mecom-paypalOpenCreditFormReject',
-                    'email': mecomGetUserField('email'),
+                    'note': 'lazy-paypalOpenCreditFormReject',
+                    'email': lazyGetUserField('email'),
                     'validateFormCheckoutPaypal': window.cs_validateFormCheckoutPaypal_debug_string
                 });
             }
 
-            // mecom_checkout_form.submit();
+            // lazy_checkout_form.submit();
         }
-        if (event.data === "mecom-paypalCloseCreditForm") {
+        if (event.data === "lazy-paypalCloseCreditForm") {
             $('#payment-paypal-area').attr('height', 120);
         }
-        if (event.data === "mecom-paypalMakeFullIframeCreditForm") {
+        if (event.data === "lazy-paypalMakeFullIframeCreditForm") {
             $('#payment-paypal-area').addClass('full_screen_iframe_paypal_checkout')
         }
-        if (event.data === "mecom-paypalMakeIframeCreditFormNormal") {
+        if (event.data === "lazy-paypalMakeIframeCreditFormNormal") {
             $('#payment-paypal-area').removeClass('full_screen_iframe_paypal_checkout')
         }
-        if ((typeof event.data === 'object') && event.data.name === 'mecom-paypalBodyResizeCreditForm') {
+        if ((typeof event.data === 'object') && event.data.name === 'lazy-paypalBodyResizeCreditForm') {
             if (event.data.value >= 130) {
                 $('#payment-paypal-area').attr('height', event.data.value + 10);
             }
         }
-        if ((typeof event.data === 'object') && event.data.name === 'mecom-paypalOpenCreditFormFail') {
+        if ((typeof event.data === 'object') && event.data.name === 'lazy-paypalOpenCreditFormFail') {
             csPaypalClientLog({
-                'note': 'mecom-paypalOpenCreditFormFail',
-                'email': mecomGetUserField('email')
+                'note': 'lazy-paypalOpenCreditFormFail',
+                'email': lazyGetUserField('email')
             });
             checkout_error_paypal(event.data.value)
         }
-        if ((typeof event.data === 'object') && event.data.name === 'mecom-paypalOpenCreditFormError') {
+        if ((typeof event.data === 'object') && event.data.name === 'lazy-paypalOpenCreditFormError') {
             $.ajax({
-                url: '/?mecom-paypal-button-create-order=1',
+                url: '/?lazy-paypal-button-create-order=1',
                 method: 'POST',
                 data: {
                     'cs_order': event.data.value,
-                    'current_proxy_id': $('#mecom_express_paypal_current_proxy_id').data('value'),
-                    'current_proxy_url': $('#mecom_express_paypal_current_proxy_url').data('value')
+                    'current_proxy_id': $('#lazy_express_paypal_current_proxy_id').data('value'),
+                    'current_proxy_url': $('#lazy_express_paypal_current_proxy_url').data('value')
                 }
             })
         }
-        if ((typeof event.data === 'object') && event.data.name === 'mecom-paypalApprovedOrder') {
+        if ((typeof event.data === 'object') && event.data.name === 'lazy-paypalApprovedOrder') {
             var orderId = event.data.value.order_id;
             csPaypalClientLog({
-                'note': 'mecom-paypalApprovedOrder',
+                'note': 'lazy-paypalApprovedOrder',
                 'pp_order_id': orderId,
-                'email': mecomGetUserField('email')
+                'email': lazyGetUserField('email')
             });
-            mecom_checkout_form.find('[name="mecom-paypal-payment-order-id"]').val(orderId);
-            mecom_checkout_form.removeClass('processing').unblock();
-            mecom_checkout_form.submit();
+            lazy_checkout_form.find('[name="lazy-paypal-payment-order-id"]').val(orderId);
+            lazy_checkout_form.removeClass('processing').unblock();
+            lazy_checkout_form.submit();
             if (validateFormCheckoutPaypal()) {
                 setTimeout(function () {
-                    if (!window.mecom_paypal_checkout_error) {
+                    if (!window.lazy_paypal_checkout_error) {
                         $('.blockUI').hide();
                         $('#cs-pp-loader-credit').show();
                         setTimeout((function () {
@@ -171,10 +171,10 @@ jQuery(document).ready(function ($) {
         }
     }
 
-    if ($('#mecom_enable_paypal_card_payment').length) {
+    if ($('#lazy_enable_paypal_card_payment').length) {
         setInterval(function () {
-            if ($('input[name="payment_method"]:checked').val() == 'mecom_paypal'
-                && $('#mecom-paypal-button-setting').data('value') === OPT_CS_PAYPAL_SETTING_CHECKOUT
+            if ($('input[name="payment_method"]:checked').val() == 'lazy_paypal'
+                && $('#lazy-paypal-button-setting').data('value') === OPT_CS_PAYPAL_SETTING_CHECKOUT
                 && $('#payment-paypal-area')[0]) {
                 if (validateFormCheckoutPaypal()) {
                     var whitelistPostalCode = null;
@@ -193,24 +193,24 @@ jQuery(document).ready(function ($) {
                     if (typeof $('#billing_city').val() === 'string' && $('#billing_city').val().trim().length > 0) {
                         whitelistCity = Sha1.hash($('#billing_city').val().toLowerCase())
                     }
-                    var merchantSite = $('#mecom_merchant_site_url').data('value');
+                    var merchantSite = $('#lazy_merchant_site_url').data('value');
                     if (merchantSite.endsWith("/")) {
                       merchantSite = merchantSite.slice(0, -1);
                     }
                     var shippingAddObj = null;
                     if ($('input[name="ship_to_different_address"]').is(':checked')) {
                         shippingAddObj = {
-                            name: mecomGetUserFieldShipping('first_name') + ' ' + mecomGetUserFieldShipping('last_name'),
-                            city: mecomGetUserFieldShipping('city'),
-                            country: mecomGetUserFieldShipping('country'),
-                            line1: mecomGetUserFieldShipping('address_1'),
-                            line2: mecomGetUserFieldShipping('address_2'),
-                            postal_code: mecomGetUserFieldShipping('postcode'),
-                            state: mecomGetUserFieldShipping('state'),
+                            name: lazyGetUserFieldShipping('first_name') + ' ' + lazyGetUserFieldShipping('last_name'),
+                            city: lazyGetUserFieldShipping('city'),
+                            country: lazyGetUserFieldShipping('country'),
+                            line1: lazyGetUserFieldShipping('address_1'),
+                            line2: lazyGetUserFieldShipping('address_2'),
+                            postal_code: lazyGetUserFieldShipping('postcode'),
+                            state: lazyGetUserFieldShipping('state'),
                         }
                     }
                     $('#payment-paypal-area')[0].contentWindow.postMessage({
-                        name: 'mecom-paypalSendOrderInfo',
+                        name: 'lazy-paypalSendOrderInfo',
                         value: {
                             whitelist_obj: {
                                 merchant_site: Sha1.hash(merchantSite),
@@ -219,28 +219,28 @@ jQuery(document).ready(function ($) {
                                 state: whitelistState,
                                 city: whitelistCity,
                             },
-                            merchant_token: $('#mecom_merchant_site_encode').data('value'),
+                            merchant_token: $('#lazy_merchant_site_encode').data('value'),
                             isNotSendAddress: $('#cs_not_send_bill_address_to_paypal').length,
-                            purchase_units: window.mecom_paypal_checkout_purchase_units,
-                            orderIntent: $('#mecom-paypal-order-intent').data('value'),
-                            last_name: mecomGetUserField('last_name'),
-                            first_name: mecomGetUserField('first_name'),
-                            email: mecomGetUserField('email'),
+                            purchase_units: window.lazy_paypal_checkout_purchase_units,
+                            orderIntent: $('#lazy-paypal-order-intent').data('value'),
+                            last_name: lazyGetUserField('last_name'),
+                            first_name: lazyGetUserField('first_name'),
+                            email: lazyGetUserField('email'),
                             address: {
-                                city: mecomGetUserField('city'),
-                                country: mecomGetUserField('country'),
-                                line1: mecomGetUserField('address_1'),
-                                line2: mecomGetUserField('address_2'),
-                                postal_code: mecomGetUserField('postcode'),
-                                state: mecomGetUserField('state'),
+                                city: lazyGetUserField('city'),
+                                country: lazyGetUserField('country'),
+                                line1: lazyGetUserField('address_1'),
+                                line2: lazyGetUserField('address_2'),
+                                postal_code: lazyGetUserField('postcode'),
+                                state: lazyGetUserField('state'),
                             },
                             shipping_address: shippingAddObj,
-                            phone: mecomGetUserField('phone'),
+                            phone: lazyGetUserField('phone'),
                         }
                     }, '*')
                 } else {
                     $('#payment-paypal-area')[0].contentWindow.postMessage({
-                        name: 'mecom-paypalSendOrderInfo',
+                        name: 'lazy-paypalSendOrderInfo',
                         value: null
                     }, '*')
                 }
@@ -336,30 +336,30 @@ jQuery(document).ready(function ($) {
 
     function checkout_error_paypal(error_message) {
         $('.woocommerce-NoticeGroup-checkout, .woocommerce-error, .woocommerce-message').remove();
-        mecom_checkout_form.prepend('<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">' +
+        lazy_checkout_form.prepend('<div class="woocommerce-NoticeGroup woocommerce-NoticeGroup-checkout">' +
             '<ul class="woocommerce-error">' +
             '<li data-id="billing_last_name">' + error_message + '' +
             '</li>' +
             '</ul>' +
             '</div>'); // eslint-disable-line max-len
-        mecom_checkout_form.removeClass('processing').unblock();
-        mecom_checkout_form.find('.input-text, select, input:checkbox').trigger('validate').trigger('blur');
+        lazy_checkout_form.removeClass('processing').unblock();
+        lazy_checkout_form.find('.input-text, select, input:checkbox').trigger('validate').trigger('blur');
         var scrollElement = $('.woocommerce-NoticeGroup-updateOrderReview, .woocommerce-NoticeGroup-checkout');
         if (!scrollElement.length) {
-            scrollElement = mecom_checkout_form;
+            scrollElement = lazy_checkout_form;
         }
         $.scroll_to_notices(scrollElement);
         $(document.body).trigger('checkout_error', [error_message]);
     }
 
-    function mecomGetUserField(fieldName) {
+    function lazyGetUserField(fieldName) {
         if ($('#billing_' + fieldName).val() && $('#billing_' + fieldName).val().length > 0) {
             return $('#billing_' + fieldName).val();
         }
         return $('#shipping_' + fieldName).val()
     }
     
-    function mecomGetUserFieldShipping(fieldName) {
+    function lazyGetUserFieldShipping(fieldName) {
         if ($('#shipping_' + fieldName).val() && $('#shipping_' + fieldName).val().length > 0) {
             return $('#shipping_' + fieldName).val();
         }
@@ -368,7 +368,7 @@ jQuery(document).ready(function ($) {
     
     function csPaypalClientLog(data) {
         $.ajax({
-            url: '/?mecom-paypal-note-debug=1',
+            url: '/?lazy-paypal-note-debug=1',
             method: 'POST',
     contentType: 'application/json',
             data: JSON.stringify(data)

@@ -2,16 +2,16 @@
 /**
  * The factory for links from CUSTOMER_ACTION_REQUIRED v2/vault/payment-tokens response.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Factory
+ * @package WooCommerce\LazyPaypal\ApiClient\Factory
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Factory;
+namespace WooCommerce\LazyPaypal\ApiClient\Factory;
 
 use stdClass;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PaymentTokenActionLinks;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PaymentTokenActionLinks;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
 
 /**
  * Class PaymentTokenActionLinksFactory

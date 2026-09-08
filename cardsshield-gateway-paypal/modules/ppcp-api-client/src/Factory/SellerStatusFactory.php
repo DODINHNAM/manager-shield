@@ -2,15 +2,15 @@
 /**
  * Factory for the SellerStatus object.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Factory
+ * @package WooCommerce\LazyPaypal\ApiClient\Factory
  */
 
 declare( strict_types=1 );
 
-namespace WooCommerce\MecomPaypal\ApiClient\Factory;
+namespace WooCommerce\LazyPaypal\ApiClient\Factory;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\SellerStatus;
-use WooCommerce\MecomPaypal\ApiClient\Entity\SellerStatusProduct;
+use WooCommerce\LazyPaypal\ApiClient\Entity\SellerStatus;
+use WooCommerce\LazyPaypal\ApiClient\Entity\SellerStatusProduct;
 
 /**
  * Class SellerStatusFactory

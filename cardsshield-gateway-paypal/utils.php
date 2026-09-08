@@ -1,17 +1,17 @@
 <?php
 
-const OPT_MECOM_PAYPAL_VERSION                     = '2.8.4';
-const OPT_MECOM_PAYPAL_PROXIES                     = 'OPT_MECOM_PAYPAL_PROXIES';
-const OPT_MECOM_PAYPAL_UNUSED_PROXIES              = 'OPT_MECOM_PAYPAL_UNUSED_PROXIES';
-const OPT_MECOM_PAYPAL_ACTIVATED_PROXY             = 'OPT_MECOM_PAYPAL_ACTIVATED_PROXY';
-const OPT_MECOM_PAYPAL_CURRENT_ROTATION_VALUE      = 'OPT_MECOM_PAYPAL_CURRENT_ROTATION_VALUE';
-const OPT_MECOM_PAYPAL_ROTATION_METHOD             = 'OPT_MECOM_PAYPAL_ROTATION_METHOD';
-const OPT_MECOM_PAYPAL_CONNECTION_MODE            = 'OPT_MECOM_PAYPAL_CONNECTION_MODE';
-const OPT_MECOM_PAYPAL_LAST_TIME_RESET_PAID_AMOUNT = 'OPT_MECOM_PAYPAL_LAST_TIME_RESET_PAID_AMOUNT';
+const OPT_LAZY_PAYPAL_VERSION                     = '2.8.4';
+const OPT_LAZY_PAYPAL_PROXIES                     = 'OPT_LAZY_PAYPAL_PROXIES';
+const OPT_LAZY_PAYPAL_UNUSED_PROXIES              = 'OPT_LAZY_PAYPAL_UNUSED_PROXIES';
+const OPT_LAZY_PAYPAL_ACTIVATED_PROXY             = 'OPT_LAZY_PAYPAL_ACTIVATED_PROXY';
+const OPT_LAZY_PAYPAL_CURRENT_ROTATION_VALUE      = 'OPT_LAZY_PAYPAL_CURRENT_ROTATION_VALUE';
+const OPT_LAZY_PAYPAL_ROTATION_METHOD             = 'OPT_LAZY_PAYPAL_ROTATION_METHOD';
+const OPT_LAZY_PAYPAL_CONNECTION_MODE            = 'OPT_LAZY_PAYPAL_CONNECTION_MODE';
+const OPT_LAZY_PAYPAL_LAST_TIME_RESET_PAID_AMOUNT = 'OPT_LAZY_PAYPAL_LAST_TIME_RESET_PAID_AMOUNT';
 
-const METAKEY_PAYPAL_PROXY_URL          = '_mecom_paypal_proxy_url';
-const METAKEY_PAYPAL_PROXY_ID          = '_mecom_paypal_proxy_id';
-const METAKEY_PAYPAL_SYNC_TRACKING_INFO = '_mecom_paypal_sync_tracking_info';
+const METAKEY_PAYPAL_PROXY_URL          = '_lazy_paypal_proxy_url';
+const METAKEY_PAYPAL_PROXY_ID          = '_lazy_paypal_proxy_id';
+const METAKEY_PAYPAL_SYNC_TRACKING_INFO = '_lazy_paypal_sync_tracking_info';
 const METAKEY_PAYPAL_PROCESSING_ORDER_KEY = '_METAKEY_PAYPAL_PROCESSING_ORDER_KEY';
 
 const METAKEY_CS_PAYPAL_FEE    = '_cs_paypal_fee';
@@ -38,6 +38,48 @@ const OPT_CS_PAYPAL_CAPTURE   = "CAPTURE";
 const OPT_CS_PAYPAL_SETTING_STANDARD = "PAYPAL_STANDARD";
 const OPT_CS_PAYPAL_SETTING_CHECKOUT   = "PAYPAL_CHECKOUT"; 
 
+/**
+ * Copy settings from the previous plugin identifiers once after the rename.
+ */
+function cs_lazy_migrate_legacy_options() {
+    static $migrated = false;
+
+    if ( $migrated ) {
+        return;
+    }
+
+    $migrated = true;
+    $legacy_options = [
+        OPT_LAZY_PAYPAL_PROXIES                => 'OPT_M' . 'ECOM_PAYPAL_PROXIES',
+        OPT_LAZY_PAYPAL_UNUSED_PROXIES         => 'OPT_M' . 'ECOM_PAYPAL_UNUSED_PROXIES',
+        OPT_LAZY_PAYPAL_ACTIVATED_PROXY        => 'OPT_M' . 'ECOM_PAYPAL_ACTIVATED_PROXY',
+        OPT_LAZY_PAYPAL_CURRENT_ROTATION_VALUE  => 'OPT_M' . 'ECOM_PAYPAL_CURRENT_ROTATION_VALUE',
+        OPT_LAZY_PAYPAL_ROTATION_METHOD         => 'OPT_M' . 'ECOM_PAYPAL_ROTATION_METHOD',
+        OPT_LAZY_PAYPAL_CONNECTION_MODE         => 'OPT_M' . 'ECOM_PAYPAL_CONNECTION_MODE',
+        OPT_LAZY_PAYPAL_LAST_TIME_RESET_PAID_AMOUNT => 'OPT_M' . 'ECOM_PAYPAL_LAST_TIME_RESET_PAID_AMOUNT',
+    ];
+
+    foreach ( $legacy_options as $new_key => $legacy_key ) {
+        if ( false === get_option( $new_key, false ) ) {
+            $legacy_value = get_option( $legacy_key, false );
+            if ( false !== $legacy_value ) {
+                update_option( $new_key, $legacy_value, true );
+            }
+        }
+    }
+
+    $new_wc_settings    = 'woocommerce_lazy_paypal_settings';
+    $legacy_wc_settings = 'woocommerce_m' . 'ecom_paypal_settings';
+    if ( false === get_option( $new_wc_settings, false ) ) {
+        $legacy_value = get_option( $legacy_wc_settings, false );
+        if ( false !== $legacy_value ) {
+            update_option( $new_wc_settings, $legacy_value, true );
+        }
+    }
+}
+
+cs_lazy_migrate_legacy_options();
+
 const OPT_CS_TRACKING_SYNC_PLUGIN_ADVANCED_SHIPMENT_TRACKING='opt_cs_tracking_sync_plugin_advanced_shipment_tracking';
 const OPT_CS_TRACKING_SYNC_PLUGIN_ORDERS_TRACKING='opt_cs_tracking_sync_plugin_orders_tracking';
 const OPT_CS_TRACKING_SYNC_PLUGIN_DIANXIAOMI='opt_cs_tracking_sync_plugin_dianxiaomi';
@@ -46,11 +88,11 @@ const OPT_CS_SEND_REQUEST_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 1
 
 function logRotation($rotationMethod, $proxy, $type)
 {
-    $mecom_log_dir = wp_get_upload_dir()["basedir"] . '/mecom';
-    if (!is_dir($mecom_log_dir)) {
-        mkdir($mecom_log_dir, 0777, true);
+    $lazy_log_dir = wp_get_upload_dir()["basedir"] . '/lazy';
+    if (!is_dir($lazy_log_dir)) {
+        mkdir($lazy_log_dir, 0777, true);
     }
-    $logFilePath = $mecom_log_dir . '/' . getLogFileName($rotationMethod);
+    $logFilePath = $lazy_log_dir . '/' . getLogFileName($rotationMethod);
     $currentDateTime             = date('Y-m-d H:i:s');
     $rotationValue               = $rotationMethod === OPT_CS_PAYPAL_BY_TIME ? $proxy['timestamp'] : ( $proxy['paid_amount'] . '/' . $proxy['amount']);
     $content                     = "{$currentDateTime} - {$proxy['url']} , {$rotationValue} - {$type}\n";
@@ -62,8 +104,8 @@ function logRotation($rotationMethod, $proxy, $type)
 
 function loadLogs($rotationMethod)
 {
-    $mecomLogDir = wp_get_upload_dir()["basedir"] . '/mecom';
-    $logFilePath = $mecomLogDir . '/' . getLogFileName($rotationMethod);
+    $lazyLogDir = wp_get_upload_dir()["basedir"] . '/lazy';
+    $logFilePath = $lazyLogDir . '/' . getLogFileName($rotationMethod);
     if (!file_exists($logFilePath)) {
         return [];
     }
@@ -88,12 +130,12 @@ function loadLogs($rotationMethod)
 
 function clearLogs($rotationMethod)
 {
-    $mecomLogDir = wp_get_upload_dir()["basedir"] . '/mecom';
-    if (!is_dir($mecomLogDir)) {
-        mkdir($mecomLogDir, 0777, true);
+    $lazyLogDir = wp_get_upload_dir()["basedir"] . '/lazy';
+    if (!is_dir($lazyLogDir)) {
+        mkdir($lazyLogDir, 0777, true);
     }
 
-    $logFilePath = $mecomLogDir . '/' . getLogFileName($rotationMethod);
+    $logFilePath = $lazyLogDir . '/' . getLogFileName($rotationMethod);
     $fp = fopen($logFilePath, 'w');
     fwrite($fp, "");
     fclose($fp);
@@ -102,19 +144,19 @@ function clearLogs($rotationMethod)
 
 function getLogFileName($rotationMethod) {
     if ( $rotationMethod === OPT_CS_PAYPAL_BY_TIME) {
-        return 'mecom_paypal_rotation_time_log.txt';
+        return 'lazy_paypal_rotation_time_log.txt';
     } else if ( $rotationMethod === OPT_CS_PAYPAL_BY_AMOUNT) {
-        return 'mecom_paypal_rotation_amount_log.txt';
+        return 'lazy_paypal_rotation_amount_log.txt';
     }
 }
 
 function isEnabledAmountRotation() {
-    return OPT_CS_PAYPAL_BY_AMOUNT === get_option(OPT_MECOM_PAYPAL_ROTATION_METHOD, OPT_CS_PAYPAL_BY_TIME);
+    return OPT_CS_PAYPAL_BY_AMOUNT === get_option(OPT_LAZY_PAYPAL_ROTATION_METHOD, OPT_CS_PAYPAL_BY_TIME);
 }
 
 function resetPaidAmountIfNeed() {
-    $lastTimeReset = get_option(OPT_MECOM_PAYPAL_LAST_TIME_RESET_PAID_AMOUNT, null);
-    $proxies = get_option(OPT_MECOM_PAYPAL_PROXIES, []);
+    $lastTimeReset = get_option(OPT_LAZY_PAYPAL_LAST_TIME_RESET_PAID_AMOUNT, null);
+    $proxies = get_option(OPT_LAZY_PAYPAL_PROXIES, []);
     if (empty($proxies)) {
         return [];
     }
@@ -128,7 +170,7 @@ function resetPaidAmountIfNeed() {
 function resetPaidAmount($proxies = null)
 {
     if (empty($proxies)) {
-        $proxies = get_option( OPT_MECOM_PAYPAL_PROXIES, [] );
+        $proxies = get_option( OPT_LAZY_PAYPAL_PROXIES, [] );
     }
     if (empty($proxies)) return [];
     // Reset
@@ -136,7 +178,7 @@ function resetPaidAmount($proxies = null)
         $proxy['paid_amount'] = 0;
         return $proxy;
     }, $proxies);
-    $unusedProxies = get_option(OPT_MECOM_PAYPAL_UNUSED_PROXIES, []);
+    $unusedProxies = get_option(OPT_LAZY_PAYPAL_UNUSED_PROXIES, []);
     if (empty($unusedProxies)) {
         $newUnusedProxies = [];
     } else {
@@ -145,9 +187,9 @@ function resetPaidAmount($proxies = null)
             return $unusedProxy;
         }, $unusedProxies);
     }
-    update_option(OPT_MECOM_PAYPAL_PROXIES, $newProxies, true);
-    update_option(OPT_MECOM_PAYPAL_UNUSED_PROXIES, $newUnusedProxies, true);
-    update_option(OPT_MECOM_PAYPAL_LAST_TIME_RESET_PAID_AMOUNT, date('Y-m-d'), true);
+    update_option(OPT_LAZY_PAYPAL_PROXIES, $newProxies, true);
+    update_option(OPT_LAZY_PAYPAL_UNUSED_PROXIES, $newUnusedProxies, true);
+    update_option(OPT_LAZY_PAYPAL_LAST_TIME_RESET_PAID_AMOUNT, date('Y-m-d'), true);
     return $newProxies;
 }
 
@@ -161,7 +203,7 @@ function findActivatedProxyDataById($proxies, $activatedProxyId) {
 }
 
 function getNextProxy($currentProxyId) {
-    $proxies = get_option( OPT_MECOM_PAYPAL_PROXIES, [] );
+    $proxies = get_option( OPT_LAZY_PAYPAL_PROXIES, [] );
     if (empty($proxies)) return null;
     if ($currentProxyId == end($proxies)['id']) {
         return $proxies[0];
@@ -212,7 +254,7 @@ function performProxyAmountRotation($activatedProxy, $orderTotal) {
         }
         if ($isCurrentProxyMatched && isPayableProxy( $proxy, $orderTotal ) ) {
             $activatedProxy = $proxy;
-            update_option( OPT_MECOM_PAYPAL_ACTIVATED_PROXY, $activatedProxy, true );
+            update_option( OPT_LAZY_PAYPAL_ACTIVATED_PROXY, $activatedProxy, true );
             logRotation( OPT_CS_PAYPAL_BY_AMOUNT, $activatedProxy, "Auto" );
 
             return $activatedProxy;
@@ -221,7 +263,7 @@ function performProxyAmountRotation($activatedProxy, $orderTotal) {
     foreach ( $proxies as $proxy ) {
         if ( isPayableProxy( $proxy, $orderTotal ) ) {
             $activatedProxy = $proxy;
-            update_option( OPT_MECOM_PAYPAL_ACTIVATED_PROXY, $activatedProxy, true );
+            update_option( OPT_LAZY_PAYPAL_ACTIVATED_PROXY, $activatedProxy, true );
             logRotation( OPT_CS_PAYPAL_BY_AMOUNT, $activatedProxy, "Auto" );
 
             return $activatedProxy;
@@ -232,7 +274,7 @@ function performProxyAmountRotation($activatedProxy, $orderTotal) {
 }
 
 function performProxyByTimeRotation($activatedProxy) {
-    $proxies = get_option( OPT_MECOM_PAYPAL_PROXIES, [] );
+    $proxies = get_option( OPT_LAZY_PAYPAL_PROXIES, [] );
     if ( empty( $proxies ) ) {
         return null;
     }
@@ -244,14 +286,14 @@ function performProxyByTimeRotation($activatedProxy) {
         }
         if ($isCurrentProxyMatched) {
             $activatedProxy = $proxy;
-            update_option( OPT_MECOM_PAYPAL_ACTIVATED_PROXY, $activatedProxy, true );
+            update_option( OPT_LAZY_PAYPAL_ACTIVATED_PROXY, $activatedProxy, true );
             logRotation( OPT_CS_PAYPAL_BY_TIME, $activatedProxy, "Auto" );
 
             return $activatedProxy;
         }
     }
     $activatedProxy = $proxies[0];
-    update_option( OPT_MECOM_PAYPAL_ACTIVATED_PROXY, $proxies, true );
+    update_option( OPT_LAZY_PAYPAL_ACTIVATED_PROXY, $proxies, true );
     logRotation( OPT_CS_PAYPAL_BY_TIME, $activatedProxy, "Auto" );
     return $activatedProxy;
 }
@@ -275,19 +317,19 @@ function hasPayableProxy($orderTotal) {
 }
 
 function updateRotationAmount($proxyId, $orderTotal) {
-    $activatedProxy = get_option( OPT_MECOM_PAYPAL_ACTIVATED_PROXY, null );
+    $activatedProxy = get_option( OPT_LAZY_PAYPAL_ACTIVATED_PROXY, null );
     if ($activatedProxy['id'] == $proxyId) {
         $activatedProxy['paid_amount'] = doubleval($activatedProxy['paid_amount']) + doubleval( $orderTotal );
-        update_option(OPT_MECOM_PAYPAL_ACTIVATED_PROXY, $activatedProxy, true);
+        update_option(OPT_LAZY_PAYPAL_ACTIVATED_PROXY, $activatedProxy, true);
     }
-    $proxies = get_option(OPT_MECOM_PAYPAL_PROXIES, []);
+    $proxies = get_option(OPT_LAZY_PAYPAL_PROXIES, []);
     foreach ($proxies as $key => $proxy) {
         if ($proxy['id'] === $proxyId) {
             $proxies[$key]['paid_amount'] = doubleval($proxy['paid_amount']) + doubleval( $orderTotal );
             break;
         }
     }
-    return update_option(OPT_MECOM_PAYPAL_PROXIES, $proxies, true);
+    return update_option(OPT_LAZY_PAYPAL_PROXIES, $proxies, true);
 }
 
 function getEnabledPaymentGateways() {
@@ -330,11 +372,11 @@ function csLog($error, $message = '') {
 }
 
 function moveToUnusedProxyIds($proxyIds) {
-    $proxies        = get_option( OPT_MECOM_PAYPAL_PROXIES, [] );
+    $proxies        = get_option( OPT_LAZY_PAYPAL_PROXIES, [] );
     if (empty($proxies)) {
         $proxies = [];
     }
-    $unusedProxies  = get_option( OPT_MECOM_PAYPAL_UNUSED_PROXIES, [] );
+    $unusedProxies  = get_option( OPT_LAZY_PAYPAL_UNUSED_PROXIES, [] );
     if (empty($unusedProxies)) {
         $unusedProxies = [];
     }
@@ -344,21 +386,21 @@ function moveToUnusedProxyIds($proxyIds) {
             unset( $proxies[ $key ] );
         }
     }
-    $isSuccess1 = update_option( OPT_MECOM_PAYPAL_PROXIES, array_values($proxies), true );
-    $isSuccess2 = update_option( OPT_MECOM_PAYPAL_UNUSED_PROXIES, $unusedProxies, true );
-    $proxies        = get_option( OPT_MECOM_PAYPAL_PROXIES, [] );
+    $isSuccess1 = update_option( OPT_LAZY_PAYPAL_PROXIES, array_values($proxies), true );
+    $isSuccess2 = update_option( OPT_LAZY_PAYPAL_UNUSED_PROXIES, $unusedProxies, true );
+    $proxies        = get_option( OPT_LAZY_PAYPAL_PROXIES, [] );
     if(isset($proxies[0])) {
-        update_option( OPT_MECOM_PAYPAL_ACTIVATED_PROXY, $proxies[0], true );
+        update_option( OPT_LAZY_PAYPAL_ACTIVATED_PROXY, $proxies[0], true );
     }
     return $isSuccess1 && $isSuccess2;
 }
 
 function moveToUnusedProxyIdsRestrictAccount($proxyIds) {
-    $proxies        = get_option( OPT_MECOM_PAYPAL_PROXIES, [] );
+    $proxies        = get_option( OPT_LAZY_PAYPAL_PROXIES, [] );
     if (empty($proxies)) {
         $proxies = [];
     }
-    $unusedProxies  = get_option( OPT_MECOM_PAYPAL_UNUSED_PROXIES, [] );
+    $unusedProxies  = get_option( OPT_LAZY_PAYPAL_UNUSED_PROXIES, [] );
     if (empty($unusedProxies)) {
         $unusedProxies = [];
     }
@@ -368,8 +410,8 @@ function moveToUnusedProxyIdsRestrictAccount($proxyIds) {
             unset( $proxies[ $key ] );
         }
     }
-    $isSuccess1 = update_option( OPT_MECOM_PAYPAL_PROXIES, array_values($proxies), true );
-    $isSuccess2 = update_option( OPT_MECOM_PAYPAL_UNUSED_PROXIES, $unusedProxies, true );
+    $isSuccess1 = update_option( OPT_LAZY_PAYPAL_PROXIES, array_values($proxies), true );
+    $isSuccess2 = update_option( OPT_LAZY_PAYPAL_UNUSED_PROXIES, $unusedProxies, true );
     return $isSuccess1 && $isSuccess2;
 }
 
@@ -387,7 +429,7 @@ require_once(plugin_dir_path(__FILE__) . 'cs-woocommerce-orders-tracking/include
 require_once(plugin_dir_path(__FILE__) . 'cs-advance-shipment-tracking/cs-advance-shipping-tracking-provider.php');
 
 function syncTrackingInfo() {
-    $csPayPalGw = WC()->payment_gateways->payment_gateways()['mecom_paypal'];
+    $csPayPalGw = WC()->payment_gateways->payment_gateways()['lazy_paypal'];
     $trackingSyncPlugin = $csPayPalGw->get_option('sync_tracking_plugin');
     if (get_option('woocommerce_custom_orders_table_enabled') === 'yes') {
         $orders = queryOrderNeedSyncPaypalHPOS('get');
@@ -547,7 +589,7 @@ function syncTrackingInfo() {
                 unset($data['order_id']);
                 return $data;
             }, $shippingDataPart);
-            $requestUrl = $proxyUrl . "?mecom-paypal-sync-tracking=1&" . http_build_query( [
+            $requestUrl = $proxyUrl . "?lazy-paypal-sync-tracking=1&" . http_build_query( [
                 'data-track' => $shippingDataPush
             ]);
             $response = wp_remote_get($requestUrl, [
@@ -598,12 +640,12 @@ function syncTrackingInfo() {
     }
 }
 require_once(plugin_dir_path(__FILE__) . 'vendor/autoload.php');
-$bootstrapMecomPaypalModules = require_once(plugin_dir_path(__FILE__) . 'modules/ppcp-api-client/bootstrap.php');
-$appContainerMecomPaypalModules = $bootstrapMecomPaypalModules( plugin_dir_path(__FILE__) . 'modules/ppcp-api-client');
+$bootstrapLazyPaypalModules = require_once(plugin_dir_path(__FILE__) . 'modules/ppcp-api-client/bootstrap.php');
+$appContainerLazyPaypalModules = $bootstrapLazyPaypalModules( plugin_dir_path(__FILE__) . 'modules/ppcp-api-client');
     
 function get_purchase_unit_from_cart(WC_Cart $cart) {
-    global $appContainerMecomPaypalModules;
-    $purchaseUnits = $appContainerMecomPaypalModules->get('api.factory.purchase-unit')->from_wc_cart($cart)->to_array();
+    global $appContainerLazyPaypalModules;
+    $purchaseUnits = $appContainerLazyPaypalModules->get('api.factory.purchase-unit')->from_wc_cart($cart)->to_array();
     $result = [];
     foreach (['amount'] as $attrToUse) {
         $result[$attrToUse] = $purchaseUnits[$attrToUse];
@@ -613,8 +655,8 @@ function get_purchase_unit_from_cart(WC_Cart $cart) {
 }
 
 function get_purchase_unit_from_order(WC_Order $order) {
-    global $appContainerMecomPaypalModules;
-    $purchaseUnits = $appContainerMecomPaypalModules->get('api.factory.purchase-unit')->from_wc_order($order)->to_array();
+    global $appContainerLazyPaypalModules;
+    $purchaseUnits = $appContainerLazyPaypalModules->get('api.factory.purchase-unit')->from_wc_order($order)->to_array();
         $result = [];
     foreach (['amount', 'items', 'invoice_id'] as $attrToUse) {
         $result[$attrToUse] = $purchaseUnits[$attrToUse];
@@ -687,7 +729,7 @@ function getCsPaypalOrderDetailFromWcOrder(WC_Order $order) {
     $shippingCountry  = empty( $shippingCountry ) ? $billingCountry : $shippingCountry;
     $shippingPostCode = empty( $shippingPostCode ) ? $billingPostCode : $shippingPostCode;
     $shippingState    = empty( $shippingState ) ? $billingState : $shippingState;
-    $csPaypalGw = WC()->payment_gateways->payment_gateways()['mecom_paypal'];
+    $csPaypalGw = WC()->payment_gateways->payment_gateways()['lazy_paypal'];
     $trackingSyncPlugin = $csPaypalGw->get_option('transaction_logs_enable');
     if ($trackingSyncPlugin && $trackingSyncPlugin === 'yes') {
         return [
@@ -734,7 +776,7 @@ function csPaypalGetTransactionId(WC_Order $order) {
 function queryOrderNeedSyncPaypal($mode = 'count') {
     global $wpdb;
 
-    $csPayPalGw = WC()->payment_gateways->payment_gateways()['mecom_paypal'];
+    $csPayPalGw = WC()->payment_gateways->payment_gateways()['lazy_paypal'];
     $trackingSyncPlugin = $csPayPalGw->get_option('sync_tracking_plugin');
     $selectStatement = 'COUNT(DISTINCT(posts.id)) as count';
     if ($mode == 'get') {
@@ -788,7 +830,7 @@ function queryOrderNeedSyncPaypalHPOS($mode = 'count')
 {
     global $wpdb;
 
-    $csPayPalGw = WC()->payment_gateways->payment_gateways()['mecom_paypal'];
+    $csPayPalGw = WC()->payment_gateways->payment_gateways()['lazy_paypal'];
     $trackingSyncPlugin = $csPayPalGw->get_option('sync_tracking_plugin');
     $selectStatement = 'COUNT(DISTINCT(orders.id)) as count';
     if ($mode == 'get') {
@@ -841,7 +883,7 @@ function isPaypalShieldReachAmount($orderTotal) {
     if (!isEnabledAmountRotation()) {
         return false;
     }
-    $proxies = get_option(OPT_MECOM_PAYPAL_PROXIES, []);
+    $proxies = get_option(OPT_LAZY_PAYPAL_PROXIES, []);
     if (empty($proxies)) {
         return false;
     }
@@ -854,7 +896,7 @@ function isPaypalShieldReachAmount($orderTotal) {
 }
 
 function csPaypalSendMailShieldReachAmount() {
-    $csPaypalGw = WC()->payment_gateways->payment_gateways()['mecom_paypal'];
+    $csPaypalGw = WC()->payment_gateways->payment_gateways()['lazy_paypal'];
     if($csPaypalGw->get_option('send_email_notice_to_admin') === 'no') {
         return false;
     }
@@ -887,7 +929,7 @@ function csPaypalSendMailShieldReachAmount() {
 }
 
 function csPaypalSendMailShieldDie($shieldUrl) {
-    $csPaypalGw = WC()->payment_gateways->payment_gateways()['mecom_paypal'];
+    $csPaypalGw = WC()->payment_gateways->payment_gateways()['lazy_paypal'];
     if($csPaypalGw->get_option('send_email_notice_to_admin') === 'no') {
         return false;
     }
@@ -913,7 +955,7 @@ function csPaypalSendMailShieldDie($shieldUrl) {
 }
 
 function csPaypalSendMailOrderBlacklisted($orderId) {
-    $csPaypalGw = WC()->payment_gateways->payment_gateways()['mecom_paypal'];
+    $csPaypalGw = WC()->payment_gateways->payment_gateways()['lazy_paypal'];
     if($csPaypalGw->get_option('send_email_notice_to_admin') === 'no') {
         return false;
     }
@@ -1102,7 +1144,7 @@ function csEndpointMoveToUnusedShield($shieldDomain) {
 }
 
 function isCsPaypalEnableEndpointMode() {
-    return get_option(OPT_MECOM_PAYPAL_CONNECTION_MODE, null) == OPT_CS_PAYPAL_CONNECTION_MODE_ENDPOINT_TOKEN;
+    return get_option(OPT_LAZY_PAYPAL_CONNECTION_MODE, null) == OPT_CS_PAYPAL_CONNECTION_MODE_ENDPOINT_TOKEN;
 }
 
 function csGetGatewayDomain()
@@ -1146,7 +1188,7 @@ function csMerchantSiteEncode($merchantSite)
 function csPaypalGetSSLVerifyStatus()
 {
     try {
-        if (WC_MEcom_Gateway::load()->sslverify === 'yes') {
+        if (WC_Lazy_Gateway::load()->sslverify === 'yes') {
             return true;
         }
     } catch (\Exception $e) {

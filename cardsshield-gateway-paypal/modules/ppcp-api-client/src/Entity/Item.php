@@ -2,12 +2,12 @@
 /**
  * The item object.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Entity
+ * @package WooCommerce\LazyPaypal\ApiClient\Entity
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Entity;
+namespace WooCommerce\LazyPaypal\ApiClient\Entity;
 
 /**
  * Class Item
@@ -189,7 +189,7 @@ class Item {
 			'name'        => $this->name(),
 			'unit_amount' => $this->unit_amount()->to_array(),
 			'quantity'    => $this->quantity(),
-//			'description' => $this->description(), MECOM
+//			'description' => $this->description(), LAZY
 			'sku'         => $this->sku(),
 			'category'    => $this->category(),
 		);

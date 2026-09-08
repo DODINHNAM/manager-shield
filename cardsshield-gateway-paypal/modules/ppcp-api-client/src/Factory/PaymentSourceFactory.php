@@ -2,16 +2,16 @@
 /**
  * The PaymentSource factory.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Factory
+ * @package WooCommerce\LazyPaypal\ApiClient\Factory
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Factory;
+namespace WooCommerce\LazyPaypal\ApiClient\Factory;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\CardAuthenticationResult;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PaymentSource;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PaymentSourceCard;
+use WooCommerce\LazyPaypal\ApiClient\Entity\CardAuthenticationResult;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PaymentSource;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PaymentSourceCard;
 
 /**
  * Class PaymentSourceFactory

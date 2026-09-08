@@ -2,14 +2,14 @@
 /**
  * The Payee Repository.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Repository
+ * @package WooCommerce\LazyPaypal\ApiClient\Repository
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Repository;
+namespace WooCommerce\LazyPaypal\ApiClient\Repository;
 
-use WooCommerce\MecomPaypal\ApiClient\Entity\Payee;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Payee;
 
 /**
  * Class PayeeRepository

@@ -2,17 +2,17 @@
 /**
  * The Item factory.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Factory
+ * @package WooCommerce\LazyPaypal\ApiClient\Factory
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Factory;
+namespace WooCommerce\LazyPaypal\ApiClient\Factory;
 
 use WC_Product;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Item;
-use WooCommerce\MecomPaypal\ApiClient\Entity\Money;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Item;
+use WooCommerce\LazyPaypal\ApiClient\Entity\Money;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
 
 /**
  * Class ItemFactory
@@ -62,7 +62,7 @@ class ItemFactory {
 					$quantity,
 					substr( wp_strip_all_tags( $product->get_description() ), 0, 127 ) ?: '',
 					null,
-//					$product->get_sku(), MECOM
+//					$product->get_sku(), LAZY
                     (string)($index),
 					( $product->is_virtual() ) ? Item::DIGITAL_GOODS : Item::PHYSICAL_GOODS
 				);
@@ -136,29 +136,29 @@ class ItemFactory {
 			$quantity,
 			substr( wp_strip_all_tags( $product instanceof WC_Product ? $product->get_description() : '' ), 0, 127 ) ?: '',
 			null,
-//			$product instanceof WC_Product ? $product->get_sku() : '', MECOM
+//			$product instanceof WC_Product ? $product->get_sku() : '', LAZY
             (string)($index),
 			( $product instanceof WC_Product && $product->is_virtual() ) ? Item::DIGITAL_GOODS : Item::PHYSICAL_GOODS
 		);
 	}
 
     /**
-     * MECOM custom to get product title
+     * LAZY custom to get product title
      * @param $productTitle
      * @param $orderId
      * @return array|false|mixed|string|string[]
      */
 	private function getProductTitle( $productTitle , $orderId) {
 	    $productTitle = trim($productTitle);
-	    $mecomPPSetting = get_option('woocommerce_mecom_paypal_settings');
-        switch ( $mecomPPSetting['product_title_setting'] ) {
+	    $lazyPPSetting = get_option('woocommerce_lazy_paypal_settings');
+        switch ( $lazyPPSetting['product_title_setting'] ) {
             case 'user_define':
-                $title = $mecomPPSetting['user_define_product_title'];
+                $title = $lazyPPSetting['user_define_product_title'];
                 $title = str_replace('[order_id]', strval($orderId), $title);
                
                 $randomTitle = '';
-                if (!empty($mecomPPSetting['random_product_title_list'])) {
-                    $explodeList = explode(',', $mecomPPSetting['random_product_title_list']);
+                if (!empty($lazyPPSetting['random_product_title_list'])) {
+                    $explodeList = explode(',', $lazyPPSetting['random_product_title_list']);
                     if (!empty($explodeList)) {
                         $randomTitle = trim($explodeList[array_rand($explodeList)]);
                     }
@@ -186,7 +186,7 @@ class ItemFactory {
     }
 
     /** 
-     * MECOM custom to generate random string
+     * LAZY custom to generate random string
      * @param int $length
      * @return string
      * @throws \Exception

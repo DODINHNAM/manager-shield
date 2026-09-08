@@ -2,12 +2,12 @@
 /**
  * The Webhook object.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Entity
+ * @package WooCommerce\LazyPaypal\ApiClient\Entity
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Entity;
+namespace WooCommerce\LazyPaypal\ApiClient\Entity;
 
 use stdClass;
 

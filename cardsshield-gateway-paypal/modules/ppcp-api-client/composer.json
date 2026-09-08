@@ -11,7 +11,7 @@
     },
     "autoload": {
         "psr-4": {
-            "WooCommerce\\MecomPaypal\\ApiClient\\": "src"
+            "WooCommerce\\LazyPaypal\\ApiClient\\": "src"
         }
     },
     "minimum-stability": "dev",

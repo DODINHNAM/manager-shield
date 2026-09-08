@@ -2,16 +2,16 @@
 /**
  * The partner referrals endpoint.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Endpoint
+ * @package WooCommerce\LazyPaypal\ApiClient\Endpoint
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Endpoint;
+namespace WooCommerce\LazyPaypal\ApiClient\Endpoint;
 
-use WooCommerce\MecomPaypal\ApiClient\Authentication\Bearer;
-use WooCommerce\MecomPaypal\ApiClient\Exception\PayPalApiException;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
+use WooCommerce\LazyPaypal\ApiClient\Authentication\Bearer;
+use WooCommerce\LazyPaypal\ApiClient\Exception\PayPalApiException;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
 use Psr\Log\LoggerInterface;
 
 /**

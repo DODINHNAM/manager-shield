@@ -2,12 +2,12 @@
 /**
  * The customer repository.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Repository
+ * @package WooCommerce\LazyPaypal\ApiClient\Repository
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Repository;
+namespace WooCommerce\LazyPaypal\ApiClient\Repository;
 
 /**
  * Class CustomerRepository

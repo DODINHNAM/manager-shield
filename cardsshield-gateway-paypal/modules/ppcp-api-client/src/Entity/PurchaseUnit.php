@@ -2,12 +2,12 @@
 /**
  * The purchase unit object.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Entity
+ * @package WooCommerce\LazyPaypal\ApiClient\Entity
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Entity;
+namespace WooCommerce\LazyPaypal\ApiClient\Entity;
 
 /**
  * Class PurchaseUnit
@@ -290,7 +290,7 @@ class PurchaseUnit {
 		}
 
 		if ( $this->payee() ) {
-//			$purchase_unit['payee'] = $this->payee()->to_array(); MECOM
+//			$purchase_unit['payee'] = $this->payee()->to_array(); LAZY
 		}
 
 		if ( $this->payments() ) {
@@ -307,7 +307,7 @@ class PurchaseUnit {
 			$purchase_unit['invoice_id'] = $this->invoice_id();
 		}
 		if ( $this->soft_descriptor() ) {
-//			$purchase_unit['soft_descriptor'] = $this->soft_descriptor(); MECOM
+//			$purchase_unit['soft_descriptor'] = $this->soft_descriptor(); LAZY
 		}
 		return $purchase_unit;
 	}

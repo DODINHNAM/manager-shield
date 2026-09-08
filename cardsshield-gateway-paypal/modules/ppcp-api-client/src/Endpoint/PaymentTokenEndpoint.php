@@ -2,24 +2,24 @@
 /**
  * The payment token endpoint.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Endpoint
+ * @package WooCommerce\LazyPaypal\ApiClient\Endpoint
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Endpoint;
+namespace WooCommerce\LazyPaypal\ApiClient\Endpoint;
 
-use WooCommerce\MecomPaypal\ApiClient\Authentication\Bearer;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PaymentToken;
-use WooCommerce\MecomPaypal\ApiClient\Entity\PaymentTokenActionLinks;
-use WooCommerce\MecomPaypal\ApiClient\Exception\AlreadyVaultedException;
-use WooCommerce\MecomPaypal\ApiClient\Exception\PayPalApiException;
-use WooCommerce\MecomPaypal\ApiClient\Exception\RuntimeException;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PaymentTokenActionLinksFactory;
-use WooCommerce\MecomPaypal\ApiClient\Factory\PaymentTokenFactory;
+use WooCommerce\LazyPaypal\ApiClient\Authentication\Bearer;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PaymentToken;
+use WooCommerce\LazyPaypal\ApiClient\Entity\PaymentTokenActionLinks;
+use WooCommerce\LazyPaypal\ApiClient\Exception\AlreadyVaultedException;
+use WooCommerce\LazyPaypal\ApiClient\Exception\PayPalApiException;
+use WooCommerce\LazyPaypal\ApiClient\Exception\RuntimeException;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PaymentTokenActionLinksFactory;
+use WooCommerce\LazyPaypal\ApiClient\Factory\PaymentTokenFactory;
 use Psr\Log\LoggerInterface;
-use WooCommerce\MecomPaypal\ApiClient\Repository\CustomerRepository;
-use WooCommerce\MecomPaypal\ApiClient\Repository\PayPalRequestIdRepository;
+use WooCommerce\LazyPaypal\ApiClient\Repository\CustomerRepository;
+use WooCommerce\LazyPaypal\ApiClient\Repository\PayPalRequestIdRepository;
 
 /**
  * Class PaymentTokenEndpoint

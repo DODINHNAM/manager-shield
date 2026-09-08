@@ -4,12 +4,12 @@
  *
  * @see https://developer.paypal.com/docs/api/payments/v2/#definition-capture_status_details
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Entity
+ * @package WooCommerce\LazyPaypal\ApiClient\Entity
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Entity;
+namespace WooCommerce\LazyPaypal\ApiClient\Entity;
 
 /**
  * Class CaptureStatusDetails

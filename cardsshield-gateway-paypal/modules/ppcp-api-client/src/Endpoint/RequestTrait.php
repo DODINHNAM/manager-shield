@@ -2,12 +2,12 @@
 /**
  * The RequestTrait wraps the wp_remote_get functionality for the API client.
  *
- * @package WooCommerce\MecomPaypal\ApiClient\Endpoint
+ * @package WooCommerce\LazyPaypal\ApiClient\Endpoint
  */
 
 declare(strict_types=1);
 
-namespace WooCommerce\MecomPaypal\ApiClient\Endpoint;
+namespace WooCommerce\LazyPaypal\ApiClient\Endpoint;
 
 use WP_Error;
 
