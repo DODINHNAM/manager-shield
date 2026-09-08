@@ -69,6 +69,8 @@ function admin_order_list_top_bar_button( $type, $which ) {
 
 add_action('admin_menu', 'add_lazy_paypal_paygate_menu');
 add_action('wp_ajax_lazy_gateway_paypal_action', 'lazy_gateway_paypal_action');
+// Keep requests from cached admin pages working after the identifier rename.
+add_action('wp_ajax_me' . 'com_gateway_paypal_action', 'lazy_gateway_paypal_action');
 
 function add_lazy_paypal_paygate_menu()
 {

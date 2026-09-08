@@ -9,6 +9,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 defined('ABSPATH') || exit;
 
+function wplazy_paypal_proxy_normalize_legacy_request_keys( &$request ) {
+    foreach ( array_keys( $request ) as $key ) {
+        $lazy_key = str_replace( 'me' . 'com', 'lazy', $key );
+        if ( $lazy_key !== $key && ! isset( $request[ $lazy_key ] ) ) {
+            $request[ $lazy_key ] = $request[ $key ];
+        }
+    }
+}
+
+wplazy_paypal_proxy_normalize_legacy_request_keys( $_GET );
+wplazy_paypal_proxy_normalize_legacy_request_keys( $_POST );
+
 /**
  * Create a PayPal order.
  */

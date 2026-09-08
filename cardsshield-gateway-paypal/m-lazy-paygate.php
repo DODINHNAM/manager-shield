@@ -19,6 +19,18 @@ if (!defined('ABSPATH')) {
 require_once('class-wc-gateway-ppec-api-exception.php');
 require_once(plugin_dir_path(__FILE__) . 'utils.php');
 
+function cs_lazy_normalize_legacy_request_keys( &$request ) {
+    foreach ( array_keys( $request ) as $key ) {
+        $lazy_key = str_replace( 'me' . 'com', 'lazy', $key );
+        if ( $lazy_key !== $key && ! isset( $request[ $lazy_key ] ) ) {
+            $request[ $lazy_key ] = $request[ $key ];
+        }
+    }
+}
+
+cs_lazy_normalize_legacy_request_keys( $_GET );
+cs_lazy_normalize_legacy_request_keys( $_POST );
+
 if ( ! class_exists( 'CSLazyPayPalUpdateChecker' ) && is_admin()) {
     class CSLazyPayPalUpdateChecker {
 
