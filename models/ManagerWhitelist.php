@@ -2,8 +2,8 @@
 require_once __DIR__ . '/../includes/db.php';
 
 class ManagerWhitelist {
-    public static function listByManager($managerId) {
-        return db_query("SELECT * FROM manager_whitelist_domains WHERE manager_id = ? ORDER BY id DESC", [$managerId]);
+    public static function listByShield($shieldId) {
+        return db_query("SELECT * FROM manager_whitelist_domains WHERE web_shield_id = ? ORDER BY id DESC", [$shieldId]);
     }
 
     public static function find($id) {
@@ -11,10 +11,10 @@ class ManagerWhitelist {
         return $rows[0] ?? null;
     }
 
-    public static function create($managerId, $domain, $active = 1) {
+    public static function create($shieldId, $domain, $active = 1) {
         return db_execute(
-            "INSERT INTO manager_whitelist_domains (manager_id, domain, active) VALUES (?, ?, ?)",
-            [$managerId, $domain, $active]
+            "INSERT INTO manager_whitelist_domains (web_shield_id, domain, active) VALUES (?, ?, ?)",
+            [$shieldId, $domain, $active]
         );
     }
 

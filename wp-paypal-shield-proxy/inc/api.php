@@ -430,7 +430,7 @@ function get_webshield_config() {
 }
 
 /**
- * Permission callback to check if the request's Origin is in the Webshield whitelist.
+ * Permission callback to check that the request origin is allowed for this shield.
  *
  * @param WP_REST_Request $request The current REST API request.
  * @return bool|WP_Error True if the origin is whitelisted, WP_Error otherwise.
@@ -444,7 +444,7 @@ function wplazy_paypal_proxy_whitelist_permission_check( WP_REST_Request $reques
     }
 
     // Extract domain from Origin URL
-    $origin_host = parse_url( $origin, PHP_URL_HOST );
+    $origin_host = strtolower( (string) parse_url( $origin, PHP_URL_HOST ) );
     if ( empty( $origin_host ) ) {
         return new WP_Error( 'rest_forbidden', 'Invalid Origin header.', array( 'status' => 403 ) );
     }
@@ -457,16 +457,21 @@ function wplazy_paypal_proxy_whitelist_permission_check( WP_REST_Request $reques
         return new WP_Error( 'rest_forbidden', 'Could not verify request origin.', array( 'status' => 403 ) );
     }
 
-    if ( empty( $whitelist_data['whitelist'] ) || ! is_array( $whitelist_data['whitelist'] ) ) {
+    $whitelist = isset( $whitelist_data['whitelist'] ) ? $whitelist_data['whitelist'] : [];
+    if ( empty( $whitelist ) || ! is_array( $whitelist ) ) {
         error_log( '[Webshield Whitelist] Whitelist data is empty or invalid.' );
         return new WP_Error( 'rest_forbidden', 'Could not verify request origin (whitelist empty).', array( 'status' => 403 ) );
     }
 
-    // Check if the origin host is in the whitelist
-    if ( in_array( $origin_host, $whitelist_data['whitelist'] ) ) {
-        return true; // Origin is whitelisted
+    $whitelist = array_map( static function ( $domain ) {
+        $domain = strtolower( trim( (string) $domain ) );
+        $parsed = parse_url( strpos( $domain, '://' ) === false ? 'https://' . $domain : $domain );
+        return strtolower( $parsed['host'] ?? preg_replace( '/:\d+$/', '', $domain ) );
+    }, $whitelist );
+
+    if ( in_array( $origin_host, $whitelist, true ) ) {
+        return true;
     }
 
-    // Origin not in whitelist
     return new WP_Error( 'rest_forbidden', 'Request origin is not whitelisted.', array( 'status' => 403 ) );
 }

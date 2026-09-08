@@ -1,107 +1,55 @@
 <?php
 require_once __DIR__ . '/../models/ManagerWhitelist.php';
-require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/WebShield.php';
 
 class ManagerWhitelistController {
-
     public static function list() {
         requireLogin();
         $user = currentUser();
-
-        if ($user['role'] === 'admin') {
-            $domains_by_manager = [];
-            $rows = db_query("SELECT mwd.*, u.username as manager_name FROM manager_whitelist_domains mwd JOIN users u ON mwd.manager_id = u.id ORDER BY u.username, mwd.domain");
-            foreach ($rows as $row) {
-                $domains_by_manager[$row['manager_name']][] = $row;
-            }
-            $data = ['domains_by_manager' => $domains_by_manager];
-        } else {
-            requireRole('manager');
-            $domains = ManagerWhitelist::listByManager($user['id']);
-            $data = ['domains' => $domains];
-        }
-        
-        if ($user['role'] === 'admin') {
-            include __DIR__ . '/../views/admin/manager_whitelist.php';
-        } else {
-            include __DIR__ . '/../views/manager/whitelist_list.php';
-        }
+        $data = ['webshields' => $user['role'] === 'admin' ? WebShield::all() : WebShield::byManager($user['id'])];
+        require __DIR__ . '/../views/manager/whitelist_list.php';
     }
 
-    public static function add() {
-        requireLogin();
-        $user = currentUser();
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $domain = trim($_POST['domain']);
-            $active = isset($_POST['active']) ? 1 : 0;
-            
-            $manager_id = $user['id'];
-            if ($user['role'] === 'admin' && isset($_POST['manager_id'])) {
-                $manager_id = intval($_POST['manager_id']);
-            }
-
-            if ($domain !== '') {
-                ManagerWhitelist::create($manager_id, $domain, $active);
-                if ($user['role'] === 'admin') {
-                    header("Location: index.php?action=admin_manager_whitelist&manager_id=" . $manager_id);
-                } else {
-                    header("Location: index.php?action=manager_whitelist");
-                }
-                exit;
-            }
+    private static function shieldForUser($shieldId, $user) {
+        $shield = WebShield::find((int) $shieldId);
+        if (!$shield || ($user['role'] !== 'admin' && (int) $shield['manager_id'] !== (int) $user['id'])) {
+            return null;
         }
-        
-        if ($user['role'] === 'admin') {
-            // Admins should use the form in manager_whitelist.php
-            header("Location: index.php?action=admin_users");
-            exit;
-        } else {
-            include __DIR__ . '/../views/manager/whitelist_form.php';
-        }
+        return $shield;
     }
 
-    public static function edit($id) {
+    public static function listForShield($shieldId) {
         requireLogin();
         $user = currentUser();
+        $shield = self::shieldForUser($shieldId, $user);
+        if (!$shield) { http_response_code(403); exit('Web Shield not found or access denied.'); }
+        $data = ['webshield' => $shield, 'domains' => ManagerWhitelist::listByShield($shield['id']), 'is_admin' => $user['role'] === 'admin'];
+        require __DIR__ . '/../views/manager/webshield_whitelist.php';
+    }
 
-        $item = ManagerWhitelist::find($id);
-        if (!$item || ($item['manager_id'] != $user['id'] && $user['role'] !== 'admin')) {
-            echo "Không có quyền chỉnh sửa domain này.";
-            return;
+    public static function add($shieldId) {
+        requireLogin();
+        $user = currentUser();
+        $shield = self::shieldForUser($shieldId, $user);
+        if (!$shield) { http_response_code(403); exit('Web Shield not found or access denied.'); }
+        $domain = strtolower(trim($_POST['domain'] ?? ''));
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $domain !== '') {
+            ManagerWhitelist::create($shield['id'], $domain, 1);
         }
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $domain = trim($_POST['domain']);
-            $active = isset($_POST['active']) ? 1 : 0;
-            ManagerWhitelist::update($id, $domain, $active);
-            if ($user['role'] === 'admin') {
-                header("Location: index.php?action=admin_manager_whitelist&manager_id=" . $item['manager_id']);
-            } else {
-                header("Location: index.php?action=manager_whitelist");
-            }
-            exit;
-        }
-
-        include __DIR__ . '/../views/manager/whitelist_form.php';
+        $action = $user['role'] === 'admin' ? 'admin_webshield_whitelist' : 'manager_webshield_whitelist';
+        header('Location: index.php?action=' . $action . '&web_id=' . $shield['id']);
+        exit;
     }
 
     public static function delete($id) {
         requireLogin();
         $user = currentUser();
-
         $item = ManagerWhitelist::find($id);
-        if (!$item || ($item['manager_id'] != $user['id'] && $user['role'] !== 'admin')) {
-            echo "Không có quyền xóa domain này.";
-            return;
-        }
-
+        $shield = $item ? self::shieldForUser($item['web_shield_id'], $user) : null;
+        if (!$item || !$shield) { http_response_code(403); exit('Whitelist entry not found or access denied.'); }
         ManagerWhitelist::delete($id);
-        if ($user['role'] === 'admin') {
-            header("Location: index.php?action=admin_manager_whitelist&manager_id=" . $item['manager_id']);
-        } else {
-            header("Location: index.php?action=manager_whitelist");
-        }
+        $action = $user['role'] === 'admin' ? 'admin_webshield_whitelist' : 'manager_webshield_whitelist';
+        header('Location: index.php?action=' . $action . '&web_id=' . $shield['id']);
         exit;
     }
 }

@@ -51,15 +51,28 @@ if (!$managerId) {
     exit;
 }
 
-// 4️⃣ Lấy danh sách domain whitelist (chỉ active)
+// 4. Load whitelist domains configured for this specific Web Shield.
 $rows = db_query("
-    SELECT domain 
-    FROM manager_whitelist_domains 
-    WHERE manager_id = ? AND active = 1
+    SELECT domain
+    FROM manager_whitelist_domains
+    WHERE web_shield_id = ? AND active = 1
     ORDER BY domain ASC
-", [$managerId]);
+", [$webShield['id']]);
 
-$whitelist = array_map(fn($r) => $r['domain'], $rows);
+$normalizeDomain = static function ($domain) {
+    $domain = strtolower(trim((string) $domain));
+    if ($domain === '') {
+        return '';
+    }
+
+    $parsed = parse_url(strpos($domain, '://') === false ? 'https://' . $domain : $domain);
+    return strtolower($parsed['host'] ?? preg_replace('/:\d+$/', '', $domain));
+};
+
+$whitelist = array_values(array_filter(array_unique(array_map(
+    static fn($row) => $normalizeDomain($row['domain'] ?? ''),
+    $rows
+))));
 
 // 5️⃣ Lấy và mã hóa cấu hình thanh toán
 $payment_configs = [];

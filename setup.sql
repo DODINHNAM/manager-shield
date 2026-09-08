@@ -66,11 +66,12 @@ CREATE TABLE momo_configs (
 
 CREATE TABLE manager_whitelist_domains (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  manager_id INT NOT NULL,
+  web_shield_id INT NOT NULL,
   domain VARCHAR(255) NOT NULL,
   active TINYINT(1) DEFAULT 1,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (manager_id) REFERENCES users(id)
+  FOREIGN KEY (web_shield_id) REFERENCES web_shields(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_shield_domain (web_shield_id, domain)
 );
 
 

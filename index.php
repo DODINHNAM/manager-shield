@@ -162,7 +162,7 @@ switch($action) {
             echo "Manager not found.";
             exit;
         }
-        $domains = ManagerWhitelist::listByManager($manager_id);
+        $domains = WebShield::byManager($manager_id);
         $data = [
             'manager' => $manager,
             'domains' => $domains,
@@ -224,15 +224,26 @@ switch($action) {
     case 'manager_whitelist':
         ManagerWhitelistController::list();
         break;
+
+    case 'manager_webshield_whitelist':
+    case 'admin_webshield_whitelist':
+        ManagerWhitelistController::listForShield($_GET['web_id'] ?? 0);
+        break;
+
+    case 'manager_webshield_whitelist_add':
+    case 'admin_webshield_whitelist_add':
+        ManagerWhitelistController::add($_GET['web_id'] ?? 0);
+        break;
+
+    case 'manager_webshield_whitelist_delete':
+    case 'admin_webshield_whitelist_delete':
+        ManagerWhitelistController::delete($_GET['id'] ?? 0);
+        break;
     
     case 'manager_whitelist_add':
-        ManagerWhitelistController::add();
+        ManagerWhitelistController::add($_GET['web_id'] ?? 0);
         break;
-    
-    case 'manager_whitelist_edit':
-        ManagerWhitelistController::edit($_GET['id'] ?? 0);
-        break;
-    
+
     case 'manager_whitelist_delete':
         ManagerWhitelistController::delete($_GET['id'] ?? 0);
         break;

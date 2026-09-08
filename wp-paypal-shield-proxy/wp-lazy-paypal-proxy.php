@@ -2,7 +2,7 @@
 /**
  * Plugin Name: LazyShield PayPal Proxy
  * Description: A WordPress plugin to integrate PayPal's credit payment form.
- * Version: 1.0.21
+ * Version: 1.0.22
  * Author: LazyShield
  */
 
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants
-define( 'WPLAZY_PAYPAL_PROXY_VERSION', '1.0.21' );
+define( 'WPLAZY_PAYPAL_PROXY_VERSION', '1.0.22' );
 define( 'WPLAZY_PAYPAL_PROXY_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPLAZY_PAYPAL_PROXY_URL', plugin_dir_url( __FILE__ ) );
 
@@ -77,7 +77,7 @@ add_action( 'template_redirect', function() {
             wp_die( 'Access Denied: Origin header is missing.', 'Access Denied', array( 'response' => 403 ) );
         }
 
-        $origin_host = parse_url( $origin, PHP_URL_HOST );
+        $origin_host = strtolower( (string) parse_url( $origin, PHP_URL_HOST ) );
         if ( empty( $origin_host ) ) {
             wp_die( 'Access Denied: Invalid Origin header.', 'Access Denied', array( 'response' => 403 ) );
         }
@@ -96,7 +96,13 @@ add_action( 'template_redirect', function() {
             wp_die( 'Access Denied: Could not verify request origin (whitelist empty).', 'Access Denied', array( 'response' => 403 ) );
         }
 
-        if ( ! in_array( $origin_host, $whitelist_array ) ) {
+        $whitelist_array = array_map( static function ( $domain ) {
+            $domain = strtolower( trim( (string) $domain ) );
+            $parsed = parse_url( strpos( $domain, '://' ) === false ? 'https://' . $domain : $domain );
+            return strtolower( $parsed['host'] ?? preg_replace( '/:\d+$/', '', $domain ) );
+        }, $whitelist_array );
+
+        if ( ! in_array( $origin_host, $whitelist_array, true ) ) {
             wp_die( 'Access Denied: Request origin is not whitelisted.', 'Access Denied', array( 'response' => 403 ) );
         }
 
