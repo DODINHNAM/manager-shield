@@ -1194,8 +1194,6 @@ function lazy_init_gateway_class()
     add_action('wp_footer', 'cs_pp_action_wp_footer');
     if(isset($_GET['pay_for_order'])) {
         add_action('woocommerce_pay_order_after_submit',  'lazy_paypal_add_button_credit');
-    } else {
-        add_action('woocommerce_review_order_after_payment',  'lazy_paypal_add_button_credit');        
     }
     if ($ppGatewayObj->get_option('enabled_express_on_cart_page') === 'yes') {
         add_action('woocommerce_after_cart_totals', function() { 

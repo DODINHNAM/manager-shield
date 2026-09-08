@@ -43,11 +43,15 @@ jQuery(document).ready(function ($) {
         handleShowHidePaypalButton();
     }, 200) // fix monlesacx.com
 
+    moveLazyPaypalCreditFormIntoPaymentBox();
+
     $('body').on('updated_checkout', function () {
+        moveLazyPaypalCreditFormIntoPaymentBox();
         handleShowHidePaypalButton();
     });
 
     $(document).on('payment_method_selected', function () {
+        moveLazyPaypalCreditFormIntoPaymentBox();
         handleShowHidePaypalButton();
     })
 
@@ -57,7 +61,17 @@ jQuery(document).ready(function ($) {
         window.attachEvent("onmessage", listenerPaypal);
     }
 
+    function moveLazyPaypalCreditFormIntoPaymentBox() {
+        var $container = $('#lazy-paypal-credit-form-container');
+        var $paymentBox = $('.payment_box.payment_method_lazy_paypal');
+
+        if ($container.length && $paymentBox.length && !$paymentBox.find('#lazy-paypal-credit-form-container').length) {
+            $paymentBox.append($container);
+        }
+    }
+
     function handleShowHidePaypalButton() {
+        moveLazyPaypalCreditFormIntoPaymentBox();
         if ($('input[name="payment_method"]:checked').val() == 'lazy_paypal' && $('#lazy-paypal-button-setting').data('value') === OPT_CS_PAYPAL_SETTING_CHECKOUT) {
             $('#lazy-paypal-credit-form-container').show();
             $('#place_order').addClass('important-hide')

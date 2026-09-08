@@ -462,6 +462,9 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
                 <div id="cs_not_send_bill_address_to_paypal"></div>
             <?php
         }
+        if ( is_checkout() && ! isset( $_GET['pay_for_order'] ) ) {
+            lazy_paypal_add_button_credit();
+        }
     }
     function lazy_pp_generate_input_order() {
         $order = wc_get_order(get_query_var('order-pay'));
