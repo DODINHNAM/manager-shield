@@ -212,14 +212,26 @@ switch($action) {
         $wsp_id = intval($_GET['wsp_id'] ?? 0);
         $wsp = WebShieldPayment::findById($wsp_id);
         $user = currentUser();
-        $w = WebShield::find($wsp['web_shield_id']);
+        $w = $wsp ? WebShield::find($wsp['web_shield_id']) : null;
         if ($user['role'] !== 'admin') {
             requireRole('manager');
             if (!$w || $w['manager_id'] != $user['id']) { echo "Không hợp lệ"; exit; }
         }
+        if (!$wsp || !$w) { http_response_code(404); exit; }
         $typeCode = $wsp['payment_code'];
         $post = $_POST;
-        ManagerController::savePayment($wsp_id, $typeCode, $post);
+          if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
+          if ($typeCode === 'stripe' && (empty($_SESSION['payment_csrf']) || !is_string($post['payment_csrf'] ?? null) || !hash_equals($_SESSION['payment_csrf'] ?? '', $post['payment_csrf']))) {
+              http_response_code(403); exit('Invalid form token.');
+          }
+          try {
+              ManagerController::savePayment($wsp_id, $typeCode, $post);
+              $_SESSION['payment_notice'] = 'Đã lưu cấu hình thanh toán.';
+          } catch (InvalidArgumentException $e) {
+              $_SESSION['payment_notice'] = $e->getMessage();
+          } catch (RuntimeException $e) {
+              $_SESSION['payment_notice'] = 'Không thể lưu cấu hình. Kiểm tra migration và kết nối cơ sở dữ liệu rồi thử lại.';
+          }
         if ($user['role'] === 'admin') {
             header('Location: index.php?action=admin_edit_webshield&id=' . $w['id']);
         } else {

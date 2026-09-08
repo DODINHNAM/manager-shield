@@ -9,7 +9,7 @@ jQuery(document).ready( function($)
         $(this).addClass('activeLoading');
 
         var data = {
-            'action': 'mecom_gateway_stripe_action',
+            'action': 'lazy_gateway_stripe_action',
             'command': 'syncTrackingInfoStripe',
         };
         jQuery.ajaxSetup({timeout: 300000});

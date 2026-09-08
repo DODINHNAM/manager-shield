@@ -49,6 +49,16 @@ CREATE TABLE paypal_configs (
 CREATE TABLE stripe_configs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     web_shield_payment_id INT NOT NULL,
+    environment ENUM('test','live') NOT NULL DEFAULT 'test',
+    payment_method_all_enable BOOLEAN NOT NULL DEFAULT FALSE,
+    enable_max_order_value BOOLEAN NOT NULL DEFAULT FALSE,
+    max_order_value DECIMAL(18,2) NOT NULL DEFAULT 100,
+    enable_random_order_no BOOLEAN NOT NULL DEFAULT FALSE,
+    random_order_no_length INT NOT NULL DEFAULT 16,
+    test_publishable_key VARCHAR(255) NULL,
+    test_secret_key VARCHAR(255) NULL,
+    live_publishable_key VARCHAR(255) NULL,
+    live_secret_key VARCHAR(255) NULL,
     api_key VARCHAR(255),
     publishable_key VARCHAR(255),
     FOREIGN KEY (web_shield_payment_id) REFERENCES web_shield_payments(id) ON DELETE CASCADE

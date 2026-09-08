@@ -52,7 +52,7 @@ jQuery(document).ready(function ($) {
         }
 
         var data = {
-            'action': 'mecom_gateway_stripe_action',
+            'action': 'lazy_gateway_stripe_action',
             'command': 'addNewProxy',
             'rotationMethod': rotationMethod,
             'proxyUrl': newProxyUrl,
@@ -120,7 +120,7 @@ jQuery(document).ready(function ($) {
         }
 
         var data = {
-            'action': 'mecom_gateway_stripe_action',
+            'action': 'lazy_gateway_stripe_action',
             'command': 'saveProxies',
             'rotationMethod': rotationMethod,
             'proxies': proxies
@@ -151,7 +151,7 @@ jQuery(document).ready(function ($) {
             }
             var rotationMethod = $('input[name="rotationMethod"]:checked').val();
             var data = {
-                'action': 'mecom_gateway_stripe_action',
+                'action': 'lazy_gateway_stripe_action',
                 'command': 'activateProxy',
                 'rotationMethod': rotationMethod,
                 'proxyID': selectedIds[0]
@@ -183,7 +183,7 @@ jQuery(document).ready(function ($) {
             }
             var rotationMethod = $('input[name="rotationMethod"]:checked').val();
             var data = {
-                'action': 'mecom_gateway_stripe_action',
+                'action': 'lazy_gateway_stripe_action',
                 'command': 'moveToUnusedProxies',
                 'rotationMethod': rotationMethod,
                 'proxyIds': selectedIds
@@ -212,7 +212,7 @@ jQuery(document).ready(function ($) {
         showConfirm(`Proxy will be rotated by <b>${methodName}</b>.`).then((result) => {
             if (result.value) {
                 var data = {
-                    'action': 'mecom_gateway_stripe_action',
+                    'action': 'lazy_gateway_stripe_action',
                     'command': 'changeRotationMethod',
                     'rotationMethod': rotationMethod
                 };
@@ -254,7 +254,7 @@ jQuery(document).ready(function ($) {
                 return;
             }
             var data = {
-                'action': 'mecom_gateway_stripe_action',
+                'action': 'lazy_gateway_stripe_action',
                 'command': 'deleteProxy',
                 'deleteProxyIds': selectedIds
             };
@@ -282,7 +282,7 @@ jQuery(document).ready(function ($) {
         }
 
         var data = {
-            'action': 'mecom_gateway_stripe_action',
+            'action': 'lazy_gateway_stripe_action',
             'command': 'moveBackProxies',
             'moveBackProxyIds': selectedIds
         };
@@ -316,8 +316,8 @@ jQuery(document).ready(function ($) {
         toggleSyncTrackingLoadingStripe(true);
 
         var data = {
-            'action': 'mecom_gateway_stripe_action',
-            'command': 'syncTrackingInfo',
+            'action': 'lazy_gateway_stripe_action',
+            'command': 'syncTrackingInfoStripe',
         };
         jQuery.post(ajax_object.ajax_url, data, function (response) {
             var responseJson = JSON.parse(response);
@@ -372,7 +372,7 @@ jQuery(document).ready(function ($) {
     
     function saveEndpointSettingsStripe () {
         var data = {
-            'action': 'mecom_gateway_stripe_action',
+            'action': 'lazy_gateway_stripe_action',
             'command': 'saveEndpointSettings',
             'endpointToken': $('input[name="endpointToken"]').val(),
             'endpointSecret': $('input[name="endpointSecret"]').val(),
@@ -389,7 +389,7 @@ jQuery(document).ready(function ($) {
     var $currentConnectionModeStripe = $('input[type=radio][name=connectionModeStripe]:checked').val();
     if ($currentConnectionModeStripe == 'endpoint_token') {
          jQuery.post(ajax_object.ajax_url, {
-            'action': 'mecom_gateway_stripe_action',
+            'action': 'lazy_gateway_stripe_action',
             'command': 'getEndpointRemainingAmount'
         }, function (response) {
             try {
@@ -417,7 +417,7 @@ jQuery(document).ready(function ($) {
                 return false;
             }
             var data = {
-                'action': 'mecom_gateway_stripe_action',
+                'action': 'lazy_gateway_stripe_action',
                 'command': 'changeConnectionMode',
                 'connectionMode': connectionMode,
             };
@@ -430,7 +430,7 @@ jQuery(document).ready(function ($) {
                         $('#connection_mode_shield_domains_area').show();
                         $('#connection_mode_endpoint_token_area').hide();
                         jQuery.post(ajax_object.ajax_url, {
-                            'action': 'mecom_gateway_stripe_action',
+                            'action': 'lazy_gateway_stripe_action',
                             'command': 'getEndpointRemainingAmount'
                         }, function (response) {
                             try {

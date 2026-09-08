@@ -82,3 +82,18 @@ document.addEventListener('DOMContentLoaded', function () {
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   });
 });
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.stripe-settings').forEach(function (settings) {
+    function syncStripeSettings() {
+      const mode = settings.querySelector('[data-stripe-mode]').value;
+      settings.querySelectorAll('[data-stripe-keys]').forEach(function (group) {
+        group.hidden = group.dataset.stripeKeys !== mode;
+      });
+      settings.querySelectorAll('[data-stripe-toggle]').forEach(function (toggle) {
+        settings.querySelector('[name="' + toggle.dataset.stripeToggle + '"]').disabled = !toggle.checked;
+      });
+    }
+    settings.addEventListener('change', syncStripeSettings);
+    syncStripeSettings();
+  });
+});

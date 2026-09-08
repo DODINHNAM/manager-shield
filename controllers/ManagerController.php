@@ -17,7 +17,7 @@ class ManagerController {
             case 'paypal':
                 return PayPalConfig::updateByPayment($wspId, $data['environment'] ?? 'sandbox', $data['client_id'] ?? null, $data['secret_id'] ?? null);
             case 'stripe':
-                return StripeConfig::updateByPayment($wspId, $data['api_key'] ?? null, $data['publishable_key'] ?? null);
+                return StripeConfig::saveSettings($wspId, $data);
             case 'momo':
                 return MomoConfig::updateByPayment($wspId, $data['partner_code'] ?? null, $data['access_key'] ?? null, $data['secret_key'] ?? null, $data['environment'] ?? 'sandbox');
         }

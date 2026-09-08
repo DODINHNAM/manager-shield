@@ -8,32 +8,32 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-const OPT_MECOM_STRIPE_VERSION = '2.6.6';
-const Opt_Mecom_Stripe_Proxies = 'Opt_Mecom_Stripe_Proxies';
-const Opt_Mecom_Stripe_Activated_Proxy = 'Opt_Mecom_Stripe_Activated_Proxy';
-const OPT_MECOM_STRIPE_ROTATION_METHOD =  'OPT_MECOM_STRIPE_ROTATION_METHOD';
-const OPT_MECOM_STRIPE_UNUSED_PROXIES = 'OPT_MECOM_STRIPE_UNUSED_PROXIES';
-const OPT_MECOM_STRIPE_CURRENT_ROTATION_VALUE = 'OPT_MECOM_STRIPE_CURRENT_ROTATION_VALUE';
-const MetaKey_Stripe_Proxy_Url = '_mecom_stripe_proxy_url';
-const OPT_MECOM_STRIPE_LAST_TIME_RESET_PAID_AMOUNT = 'OPT_MECOM_STRIPE_LAST_TIME_RESET_PAID_AMOUNT';
-const OPT_MECOM_STRIPE_CONNECTION_MODE            = 'OPT_MECOM_STRIPE_CONNECTION_MODE';
+const OPT_LAZY_STRIPE_VERSION = '2.6.7';
+const Opt_Lazy_Stripe_Proxies = 'Opt_Lazy_Stripe_Proxies';
+const Opt_Lazy_Stripe_Activated_Proxy = 'Opt_Lazy_Stripe_Activated_Proxy';
+const OPT_LAZY_STRIPE_ROTATION_METHOD =  'OPT_LAZY_STRIPE_ROTATION_METHOD';
+const OPT_LAZY_STRIPE_UNUSED_PROXIES = 'OPT_LAZY_STRIPE_UNUSED_PROXIES';
+const OPT_LAZY_STRIPE_CURRENT_ROTATION_VALUE = 'OPT_LAZY_STRIPE_CURRENT_ROTATION_VALUE';
+const MetaKey_Stripe_Proxy_Url = '_lazy_stripe_proxy_url';
+const OPT_LAZY_STRIPE_LAST_TIME_RESET_PAID_AMOUNT = 'OPT_LAZY_STRIPE_LAST_TIME_RESET_PAID_AMOUNT';
+const OPT_LAZY_STRIPE_CONNECTION_MODE            = 'OPT_LAZY_STRIPE_CONNECTION_MODE';
 const OPT_CS_STRIPE_CONNECTION_MODE_SHIELD_DOMAINS   = "shield_domains";
 const OPT_CS_STRIPE_CONNECTION_MODE_ENDPOINT_TOKEN = "endpoint_token";
 const OPT_CS_STRIPE_ENDPOINT_TOKEN = "OPT_CS_STRIPE_ENDPOINT_TOKEN";
 const OPT_CS_STRIPE_ENDPOINT_SECRET= "OPT_CS_STRIPE_ENDPOINT_SECRET";
 const OPT_CS_PAYMENT_GATEWAY_TYPE_STRIPE = 2;
 
-const OPT_MECOM_STRIPE_INTENT_CAPTURE = 'OPT_MECOM_STRIPE_INTENT_CAPTURE';
-const OPT_MECOM_STRIPE_INTENT_AUTHORIZE = 'OPT_MECOM_STRIPE_INTENT_AUTHORIZE';
-const MECOM_STRIPE_PAYMENT_MODE_HOSTED = 'hosted';
-const MECOM_STRIPE_PAYMENT_MODE_EMBEDDED = 'embedded';
+const OPT_LAZY_STRIPE_INTENT_CAPTURE = 'OPT_LAZY_STRIPE_INTENT_CAPTURE';
+const OPT_LAZY_STRIPE_INTENT_AUTHORIZE = 'OPT_LAZY_STRIPE_INTENT_AUTHORIZE';
+const LAZY_STRIPE_PAYMENT_MODE_HOSTED = 'hosted';
+const LAZY_STRIPE_PAYMENT_MODE_EMBEDDED = 'embedded';
 
-const METAKEY_MECOM_STRIPE_INTENT_AUTHORIZED = '_METAKEY_MECOM_STRIPE_INTENT_CAPTURED';
-const METAKEY_MECOM_STRIPE_CAPTURED = 'METAKEY_MECOM_STRIPE_CAPTURED';
-const METAKEY_STRIPE_PROXY_URL          = '_mecom_stripe_proxy_url';
-const METAKEY_STRIPE_PROXY_ID          = '_mecom_stripe_proxy_id';
-const MECOM_STRIPE_BY_TIME                       = "by_time";
-const MECOM_STRIPE_BY_AMOUNT                     = "by_amount";
+const METAKEY_LAZY_STRIPE_INTENT_AUTHORIZED = '_METAKEY_LAZY_STRIPE_INTENT_CAPTURED';
+const METAKEY_LAZY_STRIPE_CAPTURED = 'METAKEY_LAZY_STRIPE_CAPTURED';
+const METAKEY_STRIPE_PROXY_URL          = '_lazy_stripe_proxy_url';
+const METAKEY_STRIPE_PROXY_ID          = '_lazy_stripe_proxy_id';
+const LAZY_STRIPE_BY_TIME                       = "by_time";
+const LAZY_STRIPE_BY_AMOUNT                     = "by_amount";
 
 const METAKEY_STRIPE_PROCESSING_ORDER_KEY = '_METAKEY_STRIPE_PROCESSING_ORDER_KEY';
 
@@ -49,7 +49,7 @@ const OPT_CS_STRIPE_SYNC_ERROR = 99;
 const OPT_CS_STRIPE_TRACKING_SYNC_PLUGIN_ADVANCED_SHIPMENT_TRACKING='OPT_CS_STRIPE_TRACKING_SYNC_PLUGIN_ADVANCED_SHIPMENT_TRACKING';
 const OPT_CS_STRIPE_TRACKING_SYNC_PLUGIN_ORDERS_TRACKING='OPT_CS_STRIPE_TRACKING_SYNC_PLUGIN_ORDERS_TRACKING';
 const OPT_CS_STRIPE_TRACKING_SYNC_PLUGIN_DIANXIAOMI='OPT_CS_STRIPE_TRACKING_SYNC_PLUGIN_DIANXIAOMI';
-const METAKEY_STRIPE_SYNC_TRACKING_INFO = '_mecom_stripe_sync_tracking_info';
+const METAKEY_STRIPE_SYNC_TRACKING_INFO = '_lazy_stripe_sync_tracking_info';
 
 const CONST_CS_STRIPE_GET_CHARGE_STATUS_503 = 'CONST_CS_STRIPE_GET_CHARGE_STATUS_503';
 const CONST_CS_STRIPE_GET_CHARGE_STATUS_ERROR = 'CONST_CS_STRIPE_GET_CHARGE_STATUS_FAILED';
@@ -59,11 +59,11 @@ const CONST_CS_STRIPE_GET_CHARGE_STATUS_DEACTIVE = 'CONST_CS_STRIPE_GET_CHARGE_S
 
 // true: order currency
 // false: stripe currency
-const MECOM_STRIPE_FEE_DISPLAY_ORDER_CURRENCY = true;
+const LAZY_STRIPE_FEE_DISPLAY_ORDER_CURRENCY = true;
 
 function resetPaidAmountIfNeedStripe() {
-    $lastTimeReset = get_option(OPT_MECOM_STRIPE_LAST_TIME_RESET_PAID_AMOUNT, null);
-    $proxies = get_option(Opt_Mecom_Stripe_Proxies, []);
+    $lastTimeReset = get_option(OPT_LAZY_STRIPE_LAST_TIME_RESET_PAID_AMOUNT, null);
+    $proxies = get_option(Opt_Lazy_Stripe_Proxies, []);
     if (empty($proxies)) {
         return [];
     }
@@ -84,11 +84,11 @@ function findActivatedProxyDataByIdStripe($proxies, $activatedProxyId) {
 }
 
 function getNextProxyAmountRotationStripe($orderTotal) {
-    $proxies = get_option(Opt_Mecom_Stripe_Proxies, []);
+    $proxies = get_option(Opt_Lazy_Stripe_Proxies, []);
     if (empty($proxies)) {
         return null;
     }
-    $activatedProxy = get_option( Opt_Mecom_Stripe_Activated_Proxy, null );
+    $activatedProxy = get_option( Opt_Lazy_Stripe_Activated_Proxy, null );
     if (empty($activatedProxy)) {
         csStripeErrorLog("Activated proxy not found! Use the first proxy of rotation list");
         $activatedProxy = $proxies[0];
@@ -119,12 +119,12 @@ function performProxyAmountRotationStripe($orderTotal) {
     if (empty($proxies)) {
         return null;
     }
-    $activatedProxy = get_option( Opt_Mecom_Stripe_Activated_Proxy, null );
+    $activatedProxy = get_option( Opt_Lazy_Stripe_Activated_Proxy, null );
     if (empty($activatedProxy)) {
         csStripeErrorLog("Activated proxy not found! Use the first proxy of rotation list");
         $activatedProxy = $proxies[0];
-        update_option(Opt_Mecom_Stripe_Activated_Proxy, $activatedProxy, true);
-        logStripeRotation(MECOM_STRIPE_BY_AMOUNT, $activatedProxy, "Auto");
+        update_option(Opt_Lazy_Stripe_Activated_Proxy, $activatedProxy, true);
+        logStripeRotation(LAZY_STRIPE_BY_AMOUNT, $activatedProxy, "Auto");
     }
     $activatedProxy = findActivatedProxyDataByIdStripe($proxies, $activatedProxy['id']);
 
@@ -137,16 +137,16 @@ function performProxyAmountRotationStripe($orderTotal) {
         }
         if($isCurrentProxyMatched && doubleval( $proxy['paid_amount'] ) + doubleval( $orderTotal ) < doubleval($proxy['amount'])) {
             $activatedProxy = $proxy;
-            update_option(Opt_Mecom_Stripe_Activated_Proxy, $activatedProxy, true);
-            logStripeRotation(MECOM_STRIPE_BY_AMOUNT, $activatedProxy, "Auto");
+            update_option(Opt_Lazy_Stripe_Activated_Proxy, $activatedProxy, true);
+            logStripeRotation(LAZY_STRIPE_BY_AMOUNT, $activatedProxy, "Auto");
             return $activatedProxy;
         }
     }
     foreach ($proxies as $proxy) {
         if(doubleval( $proxy['paid_amount'] ) + doubleval( $orderTotal ) < doubleval($proxy['amount'])) {
             $activatedProxy = $proxy;
-            update_option(Opt_Mecom_Stripe_Activated_Proxy, $activatedProxy, true);
-            logStripeRotation(MECOM_STRIPE_BY_AMOUNT, $activatedProxy, "Auto");
+            update_option(Opt_Lazy_Stripe_Activated_Proxy, $activatedProxy, true);
+            logStripeRotation(LAZY_STRIPE_BY_AMOUNT, $activatedProxy, "Auto");
             return $activatedProxy;
         }
     }
@@ -156,7 +156,7 @@ function performProxyAmountRotationStripe($orderTotal) {
 function resetPaidAmountStripe($proxies = null)
 {
     if (empty($proxies)) {
-        $proxies = get_option( Opt_Mecom_Stripe_Proxies, [] );
+        $proxies = get_option( Opt_Lazy_Stripe_Proxies, [] );
     }
     if (empty($proxies)) return [];
     // Reset
@@ -164,7 +164,7 @@ function resetPaidAmountStripe($proxies = null)
         $proxy['paid_amount'] = 0;
         return $proxy;
     }, $proxies);
-    $unusedProxies = get_option(OPT_MECOM_STRIPE_UNUSED_PROXIES, []);
+    $unusedProxies = get_option(OPT_LAZY_STRIPE_UNUSED_PROXIES, []);
     if (empty($unusedProxies)) {
         $newUnusedProxies = [];
     } else {
@@ -173,16 +173,16 @@ function resetPaidAmountStripe($proxies = null)
             return $unusedProxy;
         }, $unusedProxies);
     }
-    update_option(Opt_Mecom_Stripe_Proxies, $newProxies, true);
-    update_option(OPT_MECOM_STRIPE_UNUSED_PROXIES, $newUnusedProxies, true);
-    update_option(OPT_MECOM_STRIPE_LAST_TIME_RESET_PAID_AMOUNT, date('Y-m-d'), true);
+    update_option(Opt_Lazy_Stripe_Proxies, $newProxies, true);
+    update_option(OPT_LAZY_STRIPE_UNUSED_PROXIES, $newUnusedProxies, true);
+    update_option(OPT_LAZY_STRIPE_LAST_TIME_RESET_PAID_AMOUNT, date('Y-m-d'), true);
     return $newProxies;
 }
 
 function logStripeRotation($rotationMethod, $proxy, $type)
 {
-    $methodLabel = $rotationMethod === MECOM_STRIPE_BY_TIME ? 'BY_TIME' : 'BY_AMOUNT';
-    $rotationValue = $rotationMethod === MECOM_STRIPE_BY_TIME
+    $methodLabel = $rotationMethod === LAZY_STRIPE_BY_TIME ? 'BY_TIME' : 'BY_AMOUNT';
+    $rotationValue = $rotationMethod === LAZY_STRIPE_BY_TIME
         ? $proxy['timestamp']
         : ($proxy['paid_amount'] . '/' . $proxy['amount']);
     $message = "[{$methodLabel}] {$proxy['url']} , {$rotationValue} - {$type}";
@@ -195,18 +195,18 @@ function logStripeRotation($rotationMethod, $proxy, $type)
 }
 
 function isEnabledAmountRotationStripe() {
-    return MECOM_STRIPE_BY_AMOUNT === get_option(OPT_MECOM_STRIPE_ROTATION_METHOD, MECOM_STRIPE_BY_TIME);
+    return LAZY_STRIPE_BY_AMOUNT === get_option(OPT_LAZY_STRIPE_ROTATION_METHOD, LAZY_STRIPE_BY_TIME);
 }
 
 function updateRotationAmountStripe($processedProxyId, $orderTotal) {
-    $proxies = get_option(Opt_Mecom_Stripe_Proxies, []);
+    $proxies = get_option(Opt_Lazy_Stripe_Proxies, []);
     foreach ($proxies as $key => $proxy) {
         if ($proxy['id'] === $processedProxyId) {
             $proxies[$key]['paid_amount'] = doubleval($proxy['paid_amount']) + doubleval( $orderTotal );
             break;
         }
     }
-    return update_option(Opt_Mecom_Stripe_Proxies, $proxies, true);
+    return update_option(Opt_Lazy_Stripe_Proxies, $proxies, true);
 }
 
 function hasPayableProxyStripe($cartTotal) {
@@ -262,11 +262,11 @@ function csStripeHandleDataLog($data, $message = '') {
 }
 
 function stripeMoveToUnusedProxyIds($proxyIds) {
-    $proxies        = get_option( Opt_Mecom_Stripe_Proxies, [] );
+    $proxies        = get_option( Opt_Lazy_Stripe_Proxies, [] );
     if (empty($proxies)) {
         $proxies = [];
     }
-    $unusedProxies  = get_option( OPT_MECOM_STRIPE_UNUSED_PROXIES, [] );
+    $unusedProxies  = get_option( OPT_LAZY_STRIPE_UNUSED_PROXIES, [] );
     if (empty($unusedProxies)) {
         $unusedProxies = [];
     }
@@ -276,20 +276,20 @@ function stripeMoveToUnusedProxyIds($proxyIds) {
             unset( $proxies[ $key ] );
         }
     }
-    $isSuccess1 = update_option( Opt_Mecom_Stripe_Proxies, array_values($proxies), true );
-    $isSuccess2 = update_option( OPT_MECOM_STRIPE_UNUSED_PROXIES, $unusedProxies, true );
-    $proxies        = get_option( Opt_Mecom_Stripe_Proxies, [] );
-    update_option( Opt_Mecom_Stripe_Activated_Proxy, isset($proxies[0]) ? $proxies[0] : null, true );
+    $isSuccess1 = update_option( Opt_Lazy_Stripe_Proxies, array_values($proxies), true );
+    $isSuccess2 = update_option( OPT_LAZY_STRIPE_UNUSED_PROXIES, $unusedProxies, true );
+    $proxies        = get_option( Opt_Lazy_Stripe_Proxies, [] );
+    update_option( Opt_Lazy_Stripe_Activated_Proxy, isset($proxies[0]) ? $proxies[0] : null, true );
     return $isSuccess1 && $isSuccess2;
 }
 
 function setNextProxyByTimeRotation() {
-    $proxies = get_option( Opt_Mecom_Stripe_Proxies, [] );
-    $activatedProxy = get_option( Opt_Mecom_Stripe_Activated_Proxy, null );
+    $proxies = get_option( Opt_Lazy_Stripe_Proxies, [] );
+    $activatedProxy = get_option( Opt_Lazy_Stripe_Activated_Proxy, null );
     if (empty($activatedProxy)) {
         csStripeErrorLog("Activated proxy not found! Use the first proxy of rotation list[2]");
         $activatedProxy = $proxies[0];
-        update_option(Opt_Mecom_Stripe_Activated_Proxy, $activatedProxy, true);
+        update_option(Opt_Lazy_Stripe_Activated_Proxy, $activatedProxy, true);
     }
     $activatedProxy = findActivatedProxyDataByIdStripe($proxies, $activatedProxy['id']);
 
@@ -302,7 +302,7 @@ function setNextProxyByTimeRotation() {
         }
         if($isCurrentProxyMatched) {
             $activatedProxy = $proxy;
-            update_option(Opt_Mecom_Stripe_Activated_Proxy, $activatedProxy, true);
+            update_option(Opt_Lazy_Stripe_Activated_Proxy, $activatedProxy, true);
             return $activatedProxy;
         }
     }
@@ -335,7 +335,7 @@ function getCsStripeOrderDetailFromWcOrder(WC_Order $order) {
     $shippingCountry  = empty( $shippingCountry ) ? $billingCountry : $shippingCountry;
     $shippingPostCode = empty( $shippingPostCode ) ? $billingPostCode : $shippingPostCode;
     $shippingState    = empty( $shippingState ) ? $billingState : $shippingState;
-    $csStripeGw = WC()->payment_gateways->payment_gateways()['mecom_stripe'];
+    $csStripeGw = WC()->payment_gateways->payment_gateways()['lazy_stripe'];
     $trackingSyncPlugin = $csStripeGw->get_option('transaction_logs_enable');
     if ($trackingSyncPlugin && $trackingSyncPlugin === 'yes') {
         $products = [];
@@ -398,7 +398,7 @@ function getCsStripeOrderDetailFromWcOrder(WC_Order $order) {
 }
 
 function syncTrackingInfoStripe() {
-    $csStripeGw = WC()->payment_gateways->payment_gateways()['mecom_stripe'];
+    $csStripeGw = WC()->payment_gateways->payment_gateways()['lazy_stripe'];
     $trackingSyncPlugin = $csStripeGw->get_option('sync_tracking_plugin');
     if (get_option('woocommerce_custom_orders_table_enabled') === 'yes') {
         $orders = queryOrderNeedSyncStripeHPOS('get');
@@ -510,7 +510,7 @@ function syncTrackingInfoStripe() {
                 unset($data['order_id']);
                 return $data;
             }, $shippingDataPart);
-            $requestUrl = $proxyUrl . "?mecom-stripe-pe-v2-sync-tracking=1&" . csStripeBuildQuery( [
+            $requestUrl = $proxyUrl . '?' . csStripeBuildQuery( ['lazy-stripe-pe-v2-sync-tracking' => 1,
                 'data-track' => $shippingDataPush
             ]);
             $response = wp_remote_get($requestUrl, [
@@ -565,7 +565,7 @@ function isStripeShieldReachAmount($orderTotal) {
     if (!isEnabledAmountRotationStripe()) {
         return false;
     }
-    $proxies = get_option(Opt_Mecom_Stripe_Proxies, []);
+    $proxies = get_option(Opt_Lazy_Stripe_Proxies, []);
     if (empty($proxies)) {
         return false;
     }
@@ -578,7 +578,7 @@ function isStripeShieldReachAmount($orderTotal) {
 }
 
 function csStripeSendMailShieldReachAmount() {
-    $csStripeGw = WC()->payment_gateways->payment_gateways()['mecom_stripe'];
+    $csStripeGw = WC()->payment_gateways->payment_gateways()['lazy_stripe'];
     if($csStripeGw->get_option('send_email_notice_to_admin') === 'no'){
         return false;
     }
@@ -611,7 +611,7 @@ function csStripeSendMailShieldReachAmount() {
 }
 
 function csStripeSendMailShieldDie($shieldUrl) {
-    $csStripeGw = WC()->payment_gateways->payment_gateways()['mecom_stripe'];
+    $csStripeGw = WC()->payment_gateways->payment_gateways()['lazy_stripe'];
     if($csStripeGw->get_option('send_email_notice_to_admin') === 'no'){
         return false;
     }
@@ -637,7 +637,7 @@ function csStripeSendMailShieldDie($shieldUrl) {
 }
 
 function csStripeSendMailOrderBlacklisted($orderId) {
-    $csStripeGw = WC()->payment_gateways->payment_gateways()['mecom_stripe'];
+    $csStripeGw = WC()->payment_gateways->payment_gateways()['lazy_stripe'];
     if($csStripeGw->get_option('send_email_notice_to_admin') === 'no'){
         return false;
     }
@@ -715,7 +715,7 @@ function countOrderNeedSyncStripe() {
 function queryOrderNeedSyncStripe($mode = 'count') {
     global $wpdb;
 
-    $csStripeGw = WC()->payment_gateways->payment_gateways()['mecom_stripe'];
+    $csStripeGw = WC()->payment_gateways->payment_gateways()['lazy_stripe'];
     $trackingSyncPlugin = $csStripeGw->get_option('sync_tracking_plugin');
     $selectStatement = 'COUNT(DISTINCT(posts.id)) as count';
     if ($mode == 'get') {
@@ -730,7 +730,7 @@ function queryOrderNeedSyncStripe($mode = 'count') {
                 LEFT JOIN {$wpdb->prefix}postmeta AS post_meta2 ON posts.id = post_meta2.post_id AND post_meta2.meta_key = '_wc_shipment_tracking_items'
                 LEFT JOIN {$wpdb->prefix}postmeta AS post_meta3 ON posts.id = post_meta3.post_id AND post_meta3.meta_key = %s
                 WHERE posts.post_type = 'shop_order' AND post_meta1.meta_value = %d AND post_meta2.meta_value IS NOT NULL AND (post_meta3.meta_value IS NULL OR post_meta3.meta_value = 'true');
-            ", METAKEY_STRIPE_SYNC_TRACKING_INFO , METAKEY_MECOM_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED) , ARRAY_A);
+            ", METAKEY_STRIPE_SYNC_TRACKING_INFO , METAKEY_LAZY_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED) , ARRAY_A);
 
         case OPT_CS_STRIPE_TRACKING_SYNC_PLUGIN_ORDERS_TRACKING:
             return $wpdb->get_results( $wpdb->prepare( "
@@ -749,7 +749,7 @@ function queryOrderNeedSyncStripe($mode = 'count') {
                         OR 
                         post_meta3.meta_value IS NOT NULL
                       );
-            ", METAKEY_STRIPE_SYNC_TRACKING_INFO, METAKEY_MECOM_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED ) , ARRAY_A);
+            ", METAKEY_STRIPE_SYNC_TRACKING_INFO, METAKEY_LAZY_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED ) , ARRAY_A);
         
         case OPT_CS_STRIPE_TRACKING_SYNC_PLUGIN_DIANXIAOMI:
             return $wpdb->get_results( $wpdb->prepare( "
@@ -761,7 +761,7 @@ function queryOrderNeedSyncStripe($mode = 'count') {
                 WHERE posts.post_type = 'shop_order' AND post_meta1.meta_value = %d AND post_meta2.meta_value IS NOT NULL 
                     AND (post_meta3.meta_value IS NULL OR post_meta3.meta_value = 'true')
                     AND post_meta4.meta_value IS NOT NULL;
-            ", METAKEY_STRIPE_SYNC_TRACKING_INFO , METAKEY_MECOM_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED) , ARRAY_A);
+            ", METAKEY_STRIPE_SYNC_TRACKING_INFO , METAKEY_LAZY_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED) , ARRAY_A);
 
     }
 }
@@ -769,7 +769,7 @@ function queryOrderNeedSyncStripe($mode = 'count') {
 function queryOrderNeedSyncStripeHPOS($mode = 'count') {
     global $wpdb;
 
-    $csStripeGw = WC()->payment_gateways->payment_gateways()['mecom_stripe'];
+    $csStripeGw = WC()->payment_gateways->payment_gateways()['lazy_stripe'];
     $trackingSyncPlugin = $csStripeGw->get_option('sync_tracking_plugin');
     $selectStatement = 'COUNT(DISTINCT(orders.id)) as count';
     if ($mode == 'get') {
@@ -784,7 +784,7 @@ function queryOrderNeedSyncStripeHPOS($mode = 'count') {
                 LEFT JOIN {$wpdb->prefix}wc_orders_meta AS order_meta2 ON orders.id = order_meta2.order_id AND order_meta2.meta_key = '_wc_shipment_tracking_items'
                 LEFT JOIN {$wpdb->prefix}wc_orders_meta AS order_meta3 ON orders.id = order_meta3.order_id AND order_meta3.meta_key = %s
                 WHERE order_meta1.meta_value = %d AND order_meta2.meta_value IS NOT NULL AND (order_meta3.meta_value IS NULL OR order_meta3.meta_value = 'true');
-            ", METAKEY_STRIPE_SYNC_TRACKING_INFO , METAKEY_MECOM_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED) , ARRAY_A);
+            ", METAKEY_STRIPE_SYNC_TRACKING_INFO , METAKEY_LAZY_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED) , ARRAY_A);
 
         case OPT_CS_STRIPE_TRACKING_SYNC_PLUGIN_ORDERS_TRACKING:
             return $wpdb->get_results( $wpdb->prepare( "
@@ -802,7 +802,7 @@ function queryOrderNeedSyncStripeHPOS($mode = 'count') {
                         OR 
                         order_meta3.meta_value IS NOT NULL
                       );
-            ", METAKEY_STRIPE_SYNC_TRACKING_INFO, METAKEY_MECOM_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED ) , ARRAY_A);
+            ", METAKEY_STRIPE_SYNC_TRACKING_INFO, METAKEY_LAZY_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED ) , ARRAY_A);
         
         case OPT_CS_STRIPE_TRACKING_SYNC_PLUGIN_DIANXIAOMI:
             return $wpdb->get_results( $wpdb->prepare( "
@@ -814,7 +814,7 @@ function queryOrderNeedSyncStripeHPOS($mode = 'count') {
                 WHERE order_meta1.meta_value = %d AND order_meta2.meta_value IS NOT NULL 
                     AND (order_meta3.meta_value IS NULL OR order_meta3.meta_value = 'true')
                     AND order_meta4.meta_value IS NOT NULL;
-            ", METAKEY_STRIPE_SYNC_TRACKING_INFO , METAKEY_MECOM_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED) , ARRAY_A);
+            ", METAKEY_STRIPE_SYNC_TRACKING_INFO , METAKEY_LAZY_STRIPE_CAPTURED, OPT_CS_STRIPE_NOT_SYNCED) , ARRAY_A);
 
     }
 }
@@ -854,7 +854,7 @@ function getStripeChargeStatusFromProxy($nextProxyId, $nextProxyUrl) {
         }
     }
     $response = wp_remote_get($nextProxyUrl . '?' . csStripeBuildQuery([
-            'mecom-stripe-pe-v2-get-account-charge-status' => uniqid(),
+            'lazy-stripe-pe-v2-get-account-charge-status' => uniqid(),
         ]), [
         'sslverify' => csStripeGetSSLVerifyStatus(),
         'timeout' => 20 * 60,
@@ -940,7 +940,7 @@ function generateRandomString($length = 16)
 function csStripeGetSSLVerifyStatus()
 {
     try {
-        if (WC_MEcom_Gateway_Stripe::get_instance()->sslverify === 'yes') {
+        if (WC_Lazy_Gateway_Stripe::get_instance()->sslverify === 'yes') {
             return true;
         }
     } catch (\Exception $e) {
@@ -1059,7 +1059,7 @@ function csStripeEndpointMoveToUnusedShield($shieldDomain) {
 }
 
 function isCsStripeEnableEndpointMode() {
-    return get_option(OPT_MECOM_STRIPE_CONNECTION_MODE, null) == OPT_CS_STRIPE_CONNECTION_MODE_ENDPOINT_TOKEN;
+    return get_option(OPT_LAZY_STRIPE_CONNECTION_MODE, null) == OPT_CS_STRIPE_CONNECTION_MODE_ENDPOINT_TOKEN;
 }
 
 function csStripeGetGatewayDomain()
@@ -1109,7 +1109,7 @@ function csStripeEndpointGetAmountRemaining() {
 
 function csStripeBuildQuery($params)
 {
-    return http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+    return http_build_query(lazy_stripe_wire_params($params), '', '&', PHP_QUERY_RFC3986);
 }
 
 

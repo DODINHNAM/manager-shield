@@ -94,7 +94,10 @@ $restriction_enabled = static function ($type) use ($local_restrictions) {
             </tbody>
           </table>
 
-          <div class="hidden-forms" style="display: none;">
+          <?php if (isset($_SESSION['payment_notice'])): ?>
+<div role="status" class="card"><?= htmlspecialchars($_SESSION['payment_notice']) ?></div>
+<?php unset($_SESSION['payment_notice']); endif; ?>
+<div class="hidden-forms" style="display: none;">
             <?php foreach ($attached_payments as $p): ?>
                 <div id="config-form-<?= $p['id'] ?>">
                     <?php
@@ -117,10 +120,7 @@ $restriction_enabled = static function ($type) use ($local_restrictions) {
                                 <label>Secret ID</label>
                                 <input name="secret_id" class="form-control" value="<?= htmlspecialchars($config['secret_id'] ?? '') ?>">
                             </div>
-                        <?php elseif ($p['payment_code'] === 'stripe'): ?>
-                            <div class="mb-3"><label>API Key</label><input name="api_key" class="form-control" value="<?= htmlspecialchars($config['api_key'] ?? '') ?>"></div>
-                            <div class="mb-3"><label>Publishable Key</label><input name="publishable_key" class="form-control" value="<?= htmlspecialchars($config['publishable_key'] ?? '') ?>"></div>
-                        <?php elseif ($p['payment_code'] === 'momo'): ?>
+                        <?php elseif ($p['payment_code'] === 'stripe'): ?><?php require __DIR__ . '/../stripe_settings.php'; ?><?php elseif ($p['payment_code'] === 'momo'): ?>
                             <div class="mb-3"><label>Partner Code</label><input name="partner_code" class="form-control" value="<?= htmlspecialchars($config['partner_code'] ?? '') ?>"></div>
                             <div class="mb-3"><label>Access Key</label><input name="access_key" class="form-control" value="<?= htmlspecialchars($config['access_key'] ?? '') ?>"></div>
                             <div class="mb-3"><label>Secret Key</label><input name="secret_key" class="form-control" value="<?= htmlspecialchars($config['secret_key'] ?? '') ?>"></div>
