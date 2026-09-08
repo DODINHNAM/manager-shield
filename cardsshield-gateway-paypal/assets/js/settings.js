@@ -77,7 +77,7 @@ jQuery(document).ready(function ($) {
                         <input type="checkbox" class="form-control proxy-id" value="${dataJson.addedProxy.id}">
                     </td>
                     <td>
-                        <input type="text" class="form-control proxy-url" value="${newProxyUrl}">
+                        <input type="text" class="form-control proxy-url" value="${dataJson.addedProxy.url}">
                     </td>
                     <td>
                         <input type="number" class="form-control proxy-rotation-value" value="${newRotationValue}">
@@ -126,6 +126,11 @@ jQuery(document).ready(function ($) {
             'proxies': proxies
         };
         jQuery.post(cs_ajax_object.ajax_url, data, function (response) {
+            var responseJson = JSON.parse(response);
+            if (!responseJson.success) {
+                showError(responseJson.error || 'Failed to save proxies!');
+                return;
+            }
             showSuccess('Save proxies success!').then(function () {
                 location.reload();
             });

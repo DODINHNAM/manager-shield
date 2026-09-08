@@ -8,6 +8,7 @@ require_once __DIR__ . '/controllers/AdminController.php';
 require_once __DIR__ . '/controllers/ManagerController.php';
 require_once __DIR__ . '/controllers/PaymentController.php';
 require_once __DIR__ . '/controllers/ManagerWhitelistController.php';
+require_once __DIR__ . '/controllers/TransactionController.php';
 
 
 require_once __DIR__ . '/models/User.php';
@@ -223,6 +224,10 @@ switch($action) {
 
     case 'manager_whitelist':
         ManagerWhitelistController::list();
+        break;
+
+    case 'transactions':
+        TransactionController::index();
         break;
 
     case 'manager_webshield_whitelist':

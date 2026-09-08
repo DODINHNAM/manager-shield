@@ -57,3 +57,32 @@ textarea.form-control {
   display:flex;
   justify-content:flex-end
 }
+
+.transaction-filters {
+  display:grid;
+  grid-template-columns:minmax(180px,1.25fr) minmax(140px,.8fr) minmax(140px,.9fr) minmax(140px,.8fr) minmax(140px,.8fr) auto;
+  gap:12px;
+  align-items:end;
+  margin-top:18px
+}
+.transaction-filter-field { min-width:0 }
+.transaction-filter-label {
+  display:block;
+  margin:0 0 6px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase
+}
+.transaction-filter-actions { display:flex; align-items:center; gap:8px }
+.transaction-filter-clear { border:1px solid var(--border); background:#fff; color:var(--text) }
+.transaction-filter-clear:hover { background:#f4f7f8 }
+@media (max-width:1100px) {
+  .transaction-filters { grid-template-columns:repeat(3,minmax(0,1fr)) }
+  .transaction-filter-actions { grid-column:1/-1 }
+}
+@media (max-width:600px) {
+  .transaction-filters { grid-template-columns:1fr }
+  .transaction-filter-actions { grid-column:auto }
+}

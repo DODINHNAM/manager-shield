@@ -9,6 +9,7 @@ $titles = [
     'manager_payments' => 'Cấu hình thanh toán', 'manager_whitelist' => 'Domain được phép',
     'manager_whitelist_add' => 'Thêm domain', 'manager_whitelist_edit' => 'Chỉnh sửa domain',
 ];
+$titles['transactions'] = 'Payment reports';
 $page_title = $page_title ?? ($titles[$action] ?? 'Quản lý LazyShield');
 $roleLabel = $isAdmin ? 'Quản trị viên' : 'Người quản lý';
 function uiIcon($name) {
@@ -23,9 +24,11 @@ function uiIcon($name) {
 $navigation = $isAdmin
     ? [['home','Tổng quan','home'],['admin_webshields','Web Shields','shield'],['admin_users','Người dùng','users']]
     : [['home','Tổng quan','home'],['manager_my_webshields','Web Shields của tôi','shield'],['manager_whitelist','Domain được phép','globe']];
+$navigation[] = ['transactions', 'Payment reports', 'globe'];
 $activeNav = $action;
 if ($action === 'admin_edit_webshield') $activeNav = 'admin_webshields';
 if ($action === 'manager_payments') $activeNav = $isAdmin ? 'admin_webshields' : 'manager_my_webshields';
+if (strpos($action, 'transaction') !== false) $activeNav = 'transactions';
 if (in_array($action, ['manager_whitelist_add','manager_whitelist_edit','admin_manager_whitelist'], true)) $activeNav = $isAdmin ? 'admin_users' : 'manager_whitelist';
 ?>
 <!doctype html>

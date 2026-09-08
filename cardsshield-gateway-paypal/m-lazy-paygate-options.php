@@ -409,8 +409,13 @@ function deleteProxy()
 function addNewProxy()
 {
     $rotationMethod = $_POST["rotationMethod"];
-    $proxyUrl = $_POST["proxyUrl"];
+    $proxyUrl = csNormalizeShieldUrl($_POST["proxyUrl"] ?? '');
     $rotationValue = $_POST["rotationValue"];
+
+    if (!$proxyUrl) {
+        echo json_encode(['success' => false, 'error' => 'Invalid shield domain or URL']);
+        return;
+    }
 
     // Get current proxies
     $proxies = get_option(OPT_LAZY_PAYPAL_PROXIES, []);
@@ -486,11 +491,17 @@ function saveProxies() {
 
     $proxies = get_option( OPT_LAZY_PAYPAL_PROXIES, [] );
     $activatedProxy = get_option( OPT_LAZY_PAYPAL_ACTIVATED_PROXY, null );
+    $hasInvalidUrl = false;
     foreach ($proxies as $key => $proxy) {
         if ( $proxy['id'] !== $newProxies[$key]['id']) {
             continue;
         }
-        $proxies[$key]['url'] = $newProxies[$key]['url'];
+        $normalizedUrl = csNormalizeShieldUrl($newProxies[$key]['url'] ?? '');
+        if (!$normalizedUrl) {
+            $hasInvalidUrl = true;
+            continue;
+        }
+        $proxies[$key]['url'] = $normalizedUrl;
         $proxies[$key]['timestamp'] = $rotationMethod === OPT_CS_PAYPAL_BY_TIME ? $newProxies[$key]['rotationValue'] : $proxies[$key]['timestamp'];
         $proxies[$key]['amount'] = $rotationMethod === OPT_CS_PAYPAL_BY_AMOUNT ? $newProxies[$key]['rotationValue'] : $proxies[$key]['amount'];
 
@@ -501,7 +512,8 @@ function saveProxies() {
     }
     update_option(OPT_LAZY_PAYPAL_PROXIES, $proxies, true);
     echo json_encode([
-        "success" => true
+        "success" => !$hasInvalidUrl,
+        "error" => $hasInvalidUrl ? 'Invalid shield domain or URL' : null
     ]);
 }
 

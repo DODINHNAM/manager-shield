@@ -39,6 +39,40 @@ const OPT_CS_PAYPAL_SETTING_STANDARD = "PAYPAL_STANDARD";
 const OPT_CS_PAYPAL_SETTING_CHECKOUT   = "PAYPAL_CHECKOUT"; 
 
 /**
+ * Normalize a shield address entered as either a hostname or a full URL.
+ */
+function csNormalizeShieldUrl($value) {
+    $value = trim((string) $value);
+    if ($value === '') {
+        return null;
+    }
+
+    if (!preg_match('#^https?://#i', $value)) {
+        $value = 'https://' . $value;
+    }
+
+    $parts = parse_url($value);
+    if (empty($parts['host']) || !empty($parts['user']) || !empty($parts['pass'])) {
+        return null;
+    }
+
+    $scheme = strtolower($parts['scheme'] ?? 'https');
+    if (!in_array($scheme, ['http', 'https'], true)) {
+        return null;
+    }
+
+    $url = $scheme . '://' . strtolower($parts['host']);
+    if (!empty($parts['port'])) {
+        $url .= ':' . (int) $parts['port'];
+    }
+    if (!empty($parts['path']) && $parts['path'] !== '/') {
+        $url .= '/' . ltrim($parts['path'], '/');
+    }
+
+    return rtrim($url, '/');
+}
+
+/**
  * Copy settings from the previous plugin identifiers once after the rename.
  */
 function cs_lazy_migrate_legacy_options() {

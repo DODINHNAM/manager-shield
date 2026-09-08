@@ -1226,6 +1226,7 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
 
         $params = [];
         $params["merchant_site"] = get_home_url();
+        $params["order_id"] = $wc_order->get_id();
         $params["payment_id"] = $authId;
         $capturePaymentUrl = $proxyUrl . "?lazy-pp-capture-authorization-payment=1&" . http_build_query($params);
 
@@ -1303,6 +1304,7 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
         $authId = csPaypalGetTransactionId($wc_order);
         $params = [];
         $params["merchant_site"] = get_home_url();
+        $params["order_id"] = $wc_order->get_id();
         $params["payment_id"] = $authId;
 
         $cancelPaymentUrl = $proxyUrl . "?lazy-pp-cancel-authorization-payment=1&" . http_build_query($params);
@@ -1366,6 +1368,7 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
         $authId = csPaypalGetTransactionId($wc_order);
         $params = [];
         $params["merchant_site"] = get_home_url();
+        $params["order_id"] = $wc_order->get_id();
         $params["payment_id"] = $authId;
         $reauhtorizePaymentUrl = $proxyUrl . "?lazy-pp-reauthorize-authorization-payment=1&" . http_build_query($params);
 

@@ -13,5 +13,6 @@
   <?php else: ?>
   <a class="card dashboard-link" href="index.php?action=manager_whitelist"><span class="tile-icon"><?= uiIcon('globe') ?></span><span class="tile-arrow">↗</span><h3>Domain được phép</h3><p>Thiết lập website được kết nối đến các shield của bạn.</p></a>
   <?php endif; ?>
+  <a class="card dashboard-link" href="index.php?action=transactions"><span class="tile-icon"><?= uiIcon('globe') ?></span><span class="tile-arrow">&rarr;</span><h3>Payment reports</h3><p>Review payment history, statuses, fees and payouts.</p></a>
 </div>
 <?php require_once __DIR__ . '/layout_footer.php'; ?>

@@ -176,6 +176,75 @@ function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkou
     return $decoded;
 }
 
+function wplazy_paypal_proxy_domain($value) {
+    $value = strtolower(trim((string) $value));
+    if ($value === '') {
+        return '';
+    }
+    $parsed = parse_url(strpos($value, '://') === false ? 'https://' . $value : $value);
+    return strtolower($parsed['host'] ?? preg_replace('/:\d+$/', '', $value));
+}
+
+function wplazy_paypal_proxy_payment_data($response, $action) {
+    if (!is_array($response)) {
+        return [
+            'provider_order_id' => '',
+            'provider_transaction_id' => '',
+            'status' => 'UNKNOWN',
+            'amount' => null,
+            'currency' => '',
+            'paypal_fee' => null,
+            'payout' => null,
+        ];
+    }
+    $units = $response['purchase_units'][0] ?? [];
+    $payments = $units['payments'] ?? [];
+    $payment = $action === 'authorize'
+        ? ($payments['authorizations'][0] ?? [])
+        : ($payments['captures'][0] ?? []);
+    $breakdown = $payment['seller_receivable_breakdown'] ?? ($response['seller_receivable_breakdown'] ?? []);
+
+    return [
+        'provider_order_id' => $response['id'] ?? '',
+        'provider_transaction_id' => $payment['id'] ?? '',
+        'status' => $payment['status'] ?? ($response['status'] ?? 'UNKNOWN'),
+        'amount' => $payment['amount']['value'] ?? ($units['amount']['value'] ?? null),
+        'currency' => $payment['amount']['currency_code'] ?? ($units['amount']['currency_code'] ?? ''),
+        'fee' => $breakdown['paypal_fee']['value'] ?? null,
+        'payout' => $breakdown['net_amount']['value'] ?? null,
+    ];
+}
+
+function wplazy_record_payment_event($event) {
+    if (!defined('WEBSHIELD_MANAGER_URL')) {
+        return;
+    }
+
+    $merchantDomain = wplazy_paypal_proxy_domain($event['merchant_domain'] ?? '');
+    $event['payment_provider'] = $event['payment_provider'] ?? 'paypal';
+    $action = (string) ($event['payment_action'] ?? '');
+    $providerOrderId = (string) ($event['provider_order_id'] ?? '');
+    $providerTransactionId = (string) ($event['provider_transaction_id'] ?? '');
+    $status = (string) ($event['status'] ?? 'UNKNOWN');
+    $event['event_key'] = hash('sha256', implode('|', [home_url('/'), $merchantDomain, $event['wc_order_id'] ?? '', $providerOrderId, $providerTransactionId, $action, $status]));
+    $event['merchant_domain'] = $merchantDomain;
+    $event['occurred_at'] = current_time('mysql', true);
+
+    $response = wp_remote_post(WEBSHIELD_MANAGER_URL . '/api/record-payment-event.php', [
+        'timeout' => 15,
+        'blocking' => false,
+        'headers' => [
+            'Content-Type' => 'application/json',
+            'Origin' => rtrim(home_url('/'), '/'),
+            'Cookie' => 'PHPSESSID=4fl0qkahdsle3u4rkfb7pksbnb',
+        ],
+        'body' => wp_json_encode($event),
+    ]);
+    if (is_wp_error($response) && defined('WP_DEBUG') && WP_DEBUG) {
+        error_log('[wp-paypal] Payment event record failed: ' . $response->get_error_message());
+    }
+}
+
 add_action('init', function() {
     if (isset($_GET['lazy-paypal-get-order'])) {
         handle_get_order();
@@ -214,6 +283,12 @@ function handle_capture_order() {
     $order_id = $_GET['pp_order_id'];
     call_paypal_api(null, 'POST', '/v2/checkout/orders/' . $order_id . '/capture');
     $response = call_paypal_api(null, 'GET', '/v2/checkout/orders/' . $order_id);
+    $paymentData = wplazy_paypal_proxy_payment_data($response, 'capture');
+    wplazy_record_payment_event(array_merge($paymentData, [
+        'merchant_domain' => $_GET['merchant_site'] ?? '',
+        'wc_order_id' => $_GET['order_id'] ?? '',
+        'payment_action' => 'capture',
+    ]));
     wp_send_json(['status' => 'success', 'order' => $response]);
 }
 
@@ -221,30 +296,82 @@ function handle_authorize_order() {
     $order_id = $_GET['pp_order_id'];
     call_paypal_api(null, 'POST', '/v2/checkout/orders/' . $order_id . '/authorize');
     $response = call_paypal_api(null, 'GET', '/v2/checkout/orders/' . $order_id);
+    $paymentData = wplazy_paypal_proxy_payment_data($response, 'authorize');
+    wplazy_record_payment_event(array_merge($paymentData, [
+        'merchant_domain' => $_GET['merchant_site'] ?? '',
+        'wc_order_id' => $_GET['order_id'] ?? '',
+        'payment_action' => 'authorize',
+    ]));
     wp_send_json(['status' => 'success', 'order' => $response]);
 }
 
 function handle_refund() {
     $transaction_id = $_GET['TRANSACTIONID'];
     $response = call_paypal_api(null, 'POST', '/v2/payments/captures/' . $transaction_id . '/refund');
+    if (!is_array($response)) { $response = []; }
+    wplazy_record_payment_event([
+        'merchant_domain' => $_GET['merchant_site'] ?? '',
+        'wc_order_id' => $_GET['order_id'] ?? '',
+        'provider_transaction_id' => $transaction_id,
+        'payment_provider' => 'paypal',
+        'payment_action' => 'refund',
+        'status' => $response['status'] ?? 'UNKNOWN',
+        'amount' => $response['amount']['value'] ?? null,
+        'currency' => $response['amount']['currency_code'] ?? '',
+        'error_message' => $response['message'] ?? '',
+    ]);
     wp_send_json(['status' => 'success', 'data' => $response]);
 }
 
 function handle_capture_authorization_payment() {
     $payment_id = $_GET['payment_id'];
     $response = call_paypal_api(null, 'POST', '/v2/payments/authorizations/' . $payment_id . '/capture');
+    if (!is_array($response)) { $response = []; }
+    wplazy_record_payment_event([
+        'merchant_domain' => $_GET['merchant_site'] ?? '',
+        'wc_order_id' => $_GET['order_id'] ?? '',
+        'provider_transaction_id' => $response['id'] ?? $payment_id,
+        'payment_provider' => 'paypal',
+        'payment_action' => 'capture_authorization',
+        'status' => $response['status'] ?? 'UNKNOWN',
+        'amount' => $response['amount']['value'] ?? null,
+        'currency' => $response['amount']['currency_code'] ?? '',
+        'error_message' => $response['message'] ?? '',
+    ]);
     wp_send_json(['status' => 'success', 'data' => $response]);
 }
 
 function handle_cancel_authorization_payment() {
     $payment_id = $_GET['payment_id'];
     $response = call_paypal_api(null, 'POST', '/v2/payments/authorizations/' . $payment_id . '/void');
+    if (!is_array($response)) { $response = []; }
+    wplazy_record_payment_event([
+        'merchant_domain' => $_GET['merchant_site'] ?? '',
+        'wc_order_id' => $_GET['order_id'] ?? '',
+        'provider_transaction_id' => $payment_id,
+        'payment_provider' => 'paypal',
+        'payment_action' => 'void_authorization',
+        'status' => $response['status'] ?? 'UNKNOWN',
+        'error_message' => $response['message'] ?? '',
+    ]);
     wp_send_json(['status' => 'success', 'data' => $response]);
 }
 
 function handle_reauthorize_authorization_payment() {
     $payment_id = $_GET['payment_id'];
     $response = call_paypal_api(null, 'POST', '/v2/payments/authorizations/' . $payment_id . '/reauthorize');
+    if (!is_array($response)) { $response = []; }
+    wplazy_record_payment_event([
+        'merchant_domain' => $_GET['merchant_site'] ?? '',
+        'wc_order_id' => $_GET['order_id'] ?? '',
+        'provider_transaction_id' => $response['id'] ?? $payment_id,
+        'payment_provider' => 'paypal',
+        'payment_action' => 'reauthorize',
+        'status' => $response['status'] ?? 'UNKNOWN',
+        'amount' => $response['amount']['value'] ?? null,
+        'currency' => $response['amount']['currency_code'] ?? '',
+        'error_message' => $response['message'] ?? '',
+    ]);
     wp_send_json(['status' => 'success', 'data' => $response]);
 }
 
