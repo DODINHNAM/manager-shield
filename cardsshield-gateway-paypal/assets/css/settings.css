@@ -1,96 +1,60 @@
-.container {
-    overflow: auto;
-}
-.rotation-method-wrapper {
-    width: 850px;
-    padding-left: 62px;
-}
-
-.rotation-method-wrapper .rotation-method-label {
-    margin-right: 20px;
-}
-.rotation-method-wrapper .form-check {
-    width: unset;
-}
-.table-proxy, .table-unused {
-    width: 850px;
-}
-
-.table-unused {
-    margin-top: 50px
-}
-
-.table-proxy th, .table-proxy td {
-    vertical-align: middle;
-}
-
-.table-unused td, .table-unused th {
-    vertical-align: middle;
-}
-
-.table-borderless td,
-.table-borderless th {
-    border: 0;
-}
-
-.control-button {
-    width: 850px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.checkbox-col {
-    width: 50px;
-}
-
-.proxy-url-col {
-    width: 550px;
-}
-
-.rotation-value-col {
-    width: 150px
-}
-
-.control-button-col {
-    width: 100px;
-}
-
-.activated-proxy {
-    background-color: #c3e6cb;
-}
-tr.proxy:first-child {
-    text-align: center;
-}
-
-.proxy-id {
-    display: inline-block;
-}
-
-.today-paid-amount {
-    text-align: center;
-}
-
-.sync-tracking-info {
-    width: 850px;
-    display: flex;
-    margin-bottom: 50px;
-}
-
-#sync-tracking-info-btn {
-    margin-left: 62px;
-    margin-top: 12px;
-}
-
-.sync-info {
-    padding-top: 19px;
-    padding-left: 20px;
-}
-
-#sync-spinner {
-    display: none;
-}
-
-#update-nag, .update-nag {
-    display: none !important;
+.lazy-paypal-settings { max-width:1180px !important; margin-left:0 !important; margin-right:0 !important; padding:18px 22px 36px; overflow:visible; color:#233449 }
+.lazy-paypal-settings h3,.lazy-paypal-settings h5 { color:#18334f; font-weight:700 }
+.lazy-settings-hero { display:flex; align-items:center; padding:20px 24px; margin-bottom:16px; border-radius:12px; background:#173f35; color:#fff }
+.lazy-settings-hero h3 { margin:0; color:#fff; font-size:22px }
+.lazy-settings-card { margin:0 0 16px; padding:20px 22px; border:1px solid #dfe7ed; border-radius:11px; background:#fff; box-shadow:none }
+.lazy-section-heading { margin-bottom:16px }
+.lazy-section-heading h5,.lazy-panel-heading h5 { margin:5px 0; font-size:17px }
+.lazy-section-heading p,.lazy-panel-heading p { display:none }
+.lazy-settings-card .row { margin-left:0; margin-right:0 }
+.lazy-settings-card .col-sm { padding-left:0; padding-right:0 }
+.lazy-settings-card hr { display:none }
+.lazy-connection-card > .row { padding:17px 18px; border:1px solid #e4ebef; border-radius:11px; background:#f8fafb }
+.lazy-connection-card > .row .rotation-method-wrapper { display:flex; align-items:center; gap:16px; }
+.lazy-connection-card > .row .custom-control { margin:0; }
+.lazy-connection-card .custom-control-label::before { border-color:#9bb8aa; }
+.lazy-connection-card .custom-control-input:checked ~ .custom-control-label::before { border-color:#168166; background-color:#168166; }
+.lazy-connection-card .custom-control-input:focus ~ .custom-control-label::before { box-shadow:0 0 0 .2rem rgba(22,129,102,.18); }
+.lazy-connection-card .rotation-method-wrapper,.lazy-settings-panel .rotation-method-wrapper { width:auto; padding:0 }
+.lazy-connection-card .custom-control { display:inline-flex; align-items:center; margin-right:22px }
+.lazy-settings-panel { margin-top:18px; padding-top:20px; border-top:1px solid #e3eaee }
+.lazy-panel-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:14px }
+.lazy-status-pill { display:inline-flex; padding:6px 10px; border-radius:20px; background:#eaf7f0; color:#247b58; font-size:11px; font-weight:700; white-space:nowrap }
+.lazy-status-endpoint { background:#edf3fb; color:#38618c }
+.sync-tracking-info { width:auto; display:flex; align-items:center; gap:16px; margin:0 }
+.sync-info { padding:0; color:#788697; font-size:12px }
+#sync-tracking-info-btn { margin:0 }
+.table-proxy,.table-unused { width:100%; margin-top:0; border-collapse:separate; border-spacing:0; overflow:hidden }
+.table-unused { margin-top:26px }
+.table-proxy th,.table-unused th { padding:12px 14px; background:#f5f8fa; color:#66778a; font-size:11px; text-transform:uppercase; letter-spacing:.04em }
+.table-proxy td,.table-unused td { padding:10px 14px; border-top:1px solid #edf1f3; vertical-align:middle }
+.table-proxy .form-control,.table-unused .form-control { min-height:38px; border-color:#d8e1e7; box-shadow:none }
+.table-proxy .rotation-value-col,.table-unused .rotation-value-col { width:170px }
+.table-proxy .control-button-col { width:105px }
+.control-button { width:100%; justify-content:flex-start; gap:8px; margin-top:14px }
+.control-button .mr-4 { margin-right:0 !important }
+.activated-proxy { background:#eef9f3 !important; box-shadow:inset 3px 0 #239168 }
+.today-paid-amount { text-align:right }
+.lazy-endpoint-panel .row.form-group { display:flex; align-items:center; margin-bottom:12px }
+.lazy-endpoint-panel .row.form-group > .col-md-3 { width:25%; padding:0 14px 0 0; flex:0 0 25% }
+.lazy-endpoint-panel .row.form-group > .col-md-9 { width:75%; padding:0; flex:0 0 75% }
+.lazy-endpoint-panel .control-button { justify-content:flex-end; margin-top:18px }
+.lazy-endpoint-panel .control-button .btn-danger { background:#fff; color:#9b5058; border:1px solid #f0d9dc }
+.lazy-paypal-settings input:focus,.lazy-paypal-settings select:focus { border-color:#64b692; box-shadow:0 0 0 3px rgba(35,145,104,.1); outline:0 }
+.lazy-paypal-settings .btn-primary,.lazy-paypal-settings .btn-success { border-color:#168166; background:#168166; }
+.lazy-paypal-settings .btn-primary:hover,.lazy-paypal-settings .btn-success:hover { border-color:#0d614d; background:#0d614d; }
+.lazy-paypal-settings .btn-info { border-color:#d2e9df; background:#eef8f3; color:#16735b; }
+.lazy-paypal-settings .btn-info:hover { border-color:#b9ddcd; background:#e1f2ea; color:#0d614d; }
+.checkbox-col { width:50px }
+.proxy-id { display:inline-block }
+#sync-spinner { display:none }
+#update-nag,.update-nag { display:none !important }
+@media (max-width:900px) {
+  .lazy-paypal-settings { padding:16px 12px 32px }
+  .lazy-settings-hero { padding:22px }
+  .lazy-settings-card { padding:20px 16px }
+  .lazy-panel-heading { flex-direction:column; gap:10px }
+  .lazy-endpoint-panel .row.form-group { display:block }
+  .lazy-endpoint-panel .row.form-group > .col-md-3,.lazy-endpoint-panel .row.form-group > .col-md-9 { width:100%; flex-basis:100%; padding:0 }
+  .lazy-endpoint-panel .row.form-group > .col-md-3 { margin-bottom:6px }
 }

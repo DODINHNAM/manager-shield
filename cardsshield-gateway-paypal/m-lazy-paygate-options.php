@@ -585,11 +585,15 @@ function lazy_page_init()
         <?= $rotationMethod !== OPT_CS_PAYPAL_BY_AMOUNT ? 'display: none' : '' ?>;
         }
     </style>
-    <br/>
-    <div class="container">
-        <h3>CardsShield PayPal Settings</h3>
-        <br/>
-        <h5>Sync tracking info</h5>
+    <div class="container lazy-paypal-settings">
+        <div class="lazy-settings-hero">
+            <div>
+                <h3>CardsShield PayPal</h3>
+            </div>
+        </div>
+        <?php if ($countOrderNeedSync > 0): ?>
+        <section class="lazy-settings-card lazy-sync-card">
+        <div class="lazy-section-heading"><h5>Sync tracking info</h5></div>
         <div class="sync-tracking-info">
             <button type="button" id="sync-tracking-info-btn" class="btn btn-primary">
                 <span id="sync-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -598,8 +602,10 @@ function lazy_page_init()
             <div class="sync-info">Unsynced orders: <?= $countOrderNeedSync ?></div>
             <input id="sync-count" type="hidden" value="<?= $countOrderNeedSync ?>"/>
         </div>
-        <hr style="border-top: 1px solid #333"/>
-        <h5>Connection mode</h5>
+        </section>
+        <?php endif; ?>
+        <section class="lazy-settings-card lazy-connection-card">
+        <div class="lazy-section-heading"><h5>Connection mode</h5></div>
         <div class="row">
             <div class="col-sm">
                 <div class="form-group rotation-method-wrapper">
@@ -607,19 +613,15 @@ function lazy_page_init()
                         <input type="radio" id="connectionMode1" name="connectionMode" value="<?= OPT_CS_PAYPAL_CONNECTION_MODE_SHIELD_DOMAINS ?>" class="custom-control-input" <?= $connectionMode === OPT_CS_PAYPAL_CONNECTION_MODE_SHIELD_DOMAINS ? 'checked' : '' ?>>
                         <label class="custom-control-label" for="connectionMode1">Shield domains</label>
                     </div>
-                    <div>Connect with shields directly by shield domains</div>
-                    <br>
                     <div class="custom-control custom-radio">
                         <input type="radio" id="connectionMode2" name="connectionMode" value="<?= OPT_CS_PAYPAL_CONNECTION_MODE_ENDPOINT_TOKEN ?>" class="custom-control-input" <?= $connectionMode === OPT_CS_PAYPAL_CONNECTION_MODE_ENDPOINT_TOKEN ? 'checked' : '' ?>>
                         <label class="custom-control-label" for="connectionMode2">Endpoint token</label>
                     </div>
-                    <div>Connect with shields by endpoint token. please go to <a href="https://manager.lazypaygate.com">manager.lazypaygate.com</a> to setup an endpoint token.</div>
                 </div>
             </div>
         </div>
-        <div id="connection_mode_shield_domains_area" style="<?= $connectionMode == OPT_CS_PAYPAL_CONNECTION_MODE_SHIELD_DOMAINS ? '' :  'display: none;' ?>">
-            <hr style="border-top: 1px solid #333"/>
-            <h5 style="margin-top: 30px">Rotation settings</h5>
+        <div id="connection_mode_shield_domains_area" class="lazy-settings-panel" style="<?= $connectionMode == OPT_CS_PAYPAL_CONNECTION_MODE_SHIELD_DOMAINS ? '' :  'display: none;' ?>">
+            <div class="lazy-panel-heading"><h5>Rotation settings</h5><span class="lazy-status-pill">Direct mode</span></div>
             <div class="row">
                 <div class="col-sm">
                     <div class="form-group form-inline rotation-method-wrapper">
@@ -748,10 +750,9 @@ function lazy_page_init()
                 </div>
             </div>
         </div>
-        <div id="connection_mode_endpoint_token_area"
+        <div id="connection_mode_endpoint_token_area" class="lazy-settings-panel lazy-endpoint-panel"
              style="<?= $connectionMode == OPT_CS_PAYPAL_CONNECTION_MODE_ENDPOINT_TOKEN ? '' : 'display: none;' ?>">
-            <hr style="border-top: 1px solid #333"/>
-            <h5 style="margin-top: 30px">Endpoint settings</h5>
+            <div class="lazy-panel-heading"><h5>Endpoint settings</h5><span class="lazy-status-pill lazy-status-endpoint">Manager mode</span></div>
             <div class="row">
             <div class="col-sm">
                 <div class="form-group rotation-method-wrapper">
@@ -760,7 +761,7 @@ function lazy_page_init()
                             <label>PayPal token</label>
                         </div>
                         <div class="col-md-9">
-                            <input class="form-control" name="endpointToken" value="<?= $endpointToken ?>">
+                            <input class="form-control" name="endpointToken" value="<?= esc_attr($endpointToken) ?>">
                         </div>
                     </div>
                     <div class="row form-group">
@@ -768,7 +769,7 @@ function lazy_page_init()
                             <label>Secret Key</label>
                         </div>
                         <div class="col-md-9">
-                            <input type="password" class="form-control" name="endpointSecret" value="<?= $endpointSecret ?>">
+                            <input type="password" class="form-control" name="endpointSecret" value="<?= esc_attr($endpointSecret) ?>">
                         </div>
                     </div>
                     <div class="control-button">
@@ -779,6 +780,7 @@ function lazy_page_init()
             </div>
         </div>
         </div>
+        </section>
     </div>
     <?php
 }

@@ -4,7 +4,7 @@
  * Plugin URI:
  * Description: LazyShield Gateway PayPal
  * Author: LazyShield
- * Version: 2.8.5
+ * Version: 2.8.6
  *
  /*
  * This action hook registers our PHP class as a WooCommerce payment gateway
