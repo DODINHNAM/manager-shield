@@ -6,6 +6,7 @@ require_once __DIR__ . '/../models/WebShieldPayment.php';
 require_once __DIR__ . '/../models/MomoConfig.php';
 require_once __DIR__ . '/../models/PayPalConfig.php';
 require_once __DIR__ . '/../models/StripeConfig.php';
+require_once __DIR__ . '/../models/ShieldRestriction.php';
 
 header('Content-Type: application/json');
 
@@ -73,6 +74,20 @@ $whitelist = array_values(array_filter(array_unique(array_map(
     static fn($row) => $normalizeDomain($row['domain'] ?? ''),
     $rows
 ))));
+$restrictionRows = db_query("SELECT rule_value FROM shield_restrictions WHERE active = 1 AND rule_type = 'whitelist_domain' AND (
+    (scope = 'local' AND web_shield_id = ?) OR (scope = 'global' AND manager_id = ?)
+) ORDER BY rule_value", [$webShield['id'], $managerId]);
+foreach ($restrictionRows as $row) {
+    $whitelist[] = $normalizeDomain($row['rule_value'] ?? '');
+}
+$whitelist = array_values(array_unique(array_filter($whitelist)));
+$restrictionRows = db_query("SELECT scope, rule_type, rule_value FROM shield_restrictions WHERE active = 1 AND (
+    (scope = 'local' AND web_shield_id = ?) OR (scope = 'global' AND manager_id = ?)
+) ORDER BY scope, rule_type, rule_value", [$webShield['id'], $managerId]);
+$restrictions = [];
+foreach ($restrictionRows as $row) {
+    $restrictions[$row['scope']][$row['rule_type']][] = $row['rule_value'];
+}
 
 // 5️⃣ Lấy và mã hóa cấu hình thanh toán
 $payment_configs = [];
@@ -116,5 +131,6 @@ echo json_encode([
         'manager_id' => $managerId
     ],
     'whitelist' => $whitelist,
+    'restrictions' => $restrictions,
     'payment_configs' => $payment_configs
 ]);

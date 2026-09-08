@@ -1047,7 +1047,33 @@ function csPaypalGetAdminEmails() {
     return false;
 }
 
-function csEndpointGetShieldPaypalToProcess($csOrderKey, $orderTotal) {
+function csPaypalGetRestrictionCustomerData() {
+    $data = [
+        'customer_email' => sanitize_email(wp_unslash($_POST['billing_email'] ?? '')),
+        'billing_city' => sanitize_text_field(wp_unslash($_POST['billing_city'] ?? '')),
+        'billing_state' => sanitize_text_field(wp_unslash($_POST['billing_state'] ?? '')),
+        'billing_postcode' => sanitize_text_field(wp_unslash($_POST['billing_postcode'] ?? '')),
+    ];
+    if (function_exists('WC') && WC()->checkout()) {
+        foreach (['billing_email' => 'customer_email', 'billing_city' => 'billing_city', 'billing_state' => 'billing_state', 'billing_postcode' => 'billing_postcode'] as $checkoutKey => $dataKey) {
+            if ($data[$dataKey] === '') {
+                $data[$dataKey] = sanitize_text_field((string) WC()->checkout()->get_value($checkoutKey));
+            }
+        }
+    }
+    return $data;
+}
+
+function csPaypalGetOrderRestrictionData(WC_Order $order) {
+    return [
+        'customer_email' => sanitize_email($order->get_billing_email()),
+        'billing_city' => sanitize_text_field($order->get_billing_city()),
+        'billing_state' => sanitize_text_field($order->get_billing_state()),
+        'billing_postcode' => sanitize_text_field($order->get_billing_postcode()),
+    ];
+}
+
+function csEndpointGetShieldPaypalToProcess($csOrderKey, $orderTotal, $customerData = []) {
     $lastTimeGetShield = strtotime(get_option('CS_ENDPOINT_LAST_TIME_GET_SHIELD_PAYPAL_TO_PROCESS'));
     $shield = get_option('CS_ENDPOINT_SHIELD_PAYPAL_TO_PROCESS', null);
     $now = strtotime(date( 'Y-m-d H:i:s'));
@@ -1065,19 +1091,20 @@ function csEndpointGetShieldPaypalToProcess($csOrderKey, $orderTotal) {
         return null;
     }
     wc_get_logger()->debug('request csEndpointGetShieldPaypalToProcess', ['source' => 'cardshield-gateway-paypal-INFO']);
+    $requestBody = array_merge([
+        'cs_order_key' => $csOrderKey,
+        'order_total' => $orderTotal,
+        'ep_token' => get_option(OPT_CS_PAYPAL_ENDPOINT_TOKEN, null),
+        'merchant_site' => get_home_url(),
+        'payment_gateway' => OPT_CS_PAYMENT_GATEWAY_TYPE_PAYPAL,
+    ], empty($customerData) ? csPaypalGetRestrictionCustomerData() : $customerData);
     $request = wp_remote_post($gwDomain . '/api/endpoint-rotation.php?endpoint=get-shield-process', [
         'sslverify' => csPaypalGetSSLVerifyStatus(),
         'timeout' => 300,
         'headers' => [
             'Content-Type' => 'application/json',
         ],
-        'body' => json_encode([
-            'cs_order_key' => $csOrderKey,
-            'order_total' => $orderTotal,
-            'ep_token' => get_option(OPT_CS_PAYPAL_ENDPOINT_TOKEN, null),
-            'merchant_site' => get_home_url(),
-            'payment_gateway' => OPT_CS_PAYMENT_GATEWAY_TYPE_PAYPAL,
-        ])
+        'body' => json_encode($requestBody)
     ]);
     if (is_wp_error($request)) {
         csPaypalErrorLog($request, "csEndpointGetShieldPaypalToProcess error");
@@ -1094,7 +1121,7 @@ function csEndpointGetShieldPaypalToProcess($csOrderKey, $orderTotal) {
         update_option('CS_ENDPOINT_SHIELD_PAYPAL_TO_PROCESS', json_encode($data->shield));
         update_option('CS_ENDPOINT_LAST_TIME_GET_SHIELD_PAYPAL_TO_PROCESS', date( 'Y-m-d H:i:s'));
         return $shieldUrl;
-    } else if (is_object($data) && in_array($data->code ?? '', ['EMPTY_SHIELDS', 'SHIELD_NOT_FOUND', 'MERCHANT_NOT_WHITELISTED'], true)) {
+    } else if (is_object($data) && in_array($data->code ?? '', ['EMPTY_SHIELDS', 'SHIELD_NOT_FOUND', 'MERCHANT_NOT_WHITELISTED', 'CUSTOMER_RESTRICTED'], true)) {
         update_option('CS_ENDPOINT_LAST_TIME_GET_SHIELD_PAYPAL_TO_PROCESS_FAILED', date( 'Y-m-d H:i:s'));
         csPaypalErrorLog($data, "csEndpointGetShieldPaypalToProcess rejected request");
         return null;
@@ -1118,6 +1145,7 @@ function csEndpointPerformShieldRotateByAmount(WC_Order $order) {
         'payment_gateway' => OPT_CS_PAYMENT_GATEWAY_TYPE_PAYPAL,
         'shield_processing' => json_decode(WC()->session->get("csEndpointGetShieldPaypalToProcessValue_$csOrderKey"), true),
     ];
+    $body = array_merge($body, csPaypalGetOrderRestrictionData($order));
     $request = wp_remote_post($gwDomain . '/api/endpoint-rotation.php?endpoint=perform-rotate-shield-by-amount', [
         'sslverify' => csPaypalGetSSLVerifyStatus(),
         'timeout' => 300,
@@ -1144,14 +1172,14 @@ function csEndpointSetNextShield(WC_Order $order) {
         'headers' => [
             'Content-Type' => 'application/json',
         ],
-        'body' => json_encode([
+        'body' => json_encode(array_merge([
             'cs_order_key' => $csOrderKey,
             'order_total' => $order->get_total(),
             'order_currency' => $order->get_currency(),
             'ep_token' => get_option(OPT_CS_PAYPAL_ENDPOINT_TOKEN, null),
             'payment_gateway' => OPT_CS_PAYMENT_GATEWAY_TYPE_PAYPAL,
             'shield_processing' => json_decode(WC()->session->get("csEndpointGetShieldPaypalToProcessValue_$csOrderKey"), true),
-        ])
+        ], csPaypalGetOrderRestrictionData($order)))
     ]);
     csPaypalDebugLog($request, "csEndpointSetNextShield response");
     if (is_wp_error($request)) {

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../models/ShieldRestriction.php';
 
 header('Content-Type: application/json');
 
@@ -52,13 +53,7 @@ if ($merchantDomain === '' || $provider === '' || $action === '' || $status === 
     exit;
 }
 
-$allowed = db_query(
-    "SELECT id FROM manager_whitelist_domains
-     WHERE web_shield_id = ? AND active = 1
-       AND LOWER(REPLACE(domain, 'www.', '')) = ? LIMIT 1",
-    [$shield['id'], $merchantDomain]
-);
-if (!$allowed) {
+if (!ShieldRestriction::isWhitelisted($shield['id'], $merchantDomain)) {
     http_response_code(403);
     echo json_encode(['success' => false, 'error' => 'Merchant domain is not whitelisted']);
     exit;

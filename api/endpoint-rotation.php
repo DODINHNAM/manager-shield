@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../models/EndpointRotationConfig.php';
+require_once __DIR__ . '/../models/ShieldRestriction.php';
 
 header('Content-Type: application/json');
 
@@ -26,10 +27,11 @@ function endpointRotationProvider($value) {
     return ['1' => 'paypal', '2' => 'stripe', '3' => 'momo'][$value] ?? $value;
 }
 
-function endpointRotationMembers($configId, $merchantDomain = '') {
+function endpointRotationMembers($configId, $merchantDomain = '', $customerData = []) {
     $merchantDomain = endpointRotationDomain($merchantDomain);
-    return array_values(array_filter(EndpointRotationConfig::members($configId), static function ($member) use ($merchantDomain) {
+    return array_values(array_filter(EndpointRotationConfig::members($configId), static function ($member) use ($merchantDomain, $customerData) {
         if ($merchantDomain !== '' && !endpointRotationIsWhitelisted($member['web_shield_id'], $merchantDomain)) return false;
+        if (ShieldRestriction::isBlocked($member['web_shield_id'], $customerData)) return false;
         return (int) $member['active'] === 1;
     }));
 }
@@ -54,11 +56,7 @@ function endpointRotationDomain($value) {
 }
 
 function endpointRotationIsWhitelisted($shieldId, $merchantDomain) {
-    $rows = db_query("SELECT domain FROM manager_whitelist_domains WHERE web_shield_id = ? AND active = 1", [(int) $shieldId]);
-    foreach ($rows as $row) {
-        if (endpointRotationDomain($row['domain'] ?? '') === $merchantDomain) return true;
-    }
-    return false;
+    return ShieldRestriction::isWhitelisted($shieldId, $merchantDomain);
 }
 
 function endpointRotationResetDaily($members) {
@@ -111,8 +109,12 @@ function endpointRotationGetShield() {
     [$config, $body] = endpointRotationConfig();
     $merchantDomain = endpointRotationDomain($body['merchant_site'] ?? '');
     if ($merchantDomain === '') endpointRotationJson(['status' => 'failed', 'code' => 'MERCHANT_DOMAIN_REQUIRED'], 400);
-    $members = endpointRotationMembers($config['id'], $merchantDomain);
-    if (!$members) endpointRotationJson(['status' => 'failed', 'code' => 'MERCHANT_NOT_WHITELISTED'], 403);
+    $members = endpointRotationMembers($config['id'], $merchantDomain, $body);
+    if (!$members) {
+        $whitelistedMembers = endpointRotationMembers($config['id'], $merchantDomain, []);
+        $code = $whitelistedMembers ? 'CUSTOMER_RESTRICTED' : 'MERCHANT_NOT_WHITELISTED';
+        endpointRotationJson(['status' => 'failed', 'code' => $code], 403);
+    }
     $member = endpointRotationSelect($config, $members, (float) ($body['order_total'] ?? 0));
     endpointRotationJson(['status' => 'success', 'shield' => endpointRotationShield($member)]);
 }
@@ -122,7 +124,7 @@ function endpointRotationPerform() {
     $processing = $body['shield_processing'] ?? [];
     $shieldId = (int) ($processing['id'] ?? $processing['shield_id'] ?? 0);
     $merchantDomain = endpointRotationDomain($body['merchant_site'] ?? '');
-    $members = endpointRotationResetDaily(endpointRotationMembers($config['id'], $merchantDomain));
+    $members = endpointRotationResetDaily(endpointRotationMembers($config['id'], $merchantDomain, $body));
     $member = null;
     foreach ($members as $candidate) {
         if ((int) $candidate['web_shield_id'] === $shieldId || strtolower((string) $candidate['shield_domain']) === strtolower((string) ($processing['shield_domain'] ?? ''))) {
@@ -136,7 +138,7 @@ function endpointRotationPerform() {
         db_execute("UPDATE endpoint_rotation_members SET paid_amount = paid_amount + ?, paid_date = ? WHERE id = ?", [$total, date('Y-m-d'), $member['id']]);
     }
     $fresh = EndpointRotationConfig::findForApi($config['id']);
-    endpointRotationSelect($fresh, endpointRotationMembers($config['id'], $merchantDomain), 0);
+    endpointRotationSelect($fresh, endpointRotationMembers($config['id'], $merchantDomain, $body), 0);
     endpointRotationJson(['status' => 'success']);
 }
 

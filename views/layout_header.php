@@ -12,6 +12,7 @@ $titles = [
 $titles['transactions'] = 'Payment reports';
 $titles['endpoint_rotation'] = 'Endpoint rotation';
 $titles['endpoint_rotation_keys'] = 'Endpoint credentials';
+$titles['restrictions'] = 'Restrictions';
 $page_title = $page_title ?? ($titles[$action] ?? 'Quản lý LazyShield');
 $roleLabel = $isAdmin ? 'Quản trị viên' : 'Người quản lý';
 function uiIcon($name) {
@@ -28,11 +29,13 @@ $navigation = $isAdmin
     : [['home','Tổng quan','home'],['manager_my_webshields','Web Shields của tôi','shield'],['manager_whitelist','Domain được phép','globe']];
 $navigation[] = ['transactions', 'Payment reports', 'globe'];
 $navigation[] = ['endpoint_rotation', 'Endpoint rotation', 'shield'];
+$navigation[] = ['restrictions', 'Restrictions', 'globe'];
 $activeNav = $action;
 if ($action === 'admin_edit_webshield') $activeNav = 'admin_webshields';
 if ($action === 'manager_payments') $activeNav = $isAdmin ? 'admin_webshields' : 'manager_my_webshields';
 if (strpos($action, 'transaction') !== false) $activeNav = 'transactions';
 if (strpos($action, 'endpoint_rotation') !== false) $activeNav = 'endpoint_rotation';
+if (strpos($action, 'restriction') !== false) $activeNav = 'restrictions';
 if (in_array($action, ['manager_whitelist_add','manager_whitelist_edit','admin_manager_whitelist'], true)) $activeNav = $isAdmin ? 'admin_users' : 'manager_whitelist';
 ?>
 <!doctype html>

@@ -20,6 +20,7 @@ $webshields = $data['webshields'] ?? [];
           </td>
           <td>
             <a class="btn btn-sm btn-primary" href="index.php?action=manager_payments&web_id=<?=$w['id']?>">Cấu hình</a>
+            <a class="btn btn-sm btn-info" href="index.php?action=restrictions&shield_id=<?=$w['id']?>">Restrictions</a>
           </td>
         </tr>
       <?php endforeach; ?>

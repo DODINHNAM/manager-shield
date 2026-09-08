@@ -78,6 +78,21 @@ textarea.form-control {
 .transaction-filter-actions { display:flex; align-items:center; gap:8px }
 .transaction-filter-clear { border:1px solid var(--border); background:#fff; color:var(--text) }
 .transaction-filter-clear:hover { background:#f4f7f8 }
+.restriction-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; align-items:start }
+.restriction-card { padding:22px }
+.restriction-card .section-heading { margin-bottom:20px }
+.restriction-card h3 { margin:0 0 4px }
+.restriction-field { margin-top:16px }
+.restriction-field label,.restriction-shield-picker label { display:block; margin-bottom:7px; color:var(--text); font-size:12px; font-weight:700 }
+.restriction-label-row { display:flex; align-items:center; justify-content:space-between; gap:12px }
+.restriction-label-row > label:first-child { margin-bottom:7px }
+.restriction-switch { display:inline-flex !important; align-items:center; gap:7px; margin:0 !important; color:var(--muted) !important; font-size:11px !important; font-weight:600 !important; cursor:pointer }
+.restriction-switch input { width:15px; height:15px; margin:0; accent-color:var(--primary); cursor:pointer }
+.restriction-field textarea { min-height:76px; resize:vertical }
+.restriction-shield-picker { padding:14px; margin-bottom:18px; border:1px solid var(--border); border-radius:10px; background:#f8fbfa }
+.restriction-actions { display:flex; justify-content:flex-end; padding-top:18px; margin-top:20px; border-top:1px solid var(--border) }
+.empty-state { padding:18px; border:1px dashed var(--border); border-radius:9px; color:var(--muted); font-size:13px }
+@media (max-width:900px) { .restriction-grid { grid-template-columns:1fr } }
 @media (max-width:1100px) {
   .transaction-filters { grid-template-columns:repeat(3,minmax(0,1fr)) }
   .transaction-filter-actions { grid-column:1/-1 }

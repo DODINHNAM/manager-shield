@@ -10,6 +10,7 @@ require_once __DIR__ . '/controllers/PaymentController.php';
 require_once __DIR__ . '/controllers/ManagerWhitelistController.php';
 require_once __DIR__ . '/controllers/TransactionController.php';
 require_once __DIR__ . '/controllers/EndpointRotationController.php';
+require_once __DIR__ . '/controllers/ShieldRestrictionController.php';
 
 
 require_once __DIR__ . '/models/User.php';
@@ -98,6 +99,8 @@ switch($action) {
                 'managers' => $managers,
                 'payment_types' => $payment_types,
                 'attached_payments' => $attached_payments,
+                'restriction_types' => ShieldRestriction::types(),
+                'local_restrictions' => ShieldRestriction::listLocal($id),
             ];
             require __DIR__ . '/views/admin/edit_webshield.php';
             break;
@@ -243,6 +246,15 @@ switch($action) {
         break;
     case 'endpoint_rotation_keys':
         EndpointRotationController::keys();
+        break;
+    case 'restrictions':
+        ShieldRestrictionController::index();
+        break;
+    case 'restrictions_save_global':
+        ShieldRestrictionController::saveGlobal();
+        break;
+    case 'restrictions_save_local':
+        ShieldRestrictionController::saveLocal();
         break;
 
     case 'manager_webshield_whitelist':

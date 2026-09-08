@@ -3,6 +3,8 @@ $webshield = $data['webshield'] ?? null;
 $attached_payments = $data['payments'] ?? [];
 ?>
 
+<div class="page-intro-actions"><a class="btn btn-info" href="index.php?action=restrictions&shield_id=<?= (int) $webshield['id'] ?>">Restrictions</a></div>
+
 <div class="page-intro"><div class="eyebrow">PHƯƠNG THỨC THANH TOÁN</div><h2><?= htmlspecialchars($webshield['name']) ?></h2><p>Quản lý thông tin kết nối và môi trường thanh toán cho website này.</p></div>
 <div class="card">
     <div class="section-heading"><h3>Phương thức đã kết nối</h3><span class="badge neutral"><?= count($attached_payments) ?> phương thức</span></div>

@@ -3,6 +3,17 @@ $webshield = $data['webshield'] ?? null;
 $managers = $data['managers'] ?? [];
 $payment_types = $data['payment_types'] ?? [];
 $attached_payments = $data['attached_payments'] ?? [];
+$restriction_types = $data['restriction_types'] ?? [];
+$local_restrictions = $data['local_restrictions'] ?? [];
+$restriction_values = static function ($type) use ($local_restrictions) {
+    $values = [];
+    foreach ($local_restrictions as $row) if ($row['rule_type'] === $type) $values[] = $row['rule_value'];
+    return implode(",\n", $values);
+};
+$restriction_enabled = static function ($type) use ($local_restrictions) {
+    foreach ($local_restrictions as $row) if ($row['rule_type'] === $type && (int) $row['active'] === 1) return true;
+    return false;
+};
 ?>
 
 <div class="card">
@@ -31,6 +42,19 @@ $attached_payments = $data['attached_payments'] ?? [];
         <div class="mt-3">
           <button type="submit" class="btn btn-primary">Lưu</button>
         </div>
+    </form>
+</div>
+
+<div class="card mt-3 restriction-card">
+    <div class="section-heading"><div><h3>Local restrictions</h3><span class="muted">Rules applied only to this shield.</span></div><a class="btn btn-sm btn-info" href="index.php?action=restrictions&shield_id=<?= (int) $webshield['id'] ?>">Open full settings</a></div>
+    <form method="post" action="index.php?action=restrictions_save_local&shield_id=<?= (int) $webshield['id'] ?>">
+        <?php foreach ($restriction_types as $type => $label): ?>
+            <div class="restriction-field">
+                <div class="restriction-label-row"><label for="detail-local-<?= htmlspecialchars($type) ?>"><?= htmlspecialchars($label) ?></label><label class="restriction-switch"><input type="checkbox" name="local_enabled[<?= htmlspecialchars($type) ?>]" value="1" <?= $restriction_enabled($type) ? 'checked' : '' ?>><span>Enabled</span></label></div>
+                <textarea id="detail-local-<?= htmlspecialchars($type) ?>" name="local_<?= htmlspecialchars($type) ?>" class="form-control" rows="2" placeholder="Values separated by comma or new line"><?= htmlspecialchars($restriction_values($type)) ?></textarea>
+            </div>
+        <?php endforeach; ?>
+        <div class="restriction-actions"><button type="submit" class="btn btn-primary">Save local rules</button></div>
     </form>
 </div>
 
