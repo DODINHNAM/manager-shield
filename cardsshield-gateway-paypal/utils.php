@@ -327,7 +327,7 @@ function performProxyByTimeRotation($activatedProxy) {
         }
     }
     $activatedProxy = $proxies[0];
-    update_option( OPT_LAZY_PAYPAL_ACTIVATED_PROXY, $proxies, true );
+    update_option( OPT_LAZY_PAYPAL_ACTIVATED_PROXY, $activatedProxy, true );
     logRotation( OPT_CS_PAYPAL_BY_TIME, $activatedProxy, "Auto" );
     return $activatedProxy;
 }
@@ -1061,6 +1061,7 @@ function csEndpointGetShieldPaypalToProcess($csOrderKey, $orderTotal) {
         return 'https://' . $shield->shield_domain;
     }
     if (!$gwDomain = csGetGatewayDomain()) {
+        csPaypalErrorLog('Endpoint token/secret could not resolve the Manager domain', 'csEndpointGetShieldPaypalToProcess config error');
         return null;
     }
     wc_get_logger()->debug('request csEndpointGetShieldPaypalToProcess', ['source' => 'cardshield-gateway-paypal-INFO']);
@@ -1085,19 +1086,19 @@ function csEndpointGetShieldPaypalToProcess($csOrderKey, $orderTotal) {
     $responseBody = wp_remote_retrieve_body($request);
     $data = json_decode($responseBody);
     csPaypalDebugLog($data, 'csEndpointGetShieldPaypalToProcess response');
-    if ($data->status == 'success') {
+    if (is_object($data) && $data->status === 'success' && !empty($data->shield->shield_domain)) {
         $shieldUrl = 'https://' . $data->shield->shield_domain;
         // Global cache shield Url 30s
         WC()->session->set("csEndpointGetShieldPaypalToProcessValue_$csOrderKey", json_encode($data->shield));
         update_option('CS_ENDPOINT_SHIELD_PAYPAL_TO_PROCESS', json_encode($data->shield));
         update_option('CS_ENDPOINT_LAST_TIME_GET_SHIELD_PAYPAL_TO_PROCESS', date( 'Y-m-d H:i:s'));
         return $shieldUrl;
-    } else if ($data->code === 'EMPTY_SHIELDS' || $data->code === 'SHIELD_NOT_FOUND') {
+    } else if (is_object($data) && in_array($data->code ?? '', ['EMPTY_SHIELDS', 'SHIELD_NOT_FOUND', 'MERCHANT_NOT_WHITELISTED'], true)) {
         update_option('CS_ENDPOINT_LAST_TIME_GET_SHIELD_PAYPAL_TO_PROCESS_FAILED', date( 'Y-m-d H:i:s'));
-        csPaypalErrorLog($request, "csEndpointGetShieldPaypalToProcess error[2]");
+        csPaypalErrorLog($data, "csEndpointGetShieldPaypalToProcess rejected request");
         return null;
     } else {
-        csPaypalErrorLog($request, "csEndpointGetShieldPaypalToProcess error[3]");
+        csPaypalErrorLog(['http_code' => wp_remote_retrieve_response_code($request), 'body' => $responseBody], "csEndpointGetShieldPaypalToProcess invalid response");
         return null;
     }
 }
@@ -1111,7 +1112,9 @@ function csEndpointPerformShieldRotateByAmount(WC_Order $order) {
         'cs_order_key' => $csOrderKey,
         'order_total' => $order->get_total(),
         'order_currency' => $order->get_currency(),
+        'merchant_site' => get_home_url(),
         'ep_token' => get_option(OPT_CS_PAYPAL_ENDPOINT_TOKEN, null),
+        'payment_gateway' => OPT_CS_PAYMENT_GATEWAY_TYPE_PAYPAL,
         'shield_processing' => json_decode(WC()->session->get("csEndpointGetShieldPaypalToProcessValue_$csOrderKey"), true),
     ];
     $request = wp_remote_post($gwDomain . '/woo/perform-rotate-shield-by-amount', [
@@ -1145,6 +1148,7 @@ function csEndpointSetNextShield(WC_Order $order) {
             'order_total' => $order->get_total(),
             'order_currency' => $order->get_currency(),
             'ep_token' => get_option(OPT_CS_PAYPAL_ENDPOINT_TOKEN, null),
+            'payment_gateway' => OPT_CS_PAYMENT_GATEWAY_TYPE_PAYPAL,
             'shield_processing' => json_decode(WC()->session->get("csEndpointGetShieldPaypalToProcessValue_$csOrderKey"), true),
         ])
     ]);
@@ -1167,6 +1171,7 @@ function csEndpointMoveToUnusedShield($shieldDomain) {
         ],
         'body' => json_encode([
             'ep_token' => get_option(OPT_CS_PAYPAL_ENDPOINT_TOKEN, null),
+            'payment_gateway' => OPT_CS_PAYMENT_GATEWAY_TYPE_PAYPAL,
             'shield_domain' => $shieldDomain,
         ])
     ]);
@@ -1186,10 +1191,14 @@ function csGetGatewayDomain()
     try {
         $endpointToken = get_option(OPT_CS_PAYPAL_ENDPOINT_TOKEN, null);
         $endpointSecret = get_option(OPT_CS_PAYPAL_ENDPOINT_SECRET, null);
+        if (empty($endpointToken) || empty($endpointSecret)) {
+            return null;
+        }
         $decrypt = base64_decode(strtr(base64_decode($endpointSecret),
             './-:?=&%# ZQXJKVWPY abcdefghijklmnopqrstuvwxyz123456789ABCDEFGHILMNORSTU',
             'ZQXJKVWPY ./-:?=&%# 123456789ABCDEFGHILMNORSTUabcdefghijklmnopqrstuvwxyz'));
-        return str_replace($endpointToken, '', $decrypt);
+        $domain = str_replace($endpointToken, '', (string) $decrypt);
+        return rtrim(trim($domain), '/');
     } catch (\Exception $e) {
         csPaypalErrorLog($e->getMessage(), 'csGetGatewayDomain failed!');
         return null;

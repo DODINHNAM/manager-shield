@@ -9,6 +9,7 @@ require_once __DIR__ . '/controllers/ManagerController.php';
 require_once __DIR__ . '/controllers/PaymentController.php';
 require_once __DIR__ . '/controllers/ManagerWhitelistController.php';
 require_once __DIR__ . '/controllers/TransactionController.php';
+require_once __DIR__ . '/controllers/EndpointRotationController.php';
 
 
 require_once __DIR__ . '/models/User.php';
@@ -19,6 +20,7 @@ require_once __DIR__ . '/models/PayPalConfig.php';
 require_once __DIR__ . '/models/StripeConfig.php';
 require_once __DIR__ . '/models/MomoConfig.php';
 require_once __DIR__ . '/models/ManagerWhitelist.php';
+require_once __DIR__ . '/models/EndpointRotationConfig.php';
 
 
 $action = $_GET['action'] ?? 'home';
@@ -228,6 +230,16 @@ switch($action) {
 
     case 'transactions':
         TransactionController::index();
+        break;
+
+    case 'endpoint_rotation':
+        EndpointRotationController::index();
+        break;
+    case 'endpoint_rotation_save':
+        EndpointRotationController::save();
+        break;
+    case 'endpoint_rotation_delete':
+        EndpointRotationController::delete();
         break;
 
     case 'manager_webshield_whitelist':
