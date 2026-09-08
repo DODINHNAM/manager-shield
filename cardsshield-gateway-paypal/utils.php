@@ -1065,7 +1065,7 @@ function csEndpointGetShieldPaypalToProcess($csOrderKey, $orderTotal) {
         return null;
     }
     wc_get_logger()->debug('request csEndpointGetShieldPaypalToProcess', ['source' => 'cardshield-gateway-paypal-INFO']);
-    $request = wp_remote_post($gwDomain . '/woo/get-shield-process', [
+    $request = wp_remote_post($gwDomain . '/api/endpoint-rotation.php?endpoint=get-shield-process', [
         'sslverify' => csPaypalGetSSLVerifyStatus(),
         'timeout' => 300,
         'headers' => [
@@ -1086,6 +1086,7 @@ function csEndpointGetShieldPaypalToProcess($csOrderKey, $orderTotal) {
     $responseBody = wp_remote_retrieve_body($request);
     $data = json_decode($responseBody);
     csPaypalDebugLog($data, 'csEndpointGetShieldPaypalToProcess response');
+    $responseCode = wp_remote_retrieve_response_code($request);
     if (is_object($data) && $data->status === 'success' && !empty($data->shield->shield_domain)) {
         $shieldUrl = 'https://' . $data->shield->shield_domain;
         // Global cache shield Url 30s
@@ -1098,7 +1099,7 @@ function csEndpointGetShieldPaypalToProcess($csOrderKey, $orderTotal) {
         csPaypalErrorLog($data, "csEndpointGetShieldPaypalToProcess rejected request");
         return null;
     } else {
-        csPaypalErrorLog(['http_code' => wp_remote_retrieve_response_code($request), 'body' => $responseBody], "csEndpointGetShieldPaypalToProcess invalid response");
+        csPaypalErrorLog(['http_code' => $responseCode, 'body' => $responseBody], "csEndpointGetShieldPaypalToProcess invalid response");
         return null;
     }
 }
@@ -1117,7 +1118,7 @@ function csEndpointPerformShieldRotateByAmount(WC_Order $order) {
         'payment_gateway' => OPT_CS_PAYMENT_GATEWAY_TYPE_PAYPAL,
         'shield_processing' => json_decode(WC()->session->get("csEndpointGetShieldPaypalToProcessValue_$csOrderKey"), true),
     ];
-    $request = wp_remote_post($gwDomain . '/woo/perform-rotate-shield-by-amount', [
+    $request = wp_remote_post($gwDomain . '/api/endpoint-rotation.php?endpoint=perform-rotate-shield-by-amount', [
         'sslverify' => csPaypalGetSSLVerifyStatus(),
         'timeout' => 300,
         'headers' => [
@@ -1137,7 +1138,7 @@ function csEndpointSetNextShield(WC_Order $order) {
         return null;
     }
     $csOrderKey = $order->get_meta(METAKEY_PAYPAL_PROCESSING_ORDER_KEY);
-    $request = wp_remote_post($gwDomain . '/woo/set-next-shield', [
+    $request = wp_remote_post($gwDomain . '/api/endpoint-rotation.php?endpoint=set-next-shield', [
         'sslverify' => csPaypalGetSSLVerifyStatus(),
         'timeout' => 300,
         'headers' => [
@@ -1163,7 +1164,7 @@ function csEndpointMoveToUnusedShield($shieldDomain) {
     if (!$gwDomain = csGetGatewayDomain()) {
         return null;
     }
-    $request = wp_remote_post($gwDomain . '/woo/move-to-unused-shield', [
+    $request = wp_remote_post($gwDomain . '/api/endpoint-rotation.php?endpoint=move-to-unused-shield', [
         'sslverify' => csPaypalGetSSLVerifyStatus(),
         'timeout' => 300,
         'headers' => [
