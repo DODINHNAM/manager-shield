@@ -1,0 +1,323 @@
+#cs-stripe-loader {
+    display: none;
+}
+
+.important-hide-stripe {
+    display: none !important;
+}
+
+.cs-stripe-spinner {
+    position: fixed;
+    top: 43%;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 9999;
+    margin: 0;
+    text-align: center
+}
+
+.cs-stripe-spinner:after {
+    content: '';
+    position: fixed;
+    z-index: -1;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #fff;
+    -moz-opacity: .9;
+    -khtml-opacity: .9;
+    -webkit-opacity: .9;
+    opacity: .9;
+    -ms-filter: alpha(opacity=90);
+    filter: alpha(opacity=90)
+}
+
+.cs-stripe-spinner:before {
+    content: "";
+    display: block;
+    margin: 0 auto 10px;
+    text-align: center;
+    width: 34px;
+    height: 34px;
+    border-left: 8px solid #000;
+    border-left: 8px solid rgba(0, 0, 0, .2);
+    border-right: 8px solid #000;
+    border-right: 8px solid rgba(0, 0, 0, .2);
+    border-bottom: 8px solid #000;
+    border-bottom: 8px solid rgba(0, 0, 0, .2);
+    border-top: 8px solid #2180c0;
+    border-radius: 50px;
+    -webkit-animation: rotation .7s infinite linear;
+    -moz-animation: rotation .7s infinite linear;
+    -o-animation: rotation .7s infinite linear;
+    animation: rotation .7s infinite linear
+}
+
+.cs-stripe-spinnerWithLockIcon {
+    position: fixed;
+    top: 40%;
+    right: 0;
+    bottom: 0;
+    left: 13px;
+    z-index: 9998;
+    margin: 0;
+    margin-top: -50px;
+    text-align: center
+}
+
+.cs-stripe-spinnerWithLockIcon:after {
+    content: '';
+    position: fixed;
+    z-index: -1;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #fff;
+    -moz-opacity: .9;
+    -khtml-opacity: .9;
+    -webkit-opacity: .9;
+    opacity: .9;
+    -ms-filter: alpha(opacity=90);
+    filter: alpha(opacity=90)
+}
+
+.cs-stripe-spinnerWithLockIcon:before {
+    content: "";
+    display: block;
+    margin: 0 auto 10px;
+    text-align: center;
+    width: 100px;
+    height: 100px;
+    border-left: 5px solid #000;
+    border-left: 5px solid rgba(0, 0, 0, .2);
+    border-right: 5px solid #000;
+    border-right: 5px solid rgba(0, 0, 0, .2);
+    border-bottom: 5px solid #000;
+    border-bottom: 5px solid rgba(0, 0, 0, .2);
+    border-top: 5px solid #2180c0;
+    border-radius: 100%;
+    -webkit-animation: cs-stripe-rotation .7s infinite linear;
+    -moz-animation: cs-stripe-rotation .7s infinite linear;
+    -o-animation: cs-stripe-rotation .7s infinite linear;
+    animation: cs-stripe-rotation .7s infinite linear
+}
+
+
+@-webkit-keyframes cs-stripe-rotation {
+    from {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg)
+    }
+
+    to {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg)
+    }
+}
+
+@-moz-keyframes cs-stripe-rotation {
+    from {
+        -moz-transform: rotate(0deg);
+        transform: rotate(0deg)
+    }
+
+    to {
+        -moz-transform: rotate(359deg);
+        transform: rotate(359deg)
+    }
+}
+
+@-o-keyframes cs-stripe-rotation {
+    from {
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg)
+    }
+
+    to {
+        -o-transform: rotate(359deg);
+        transform: rotate(359deg)
+    }
+}
+
+@keyframes cs-stripe-rotation {
+    from {
+        transform: rotate(0deg)
+    }
+
+    to {
+        transform: rotate(359deg)
+    }
+}
+
+.SubmitButton {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 100%;
+    line-height: 1.15;
+    margin: 0;
+    text-transform: none;
+    backface-visibility: hidden;
+    border: 0;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 1px rgba(50, 50, 93, 0.1), 0 2px 5px 0 rgba(50, 50, 93, 0.1), 0 1px 1px 0 rgba(0, 0, 0, 0.07);
+    cursor: pointer;
+    height: 44px;
+    margin-top: 12px;
+    outline: none;
+    overflow: hidden;
+    padding: 0;
+    position: relative;
+    transform: translateZ(0);
+    width: 100%;
+    -webkit-appearance: button;
+    transition: transform .15s ease, box-shadow .08s ease-in, -webkit-transform .15s ease;
+    color: rgb(255, 255, 255);
+}
+
+.SubmitButton--complete-Shimmer {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    font-family: inherit;
+    font-size: 100%;
+    line-height: 1.15;
+    text-transform: none;
+    cursor: pointer;
+    color: rgb(255, 255, 255);
+    box-sizing: border-box;
+    bottom: 0;
+    content: "";
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    transform: translateX(calc(150% * -1));
+    transition: opacity 0.2s ease;
+    width: 150%;
+    animation: shimmer-move 3s infinite ease;
+    opacity: 1;
+    background: linear-gradient(to right, rgba(0, 116, 212, 0) 0%, rgb(58, 139, 238) 50%, rgba(0, 116, 212, 0) 100%);
+}
+
+@keyframes shimmer-move {
+    0% {
+        -webkit-transform: translateX(calc(150% * -1));
+        transform: translateX(calc(150% * -1))
+    }
+    to {
+        -webkit-transform: translateX(150%);
+        transform: translateX(150%)
+    }
+}
+
+
+.SubmitButton-TextContainer {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    font-family: inherit;
+    font-size: 100%;
+    line-height: 1.15;
+    text-transform: none;
+    cursor: pointer;
+    color: rgb(255, 255, 255);
+    box-sizing: border-box;
+}
+
+.SubmitButton-Text {
+    text-align: center;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", "Ubuntu", sans-serif;
+    font-size: 100%;
+    text-transform: none;
+    cursor: pointer;
+    color: rgb(255, 255, 255);
+    box-sizing: border-box;
+    margin: 0;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    left: 0;
+    line-height: 44px;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    width: 100%;
+    transition: none;
+}
+
+.SubmitButton-IconContainer {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", "Ubuntu", sans-serif;
+    font-size: 100%;
+    line-height: 1.15;
+    text-transform: none;
+    cursor: pointer;
+    color: rgb(255, 255, 255);
+    box-sizing: border-box;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    transform: translateX(-16px);
+    transition: transform 0.3s ease, -webkit-transform 0.3s ease;
+    width: 100%;
+}
+
+.SubmitButton-Icon {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", "Ubuntu", sans-serif;
+    font-size: 100%;
+    line-height: 1.15;
+    text-transform: none;
+    cursor: pointer;
+    color: rgb(255, 255, 255);
+    box-sizing: border-box;
+    display: flex;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 1;
+    transition: none;
+}
+
+.Icon--md.Icon--square {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", "Ubuntu", sans-serif;
+    font-size: 100%;
+    line-height: 1.15;
+    text-transform: none;
+    cursor: pointer;
+    color: rgb(255, 255, 255);
+    box-sizing: border-box;
+    height: 16px;
+    width: 16px;
+}
+
+/*.SubmitButton--complete:hover {*/
+/*    background-color: rgb(0, 94, 187);*/
+/*    box-shadow: inset 0 0 0 1px rgba(50, 50, 93, 0.1), 0 6px 15px 0 rgba(50, 50, 93, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.1);*/
+/*}*/
+
+.SubmitButton--clickable:active, .SubmitButton--complete:active {
+    -webkit-transform: scale(.99);
+    -ms-transform: scale(.99);
+    transform: scale(.99)
+}
+
+.SubmitButton--clickable:focus, .SubmitButton--complete:focus, .SubmitButton--incomplete:focus {
+    box-shadow: inset 0 0 0 1px rgba(50, 50, 93, 0.1), 0 6px 15px 0 rgba(50, 50, 93, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(50, 151, 211, 0.3);
+}
+
+.SubmitButton--complete:hover.SubmitButton--complete-Shimmer {
+    opacity: .6
+}
