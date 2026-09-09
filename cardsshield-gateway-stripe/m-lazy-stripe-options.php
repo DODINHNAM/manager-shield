@@ -377,8 +377,16 @@ class Lazy_Stripe_Paygate_Option
     function addNewProxy()
     {
         $rotationMethod = $_POST["rotationMethod"];
-        $proxyUrl = $_POST["proxyUrl"];
+        $proxyUrl = csStripeNormalizeShieldUrl(wp_unslash($_POST["proxyUrl"] ?? ''));
         $rotationValue = $_POST["rotationValue"];
+
+        if ($proxyUrl === '') {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Invalid Shield URL.'
+            ]);
+            return;
+        }
 
         // Get current proxies
         $proxies = get_option(Opt_Lazy_Stripe_Proxies, []);
@@ -460,7 +468,15 @@ class Lazy_Stripe_Paygate_Option
             if ($proxy['id'] !== $newProxies[$key]['id']) {
                 continue;
             }
-            $proxies[$key]['url'] = $newProxies[$key]['url'];
+            $proxyUrl = csStripeNormalizeShieldUrl(wp_unslash($newProxies[$key]['url'] ?? ''));
+            if ($proxyUrl === '') {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Invalid Shield URL.'
+                ]);
+                return;
+            }
+            $proxies[$key]['url'] = $proxyUrl;
             $proxies[$key]['timestamp'] = $rotationMethod === LAZY_STRIPE_BY_TIME ? $newProxies[$key]['rotationValue'] : $proxies[$key]['timestamp'];
             $proxies[$key]['amount'] = $rotationMethod === LAZY_STRIPE_BY_AMOUNT ? $newProxies[$key]['rotationValue'] : $proxies[$key]['amount'];
 

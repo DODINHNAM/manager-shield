@@ -57,6 +57,60 @@ const CONST_CS_STRIPE_GET_CHARGE_STATUS_UNKNOWN = 'CONST_CS_STRIPE_GET_CHARGE_ST
 const CONST_CS_STRIPE_GET_CHARGE_STATUS_ACTIVE = 'CONST_CS_STRIPE_GET_CHARGE_STATUS_ACTIVE';
 const CONST_CS_STRIPE_GET_CHARGE_STATUS_DEACTIVE = 'CONST_CS_STRIPE_GET_CHARGE_STATUS_DEACTIVE';
 
+function csStripeNormalizeShieldUrl($value) {
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '';
+    }
+
+    $value = preg_match('#^https?://#i', $value) ? $value : 'https://' . $value;
+    $parsed = wp_parse_url($value);
+    $scheme = strtolower($parsed['scheme'] ?? '');
+    $host = strtolower($parsed['host'] ?? '');
+
+    if (!in_array($scheme, ['http', 'https'], true) || $host === '' || !preg_match('/^[a-z0-9.-]+$/i', $host)) {
+        return '';
+    }
+
+    $port = isset($parsed['port']) ? ':' . absint($parsed['port']) : '';
+    return $scheme . '://' . $host . $port;
+}
+
+function csStripeNormalizeStoredProxyUrls() {
+    foreach ([Opt_Lazy_Stripe_Proxies, OPT_LAZY_STRIPE_UNUSED_PROXIES] as $optionName) {
+        $proxies = get_option($optionName, []);
+        if (!is_array($proxies)) {
+            continue;
+        }
+
+        $changed = false;
+        foreach ($proxies as $key => $proxy) {
+            if (!is_array($proxy) || !isset($proxy['url'])) {
+                continue;
+            }
+            $normalizedUrl = csStripeNormalizeShieldUrl($proxy['url']);
+            if ($normalizedUrl !== '' && $normalizedUrl !== $proxy['url']) {
+                $proxies[$key]['url'] = $normalizedUrl;
+                $changed = true;
+            }
+        }
+        if ($changed) {
+            update_option($optionName, $proxies, true);
+        }
+    }
+
+    $activatedProxy = get_option(Opt_Lazy_Stripe_Activated_Proxy, null);
+    if (is_array($activatedProxy) && isset($activatedProxy['url'])) {
+        $normalizedUrl = csStripeNormalizeShieldUrl($activatedProxy['url']);
+        if ($normalizedUrl !== '' && $normalizedUrl !== $activatedProxy['url']) {
+            $activatedProxy['url'] = $normalizedUrl;
+            update_option(Opt_Lazy_Stripe_Activated_Proxy, $activatedProxy, true);
+        }
+    }
+}
+
+add_action('init', 'csStripeNormalizeStoredProxyUrls', 1);
+
 // true: order currency
 // false: stripe currency
 const LAZY_STRIPE_FEE_DISPLAY_ORDER_CURRENCY = true;

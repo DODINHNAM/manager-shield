@@ -775,8 +775,9 @@ function handle_route()
                 $_GET['ssi']
             ));
             wc_add_notice('We cannot process your payment right now, please try another payment method.[13]', 'error');
+            return wp_redirect(wc_get_checkout_url());
         }
-        echo 'OK'; exit();
+        return wp_redirect($order->get_checkout_order_received_url());
     }
 
     if (isset($_GET['handle_scs_notice_failed']) && isset($_GET['h']) && isset($_GET['oid']) && isset($_GET['ssi'])) {

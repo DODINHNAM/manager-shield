@@ -273,7 +273,7 @@ function wplazy_stripe_handle_action($action) {
     if (in_array($action, ['lazy-stripe-hosted-make-session', 'cs-stripe-hosted-make-session'], true)) {
         $merchant_url = wplazy_stripe_merchant_url($query['merchant_site'] ?? '');
         if ($merchant_url === '') wplazy_stripe_json(new WP_Error('merchant_site_invalid', 'Merchant site is invalid.'), 400);
-        $params = ['mode' => 'payment', 'success_url' => add_query_arg(['cs_handle_stripe_checkout_session_success' => 1, 'order_id' => $query['order_id'] ?? '', 'stripe_session_id' => '{CHECKOUT_SESSION_ID}'], $merchant_url), 'cancel_url' => add_query_arg(['cs_handle_stripe_checkout_session_cancelled' => 1, 'order_id' => $query['order_id'] ?? ''], $merchant_url)];
+        $params = ['mode' => 'payment', 'success_url' => add_query_arg(['handle_scs_notice_success' => 1, 'oid' => $query['order_id'] ?? '', 'ssi' => '{CHECKOUT_SESSION_ID}'], $merchant_url), 'cancel_url' => add_query_arg(['cs_handle_stripe_checkout_session_cancelled' => 1, 'order_id' => $query['order_id'] ?? ''], $merchant_url)];
         if (!empty($query['order_invoice'])) $params['client_reference_id'] = sanitize_text_field($query['order_invoice']);
         $params['invoice_creation[enabled]'] = 'true';
         if (!empty($query['order_invoice'])) $params['invoice_creation[invoice_data][metadata][order_invoice]'] = sanitize_text_field($query['order_invoice']);

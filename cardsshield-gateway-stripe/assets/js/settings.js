@@ -41,9 +41,17 @@ jQuery(document).ready(function ($) {
         }
     }
 
+    function normalizeProxyUrl(value) {
+        value = value.trim().replace(/\/+$/, '');
+        if (!value) {
+            return '';
+        }
+        return /^https?:\/\//i.test(value) ? value : 'https://' + value;
+    }
+
     function addProxy() {
         var rotationMethod = $('input[name="rotationMethod"]:checked').val();
-        var newProxyUrl = $('#new-proxy-url').val().replace(/\/+$/, "");
+        var newProxyUrl = normalizeProxyUrl($('#new-proxy-url').val());
         var newRotationValue = $('#new-rotation-value').val();
 
         if (!newProxyUrl.trim() || !newRotationValue.trim()) {
@@ -100,7 +108,7 @@ jQuery(document).ready(function ($) {
         $('.table-proxy tr.proxy').each(function () {
             var proxy = {
                 id: $(this).find('.proxy-id').val(),
-                url: $(this).find('.proxy-url').val(),
+                url: normalizeProxyUrl($(this).find('.proxy-url').val()),
                 rotationValue: $(this).find('.proxy-rotation-value').val(),
             };
             if (!proxy.url.trim() || !proxy.rotationValue.trim()) {
