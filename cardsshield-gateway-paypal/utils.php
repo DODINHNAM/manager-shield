@@ -1064,17 +1064,17 @@ function csPaypalGetOrderRestrictionData(WC_Order $order) {
 }
 
 function csEndpointGetShieldPaypalToProcess($csOrderKey, $orderTotal, $customerData = []) {
-    $lastTimeGetShield = strtotime(get_option('CS_ENDPOINT_LAST_TIME_GET_SHIELD_PAYPAL_TO_PROCESS'));
-    $shield = get_option('CS_ENDPOINT_SHIELD_PAYPAL_TO_PROCESS', null);
     $now = strtotime(date( 'Y-m-d H:i:s'));
     if ($now - strtotime(get_option('CS_ENDPOINT_LAST_TIME_GET_SHIELD_PAYPAL_TO_PROCESS_FAILED')) < 60) { //cache 60s when call failed
         csPaypalDebugLog('cache get shield failed');
         return null;
     }
-    if ($shield && ($now - $lastTimeGetShield) < 10) { //Cached 10s
-        WC()->session->set("csEndpointGetShieldPaypalToProcessValue_$csOrderKey", $shield);
-        $shield = json_decode($shield);
-        return 'https://' . $shield->shield_domain;
+    $sessionShield = WC()->session->get("csEndpointGetShieldPaypalToProcessValue_$csOrderKey");
+    if ($sessionShield) {
+        $shield = json_decode($sessionShield);
+        if (is_object($shield) && !empty($shield->shield_domain)) {
+            return 'https://' . $shield->shield_domain;
+        }
     }
     if (!$gwDomain = csGetGatewayDomain()) {
         csPaypalErrorLog('Endpoint token/secret could not resolve the Manager domain', 'csEndpointGetShieldPaypalToProcess config error');
@@ -1108,7 +1108,6 @@ function csEndpointGetShieldPaypalToProcess($csOrderKey, $orderTotal, $customerD
         $shieldUrl = 'https://' . $data->shield->shield_domain;
         // Global cache shield Url 30s
         WC()->session->set("csEndpointGetShieldPaypalToProcessValue_$csOrderKey", json_encode($data->shield));
-        update_option('CS_ENDPOINT_SHIELD_PAYPAL_TO_PROCESS', json_encode($data->shield));
         update_option('CS_ENDPOINT_LAST_TIME_GET_SHIELD_PAYPAL_TO_PROCESS', date( 'Y-m-d H:i:s'));
         return $shieldUrl;
     } else if (is_object($data) && in_array($data->code ?? '', ['EMPTY_SHIELDS', 'SHIELD_NOT_FOUND', 'MERCHANT_NOT_WHITELISTED', 'CUSTOMER_RESTRICTED'], true)) {

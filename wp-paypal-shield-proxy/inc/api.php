@@ -475,7 +475,7 @@ add_action('rest_api_init', function () {
     register_rest_route('cs', '/create-paypal-order', [
         'methods' => 'POST',
         'callback' => 'create_paypal_order',
-        'permission_callback' => 'wplazy_paypal_proxy_whitelist_permission_check',
+        'permission_callback' => 'wplazy_paypal_create_order_permission_check',
     ]);
 });
 add_action( 'rest_api_init', function() {
@@ -483,7 +483,7 @@ add_action( 'rest_api_init', function() {
         'methods'  => WP_REST_Server::READABLE,
         'callback' => 'wplazy_paypal_proxy_rest_get_form',
         // Cho phép truy cập công khai; thay đổi nếu cần kiểm quyền
-        'permission_callback' => 'wplazy_paypal_proxy_whitelist_permission_check',
+        'permission_callback' => '__return_true',
     ) );
 } );
 
@@ -696,6 +696,20 @@ function wplazy_paypal_proxy_whitelist_permission_check( WP_REST_Request $reques
     }
 
     return new WP_Error( 'rest_forbidden', 'Request origin is not whitelisted.', array( 'status' => 403 ) );
+}
+
+function wplazy_paypal_create_order_permission_check( WP_REST_Request $request ) {
+    $params = $request->get_json_params();
+    $merchant = wplazy_paypal_proxy_domain($params['merchant_site'] ?? '');
+    $config = get_webshield_config();
+    $whitelist = is_array($config) ? ($config['whitelist'] ?? []) : [];
+    $whitelist = array_map('wplazy_paypal_proxy_domain', (array) $whitelist);
+
+    if ($merchant !== '' && in_array($merchant, $whitelist, true)) {
+        return true;
+    }
+
+    return new WP_Error('rest_forbidden', 'Merchant domain is not whitelisted.', ['status' => 403]);
 }
 
 function wplazy_paypal_require_allowed_merchant() {

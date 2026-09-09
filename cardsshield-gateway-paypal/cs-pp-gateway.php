@@ -1036,6 +1036,7 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
         $activeProxy = get_option( OPT_LAZY_PAYPAL_ACTIVATED_PROXY, null );
         if ($isEnableEndpointMode) {
             $csOrderKey = md5(get_option(OPT_CS_PAYPAL_ENDPOINT_TOKEN, null)) . '_' . md5(uniqid(rand(), true));
+            WC()->session->set('lazy-paypal-processing-order-key', $csOrderKey);
             $shieldUrl = csEndpointGetShieldPaypalToProcess($csOrderKey, $carTotal);
             if (!$shieldUrl) {
                 unset( $gateways['lazy_paypal'] );

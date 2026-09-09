@@ -992,18 +992,28 @@ function csStripeGenerateProcessingOrderKey() {
     return md5(get_option(OPT_CS_STRIPE_ENDPOINT_TOKEN, null)) . '_' . md5(uniqid(rand(), true));
 }
 
-function csEndpointGetShieldStripeToProcess($csOrderKey, $orderTotal) {
-    $lastTimeGetShield = strtotime(get_option('CS_ENDPOINT_LAST_TIME_GET_SHIELD_STRIPE_TO_PROCESS'));
-    $shield = get_option('CS_ENDPOINT_SHIELD_STRIPE_TO_PROCESS', null);
+function csStripeGetRestrictionCustomerData() {
+    $checkout = function_exists('WC') && WC()->checkout() ? WC()->checkout() : null;
+    return [
+        'customer_email' => $checkout ? sanitize_email((string) $checkout->get_value('billing_email')) : '',
+        'billing_city' => $checkout ? sanitize_text_field((string) $checkout->get_value('billing_city')) : '',
+        'billing_state' => $checkout ? sanitize_text_field((string) $checkout->get_value('billing_state')) : '',
+        'billing_postcode' => $checkout ? sanitize_text_field((string) $checkout->get_value('billing_postcode')) : '',
+    ];
+}
+
+function csEndpointGetShieldStripeToProcess($csOrderKey, $orderTotal, $customerData = []) {
     $now = strtotime(date( 'Y-m-d H:i:s'));
     if ($now - strtotime(get_option('CS_ENDPOINT_LAST_TIME_GET_SHIELD_STRIPE_TO_PROCESS_FAILED')) < 60) { //cache 60s when call failed
         csStripeDebugLog('cache get shield failed');
         return null;
     }
-    if ($shield && ($now - $lastTimeGetShield) < 10) { //Cached 10s
-        WC()->session->set("csEndpointGetShieldStripeToProcessValue_$csOrderKey", $shield);
-        $shield = json_decode($shield);
-        return 'https://' . $shield->shield_domain;
+    $sessionShield = WC()->session->get("csEndpointGetShieldStripeToProcessValue_$csOrderKey");
+    if ($sessionShield) {
+        $shield = json_decode($sessionShield);
+        if (is_object($shield) && !empty($shield->shield_domain)) {
+            return 'https://' . $shield->shield_domain;
+        }
     }
     if (!$gwDomain = csStripeGetGatewayDomain()) {
         return null;
@@ -1015,13 +1025,13 @@ function csEndpointGetShieldStripeToProcess($csOrderKey, $orderTotal) {
         'headers' => [
             'Content-Type' => 'application/json',
         ],
-        'body' => json_encode([
+        'body' => json_encode(array_merge([
             'cs_order_key' => $csOrderKey,
             'order_total' => $orderTotal,
             'ep_token' => get_option(OPT_CS_STRIPE_ENDPOINT_TOKEN, null),
             'merchant_site' => get_home_url(),
             'payment_gateway' => OPT_CS_PAYMENT_GATEWAY_TYPE_STRIPE,
-        ])
+        ], $customerData ?: csStripeGetRestrictionCustomerData()))
     ]);
     if (is_wp_error($request)) {
         csStripeErrorLog($request, "csEndpointGetShieldStripeToProcess error");
@@ -1034,7 +1044,6 @@ function csEndpointGetShieldStripeToProcess($csOrderKey, $orderTotal) {
         $shieldUrl = 'https://' . $data->shield->shield_domain;
         // Global cache shield Url 30s
         WC()->session->set("csEndpointGetShieldStripeToProcessValue_$csOrderKey", json_encode($data->shield));
-        update_option('CS_ENDPOINT_SHIELD_STRIPE_TO_PROCESS', json_encode($data->shield));
         update_option('CS_ENDPOINT_LAST_TIME_GET_SHIELD_STRIPE_TO_PROCESS', date( 'Y-m-d H:i:s'));
         csStripeDebugLog($shieldUrl, '111111111');
         return $shieldUrl;

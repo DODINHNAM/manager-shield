@@ -81,8 +81,9 @@ var paypalButtonObject = {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
+                body: JSON.stringify({
                 order: window.orderData,
+                merchant_site: window.wooCheckoutFormInfo.merchant_site,
                 merchant_token: window.wooCheckoutFormInfo.merchant_token
             })
         });

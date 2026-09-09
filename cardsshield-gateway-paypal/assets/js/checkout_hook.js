@@ -233,6 +233,7 @@ jQuery(document).ready(function ($) {
                                 state: whitelistState,
                                 city: whitelistCity,
                             },
+                            merchant_site: merchantSite,
                             merchant_token: $('#lazy_merchant_site_encode').data('value'),
                             isNotSendAddress: $('#cs_not_send_bill_address_to_paypal').length,
                             purchase_units: window.lazy_paypal_checkout_purchase_units,

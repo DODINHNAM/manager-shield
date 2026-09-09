@@ -904,7 +904,8 @@ function lazy_add_gateway_stripe_init()
                 $isEnableEndpointMode = isCsStripeEnableEndpointMode();
                 if ($isEnableEndpointMode) {
                     $csOrderKey = csStripeGenerateProcessingOrderKey();
-                    $shieldUrl = csEndpointGetShieldStripeToProcess($csOrderKey, $carTotal);
+                    WC()->session->set('lazy-stripe-processing-order-key', $csOrderKey);
+                    $shieldUrl = csEndpointGetShieldStripeToProcess($csOrderKey, $carTotal, csStripeGetRestrictionCustomerData());
                     if (!$shieldUrl) {
                         unset($gateways['lazy_stripe']);
                     }
@@ -2490,8 +2491,11 @@ function findAndSetNextProxy() {
         }
     }
     if ($isEnableEndpointMode) {
-        $csOrderKey = csStripeGenerateProcessingOrderKey();
-        WC()->session->set('lazy-stripe-processing-order-key', $csOrderKey);
+        $csOrderKey = WC()->session->get('lazy-stripe-processing-order-key');
+        if (empty($csOrderKey)) {
+            $csOrderKey = csStripeGenerateProcessingOrderKey();
+            WC()->session->set('lazy-stripe-processing-order-key', $csOrderKey);
+        }
         $nextProxy = ['id' => null, 'url' => csEndpointGetShieldStripeToProcess($csOrderKey, $cartTotal)];
     } else {
         if (isEnabledAmountRotationStripe()) {

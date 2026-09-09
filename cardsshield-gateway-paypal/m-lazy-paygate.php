@@ -1087,8 +1087,11 @@ function lazy_init_gateway_class()
             
             if(empty($proxyProcessing)) {
                 if ($isEnableEndpointMode) {
-                    $csOrderKey = md5(get_option(OPT_CS_PAYPAL_ENDPOINT_TOKEN, null)) . '_' . md5(uniqid(rand(), true));
-                    WC()->session->set('lazy-paypal-processing-order-key', $csOrderKey);
+                    $csOrderKey = WC()->session->get('lazy-paypal-processing-order-key');
+                    if (empty($csOrderKey)) {
+                        $csOrderKey = md5(get_option(OPT_CS_PAYPAL_ENDPOINT_TOKEN, null)) . '_' . md5(uniqid(rand(), true));
+                        WC()->session->set('lazy-paypal-processing-order-key', $csOrderKey);
+                    }
                     $proxyProcessing = ['id' => null, 'url' => csEndpointGetShieldPaypalToProcess($csOrderKey,0)];
                 } else {
                     $proxyProcessing = get_option(OPT_LAZY_PAYPAL_ACTIVATED_PROXY, null);
