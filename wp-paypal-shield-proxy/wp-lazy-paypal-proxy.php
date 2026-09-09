@@ -2,7 +2,7 @@
 /**
  * Plugin Name: LazyShield PayPal Proxy
  * Description: A WordPress plugin to integrate PayPal's credit payment form.
- * Version: 1.0.22
+ * Version: 1.0.23
  * Author: LazyShield
  */
 
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants
-define( 'WPLAZY_PAYPAL_PROXY_VERSION', '1.0.22' );
+define( 'WPLAZY_PAYPAL_PROXY_VERSION', '1.0.23' );
 define( 'WPLAZY_PAYPAL_PROXY_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPLAZY_PAYPAL_PROXY_URL', plugin_dir_url( __FILE__ ) );
 
@@ -21,6 +21,10 @@ require_once WPLAZY_PAYPAL_PROXY_DIR . 'inc/api.php';
 
 // Enqueue scripts and styles
 function wplazy_paypal_proxy_enqueue_scripts() {
+    // The isolated checkout template loads its own assets. Never load PayPal SDK site-wide.
+    if ( empty( $_GET['checkout'] ) || sanitize_text_field( wp_unslash( $_GET['checkout'] ) ) !== 'yes' ) {
+        return;
+    }
     $webshield_full_config = get_webshield_config();
     $paypal_config = ( ! is_wp_error( $webshield_full_config ) && isset( $webshield_full_config['paypal_config'] ) ) ? $webshield_full_config['paypal_config'] : null;
 

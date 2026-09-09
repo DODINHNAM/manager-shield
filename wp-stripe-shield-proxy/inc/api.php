@@ -9,6 +9,16 @@ function wplazy_stripe_domain($value) {
     return preg_replace('/^www\./', '', $host);
 }
 
+function wplazy_stripe_merchant_url($value) {
+    $value = trim((string) $value);
+    if ($value === '') return '';
+    $parsed = parse_url(strpos($value, '://') === false ? 'https://' . $value : $value);
+    $scheme = strtolower($parsed['scheme'] ?? 'https');
+    $host = wplazy_stripe_domain($value);
+    if ($host === '' || !in_array($scheme, ['http', 'https'], true)) return '';
+    return $scheme . '://' . $host . '/';
+}
+
 function wplazy_stripe_get_webshield_config() {
     static $cache = null;
     if ($cache !== null) return $cache;
@@ -61,6 +71,12 @@ function wplazy_stripe_amount_minor($amount, $currency) {
     $currency = strtolower((string) $currency);
     $zero_decimal = ['bif', 'clp', 'djf', 'gnf', 'jpy', 'kmf', 'krw', 'mga', 'pyg', 'rwf', 'ugx', 'vnd', 'vuv', 'xaf', 'xof', 'xpf'];
     return absint(round((float) $amount * (in_array($currency, $zero_decimal, true) ? 1 : 100)));
+}
+
+function wplazy_stripe_amount_display($amount, $currency) {
+    $currency = strtolower((string) $currency);
+    $zero_decimal = ['bif', 'clp', 'djf', 'gnf', 'jpy', 'kmf', 'krw', 'mga', 'pyg', 'rwf', 'ugx', 'vnd', 'vuv', 'xaf', 'xof', 'xpf'];
+    return in_array($currency, $zero_decimal, true) ? (float) $amount : ((float) $amount / 100);
 }
 
 function wplazy_stripe_restriction_denial($config, $params) {
@@ -132,21 +148,23 @@ function wplazy_stripe_record_event($query, $intent, $action) {
         'payment_provider' => 'stripe',
         'payment_action' => $action,
         'merchant_domain' => wplazy_stripe_domain($query['merchant_site'] ?? ''),
-        'wc_order_id' => sanitize_text_field($query['order_id'] ?? ''),
+        'wc_order_id' => sanitize_text_field($query['order_id'] ?? ($intent['metadata']['order_id'] ?? '')),
         'provider_order_id' => $providerId,
         'provider_transaction_id' => is_array($charge) ? (string) ($charge['id'] ?? '') : (string) $charge,
         'status' => (string) ($intent['status'] ?? 'UNKNOWN'),
-        'amount' => $intent['amount'] ?? null,
+        'amount' => isset($intent['amount']) ? wplazy_stripe_amount_display($intent['amount'], $intent['currency'] ?? '') : null,
         'currency' => $intent['currency'] ?? '',
         'event_key' => hash('sha256', implode('|', [home_url('/'), $providerId, $action, $query['order_id'] ?? '', $intent['status'] ?? ''])),
         'occurred_at' => current_time('mysql', true),
     ];
-    wp_remote_post(rtrim(WEBSHIELD_MANAGER_URL, '/') . '/api/record-payment-event.php', [
+    $response = wp_remote_post(rtrim(WEBSHIELD_MANAGER_URL, '/') . '/api/record-payment-event.php', [
         'timeout' => 15,
-        'blocking' => false,
         'headers' => ['Content-Type' => 'application/json', 'Origin' => rtrim(home_url('/'), '/')],
         'body' => wp_json_encode($event),
     ]);
+    if (defined('WP_DEBUG') && WP_DEBUG && (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300)) {
+        error_log('[LazyShield Stripe Proxy] Payment event rejected: ' . (is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_body($response)));
+    }
 }
 
 function wplazy_stripe_payment_intent_params($query) {
@@ -253,7 +271,9 @@ function wplazy_stripe_handle_action($action) {
         wplazy_stripe_json(is_wp_error($refund) ? $refund : ['status' => 'success', 'refund_obj' => $refund, 'charge_obj' => null]);
     }
     if (in_array($action, ['lazy-stripe-hosted-make-session', 'cs-stripe-hosted-make-session'], true)) {
-        $params = ['mode' => 'payment', 'success_url' => add_query_arg(['cs_handle_stripe_checkout_session_success' => 1, 'order_id' => $query['order_id'] ?? '', 'stripe_session_id' => '{CHECKOUT_SESSION_ID}'], home_url('/')), 'cancel_url' => add_query_arg(['cs_handle_stripe_checkout_session_cancelled' => 1, 'order_id' => $query['order_id'] ?? ''], home_url('/'))];
+        $merchant_url = wplazy_stripe_merchant_url($query['merchant_site'] ?? '');
+        if ($merchant_url === '') wplazy_stripe_json(new WP_Error('merchant_site_invalid', 'Merchant site is invalid.'), 400);
+        $params = ['mode' => 'payment', 'success_url' => add_query_arg(['cs_handle_stripe_checkout_session_success' => 1, 'order_id' => $query['order_id'] ?? '', 'stripe_session_id' => '{CHECKOUT_SESSION_ID}'], $merchant_url), 'cancel_url' => add_query_arg(['cs_handle_stripe_checkout_session_cancelled' => 1, 'order_id' => $query['order_id'] ?? ''], $merchant_url)];
         if (!empty($query['order_invoice'])) $params['client_reference_id'] = sanitize_text_field($query['order_invoice']);
         $params['invoice_creation[enabled]'] = 'true';
         if (!empty($query['order_invoice'])) $params['invoice_creation[invoice_data][metadata][order_invoice]'] = sanitize_text_field($query['order_invoice']);
@@ -272,6 +292,12 @@ function wplazy_stripe_handle_action($action) {
         $session = wplazy_stripe_api('GET', '/checkout/sessions/' . rawurlencode($query['stripe_session_id'] ?? '') . '?expand[]=payment_intent', [], $config);
         if (is_wp_error($session)) wplazy_stripe_json($session, 502);
         $intent = $session['payment_intent'] ?? [];
+        if (!is_array($intent) && $intent) {
+            $intent = wplazy_stripe_api('GET', '/payment_intents/' . rawurlencode($intent), [], $config);
+        }
+        if ($action === 'cs-stripe-hosted-complete-payment' && is_array($intent)) {
+            wplazy_stripe_record_event($query, $intent, 'payment');
+        }
         wplazy_stripe_json(['status' => 'success', 'payment_intent' => $intent, 'session' => $session]);
     }
     wplazy_stripe_json(['status' => 'success']);
