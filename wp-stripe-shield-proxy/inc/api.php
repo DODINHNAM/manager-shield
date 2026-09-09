@@ -183,8 +183,12 @@ function wplazy_stripe_payment_intent_params($query) {
         'expand[1]' => 'latest_charge.balance_transaction',
     ];
     if (!empty($query['order_invoice'])) {
-        $params['description'] = sanitize_text_field($query['order_invoice']);
-        $params['metadata[invoice]'] = sanitize_text_field($query['order_invoice']);
+        $invoice = sanitize_text_field($query['order_invoice']);
+        $params['description'] = $invoice;
+        $params['metadata[invoice]'] = $invoice;
+        if (!empty($query['order_invoice_prefix'])) {
+            $params['metadata[invoice_prefix]'] = sanitize_text_field($query['order_invoice_prefix']);
+        }
     }
     if (!empty($query['order_items'])) {
         $items = is_array($query['order_items']) ? $query['order_items'] : [];
@@ -194,10 +198,7 @@ function wplazy_stripe_payment_intent_params($query) {
             $names[] = sanitize_text_field($item['name']) . (!empty($item['quantity']) ? ' x ' . absint($item['quantity']) : '');
         }
         $item_names = implode(', ', $names);
-        if ($item_names !== '') {
-            $params['description'] = substr($item_names, 0, 500);
-            $params['metadata[item_names]'] = substr($item_names, 0, 500);
-        }
+        if ($item_names !== '') $params['metadata[item_names]'] = substr($item_names, 0, 500);
     }
     if (!empty($query['customer_email'])) $params['receipt_email'] = sanitize_email($query['customer_email']);
     if (!empty($query['statement_descriptor'])) $params['statement_descriptor'] = sanitize_text_field($query['statement_descriptor']);
@@ -274,9 +275,20 @@ function wplazy_stripe_handle_action($action) {
         $merchant_url = wplazy_stripe_merchant_url($query['merchant_site'] ?? '');
         if ($merchant_url === '') wplazy_stripe_json(new WP_Error('merchant_site_invalid', 'Merchant site is invalid.'), 400);
         $params = ['mode' => 'payment', 'success_url' => add_query_arg(['handle_scs_notice_success' => 1, 'oid' => $query['order_id'] ?? '', 'ssi' => '{CHECKOUT_SESSION_ID}'], $merchant_url), 'cancel_url' => add_query_arg(['cs_handle_stripe_checkout_session_cancelled' => 1, 'order_id' => $query['order_id'] ?? ''], $merchant_url)];
-        if (!empty($query['order_invoice'])) $params['client_reference_id'] = sanitize_text_field($query['order_invoice']);
+        if (!empty($query['order_invoice'])) {
+            $invoice = sanitize_text_field($query['order_invoice']);
+            $params['client_reference_id'] = $invoice;
+            $params['invoice_creation[invoice_data][description]'] = $invoice;
+            $params['invoice_creation[invoice_data][metadata][order_invoice]'] = $invoice;
+            $params['payment_intent_data[description]'] = $invoice;
+            $params['payment_intent_data[metadata][invoice]'] = $invoice;
+            if (!empty($query['order_invoice_prefix'])) {
+                $prefix = sanitize_text_field($query['order_invoice_prefix']);
+                $params['invoice_creation[invoice_data][metadata][invoice_prefix]'] = $prefix;
+                $params['payment_intent_data[metadata][invoice_prefix]'] = $prefix;
+            }
+        }
         $params['invoice_creation[enabled]'] = 'true';
-        if (!empty($query['order_invoice'])) $params['invoice_creation[invoice_data][metadata][order_invoice]'] = sanitize_text_field($query['order_invoice']);
         if (!empty($query['capture_method']) && $query['capture_method'] === 'manual') $params['payment_intent_data[capture_method]'] = 'manual';
         if (!empty($query['merchant_site'])) $params['payment_intent_data[metadata][merchant_site]'] = wplazy_stripe_domain($query['merchant_site']);
         if (!empty($query['order_id'])) $params['payment_intent_data[metadata][order_id]'] = sanitize_text_field($query['order_id']);
