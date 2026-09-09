@@ -88,6 +88,11 @@ var paypalButtonObject = {
             })
         });
         const res = await response.json();
+        if (!response.ok || !res.order_id) {
+            const detail = Array.isArray(res.details) && res.details.length ? res.details[0] : null;
+            const field = detail && detail.field ? ` (${detail.field})` : '';
+            throw new Error((res.message || 'PayPal order creation failed.') + field);
+        }
         return res.order_id;
     },
     onApprove: function (data, actions) {

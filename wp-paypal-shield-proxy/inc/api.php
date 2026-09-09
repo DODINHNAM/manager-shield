@@ -33,6 +33,14 @@ function create_paypal_order( WP_REST_Request $request ) {
     }
 
     $order_data = $params['order'];
+    $intent = strtoupper( sanitize_text_field( $order_data['intent'] ?? '' ) );
+    if ( ! in_array( $intent, [ 'CAPTURE', 'AUTHORIZE' ], true ) ) {
+        return new WP_REST_Response([
+            'code' => 'invalid_paypal_intent',
+            'message' => 'PayPal order intent must be CAPTURE or AUTHORIZE.',
+        ], 400);
+    }
+    $order_data['intent'] = $intent;
     // $merchant_token = sanitize_text_field( $params['merchant_token'] );
 
     // Validate merchant token if needed
@@ -43,12 +51,19 @@ function create_paypal_order( WP_REST_Request $request ) {
         return new WP_REST_Response( $response->get_error_message(), 500 );
     }
 
+    if ( ! empty( $response['name'] ) || ! empty( $response['error'] ) ) {
+        return new WP_REST_Response([
+            'status' => 'failed',
+            'code' => $response['name'] ?? 'paypal_order_create_failed',
+            'message' => $response['message'] ?? 'PayPal order creation failed.',
+            'details' => array_values(array_filter($response['details'] ?? [], 'is_array')),
+            'debug_id' => $response['debug_id'] ?? null,
+        ], 502);
+    }
+
     // Nếu PayPal không trả id, ghi log debug để kiểm tra nội dung trả về
     if ( empty( $response['id'] ) ) {
         // Ghi vào debug.log (WP_DEBUG_LOG phải bật)
-        if ( defined('WP_DEBUG') && WP_DEBUG ) {
-        error_log( '[wp-paypal] PayPal response did not include an order id.' );
-        }
         return new WP_REST_Response( 'Invalid PayPal response', 502 );
     }
     return rest_ensure_response( [ 'order_id' => $response['id'] ] );
@@ -61,9 +76,6 @@ function create_paypal_order( WP_REST_Request $request ) {
  * @return array|WP_Error The response from the PayPal API or WP_Error on failure.
  */
 function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkout/orders') {
-    // DEBUG toggle: đặt true khi debug, false khi production
-    $debug = false;
-
     // Get PayPal credentials from Webshield config API
     $webshield_config = get_webshield_config();
 
@@ -108,9 +120,6 @@ function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkou
     $token_resp = wp_remote_post( $base . '/v1/oauth2/token', $token_args );
 
     if ( is_wp_error( $token_resp ) ) {
-        if ( $debug && defined('WP_DEBUG') && WP_DEBUG ) {
-            error_log( '[wp-paypal] Token request error: ' . $token_resp->get_error_message() );
-        }
         return $token_resp;
     }
 
@@ -141,9 +150,6 @@ function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkou
     $response = wp_remote_request( $url, $args );
 
     if ( is_wp_error( $response ) ) {
-        if ( $debug && defined('WP_DEBUG') && WP_DEBUG ) {
-            error_log( '[wp-paypal] wp_remote_request error: ' . $response->get_error_message() );
-        }
         return $response;
     }
 
@@ -322,6 +328,26 @@ function handle_authorize_order() {
             error_log('[wp-paypal] Order metadata update skipped before authorize: ' . $update->get_error_message());
         }
     }
+    $current = call_paypal_api(null, 'GET', '/v2/checkout/orders/' . rawurlencode($order_id));
+    if (is_wp_error($current) || !is_array($current) || !empty($current['name']) || !empty($current['error'])) {
+        wp_send_json([
+            'status' => 'failed',
+            'code' => is_array($current) ? ($current['name'] ?? 'paypal_order_fetch_failed') : 'paypal_order_fetch_failed',
+            'message' => is_array($current) ? ($current['message'] ?? 'Unable to retrieve the PayPal order.') : $current->get_error_message(),
+            'details' => is_array($current) ? $current : [],
+        ], 502);
+    }
+    if (strtoupper((string) ($current['intent'] ?? '')) !== 'AUTHORIZE') {
+        wp_send_json([
+            'status' => 'failed',
+            'code' => 'paypal_order_intent_mismatch',
+            'message' => 'The PayPal order was not created with AUTHORIZE intent.',
+            'details' => [
+                'order_status' => $current['status'] ?? '',
+                'order_intent' => $current['intent'] ?? '',
+            ],
+        ], 409);
+    }
     $authorization = call_paypal_api(null, 'POST', '/v2/checkout/orders/' . rawurlencode($order_id) . '/authorize');
     if (is_wp_error($authorization) || !is_array($authorization) || !empty($authorization['name']) || !empty($authorization['error'])) {
         wp_send_json([
@@ -377,13 +403,6 @@ function wplazy_update_paypal_order($order_id, $purchase_units) {
             'op' => array_key_exists('invoice_id', $current_unit) ? 'replace' : 'add',
             'path' => '/purchase_units/0/invoice_id',
             'value' => (string) $unit['invoice_id'],
-        ];
-    }
-    if (!empty($unit['items']) && is_array($unit['items'])) {
-        $patches[] = [
-            'op' => array_key_exists('items', $current_unit) ? 'replace' : 'add',
-            'path' => '/purchase_units/0/items',
-            'value' => array_values($unit['items']),
         ];
     }
     if (!$patches) {

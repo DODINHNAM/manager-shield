@@ -36,9 +36,13 @@ function wplazy_paypal_proxy_enqueue_scripts() {
     }
     // Determine PayPal SDK base URL
     $paypal_sdk_base_url = ($paypal_environment === 'live') ? 'https://www.paypal.com/sdk/js' : 'https://www.sandbox.paypal.com/sdk/js';
+    $paypal_intent = strtolower(sanitize_text_field(wp_unslash($_GET['intent'] ?? 'capture')));
+    if (!in_array($paypal_intent, ['capture', 'authorize'], true)) {
+        $paypal_intent = 'capture';
+    }
 
     // Enqueue PayPal SDK with dynamic client ID
-    wp_enqueue_script( 'paypal-sdk', esc_url( $paypal_sdk_base_url . '?client-id=' . $paypal_client_id . '&currency=USD' ), array(), null, true );
+    wp_enqueue_script( 'paypal-sdk', esc_url( $paypal_sdk_base_url . '?client-id=' . rawurlencode($paypal_client_id) . '&currency=USD&intent=' . $paypal_intent ), array(), null, true );
 
     wp_enqueue_script( 'paypal-credit-payment-form', WPLAZY_PAYPAL_PROXY_URL . 'assets/js/paypal-credit-payment-form.js', array( 'paypal-sdk' ), null, true );
     wp_enqueue_style( 'paypal-credit-payment-form', WPLAZY_PAYPAL_PROXY_URL . 'assets/css/paypal-credit-payment-form.css' );

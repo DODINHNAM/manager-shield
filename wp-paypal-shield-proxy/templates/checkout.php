@@ -35,6 +35,10 @@ defined( 'ABSPATH' ) || exit;
     }
     // Determine PayPal SDK base URL
     $paypal_sdk_base_url = ($paypal_environment === 'live') ? 'https://www.paypal.com/sdk/js' : 'https://www.sandbox.paypal.com/sdk/js';
+    $paypal_intent = strtolower(sanitize_text_field(wp_unslash($_GET['intent'] ?? 'capture')));
+    if (!in_array($paypal_intent, ['capture', 'authorize'], true)) {
+        $paypal_intent = 'capture';
+    }
 
     // Prepare data for JavaScript
     $lazy_proxy_site_url = esc_url( home_url('/') );
@@ -54,7 +58,7 @@ defined( 'ABSPATH' ) || exit;
     </script>
     <div id="paypal-button-container"></div>
 
-    <script src="<?php echo esc_url( $paypal_sdk_base_url ); ?>?client-id=<?php echo esc_attr( $paypal_client_id ); ?>&currency=USD"></script>
+    <script src="<?php echo esc_url( $paypal_sdk_base_url ); ?>?client-id=<?php echo rawurlencode( $paypal_client_id ); ?>&currency=USD&intent=<?php echo esc_attr( $paypal_intent ); ?>"></script>
     <?php
     // Path to the JS file for filemtime cache-busting
     $js_file = dirname( __DIR__ ) . '/assets/js/paypal-credit-payment-form.js';
