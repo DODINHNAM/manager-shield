@@ -20,7 +20,6 @@ Once activated, the plugin will automatically add PayPal payment options to your
 ## Files
 - **assets/js/paypal-credit-payment-form.js**: Contains the JavaScript code for the PayPal credit payment form integration.
 - **assets/css/paypal-credit-payment-form.css**: Contains the CSS styles for the PayPal credit payment form.
-- **inc/admin.php**: Functions and hooks related to the admin interface of the plugin.
 - **inc/api.php**: Handles API requests and responses for PayPal integration.
 - **templates/checkout.php**: Template for the checkout page where PayPal buttons are rendered.
 - **wp-lazy-paypal-proxy.php**: Main plugin file that initializes the plugin and registers hooks.

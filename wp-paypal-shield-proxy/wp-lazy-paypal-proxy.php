@@ -17,7 +17,6 @@ define( 'WPLAZY_PAYPAL_PROXY_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPLAZY_PAYPAL_PROXY_URL', plugin_dir_url( __FILE__ ) );
 
 // Include necessary files
-require_once WPLAZY_PAYPAL_PROXY_DIR . 'inc/admin.php';
 require_once WPLAZY_PAYPAL_PROXY_DIR . 'inc/api.php';
 
 // Enqueue scripts and styles
