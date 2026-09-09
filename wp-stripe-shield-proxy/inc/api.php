@@ -126,13 +126,28 @@ function wplazy_stripe_api($method, $path, array $params = [], $config = null) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('[LazyShield Stripe Proxy] Stripe API request failed. HTTP status: ' . wp_remote_retrieve_response_code($response) . ', error code: ' . ($body['error']['code'] ?? 'unknown'));
         }
-        return new WP_Error('stripe_api', $body['error']['message'] ?? 'Stripe request failed.', $body);
+        $stripe_error = is_array($body['error'] ?? null) ? $body['error'] : [];
+        return new WP_Error(
+            $stripe_error['code'] ?? $stripe_error['type'] ?? 'stripe_api',
+            $stripe_error['message'] ?? 'Stripe request failed.',
+            $body
+        );
     }
     return $body;
 }
 
 function wplazy_stripe_json($data, $status = 200) {
-    if (is_wp_error($data)) wp_send_json(['status' => 'failed', 'code' => $data->get_error_code(), 'message' => $data->get_error_message()], $status);
+    if (is_wp_error($data)) {
+        $details = $data->get_error_data();
+        $stripe_error = is_array($details) && is_array($details['error'] ?? null) ? $details['error'] : [];
+        wp_send_json([
+            'status' => 'failed',
+            'code' => $stripe_error['code'] ?? $stripe_error['type'] ?? $data->get_error_code(),
+            'type' => $stripe_error['type'] ?? null,
+            'param' => $stripe_error['param'] ?? (is_array($details) ? ($details['param'] ?? null) : null),
+            'message' => $stripe_error['message'] ?? $data->get_error_message(),
+        ], $status);
+    }
     wp_send_json($data, $status);
 }
 
@@ -242,6 +257,9 @@ function wplazy_stripe_handle_action($action) {
     }
 
     if ($action === 'lazy-stripe-pe-v2-make-payment') {
+        if (!preg_match('/^pm_[A-Za-z0-9]+$/', (string) ($query['payment_method_id'] ?? ''))) {
+            wplazy_stripe_json(new WP_Error('stripe_payment_method_missing', 'Stripe PaymentMethod is missing or invalid.'), 400);
+        }
         $id = sanitize_text_field($query['payment_intent'] ?? '');
         $intent = $id ? wplazy_stripe_api('POST', '/payment_intents/' . rawurlencode($id), wplazy_stripe_payment_intent_params($query), $config) : wplazy_stripe_api('POST', '/payment_intents', wplazy_stripe_payment_intent_params($query), $config);
         if (!is_wp_error($intent)) wplazy_stripe_record_event($query, $intent, 'payment');
@@ -254,6 +272,9 @@ function wplazy_stripe_handle_action($action) {
     }
     if ($action === 'lazy-stripe-pe-v2-capture-payment') {
         $intent = wplazy_stripe_api('POST', '/payment_intents/' . rawurlencode($query['payment_intent_id'] ?? '') . '/capture', [], $config);
+        if (!is_wp_error($intent) && ($intent['status'] ?? '') !== 'succeeded') {
+            $intent = new WP_Error('stripe_capture_incomplete', 'Stripe capture did not complete.', ['payment_intent' => $intent]);
+        }
         if (!is_wp_error($intent)) wplazy_stripe_record_event($query, $intent, 'capture');
         wplazy_stripe_json(is_wp_error($intent) ? $intent : wplazy_stripe_payment_response($intent));
     }
@@ -270,22 +291,36 @@ function wplazy_stripe_handle_action($action) {
     if (in_array($action, ['lazy-stripe-hosted-make-session', 'cs-stripe-hosted-make-session'], true)) {
         $merchant_url = wplazy_stripe_merchant_url($query['merchant_site'] ?? '');
         if ($merchant_url === '') wplazy_stripe_json(new WP_Error('merchant_site_invalid', 'Merchant site is invalid.'), 400);
-        $params = ['mode' => 'payment', 'success_url' => add_query_arg(['handle_scs_notice_success' => 1, 'oid' => $query['order_id'] ?? '', 'ssi' => '{CHECKOUT_SESSION_ID}'], $merchant_url), 'cancel_url' => add_query_arg(['cs_handle_stripe_checkout_session_cancelled' => 1, 'order_id' => $query['order_id'] ?? ''], $merchant_url)];
+        $params = [
+            'mode' => 'payment',
+            'payment_method_types[0]' => 'card',
+            'customer_creation' => 'always',
+            'success_url' => add_query_arg(['handle_scs_notice_success' => 1, 'oid' => $query['order_id'] ?? '', 'ssi' => '{CHECKOUT_SESSION_ID}'], $merchant_url),
+            'cancel_url' => add_query_arg(['cs_handle_stripe_checkout_session_cancelled' => 1, 'order_id' => $query['order_id'] ?? ''], $merchant_url),
+        ];
+        $manualCapture = ($query['capture_method'] ?? '') === 'manual';
         if (!empty($query['order_invoice'])) {
             $invoice = sanitize_text_field($query['order_invoice']);
             $params['client_reference_id'] = $invoice;
-            $params['invoice_creation[invoice_data][description]'] = $invoice;
-            $params['invoice_creation[invoice_data][metadata][order_invoice]'] = $invoice;
             $params['payment_intent_data[description]'] = $invoice;
             $params['payment_intent_data[metadata][invoice]'] = $invoice;
             if (!empty($query['order_invoice_prefix'])) {
                 $prefix = sanitize_text_field($query['order_invoice_prefix']);
-                $params['invoice_creation[invoice_data][metadata][invoice_prefix]'] = $prefix;
                 $params['payment_intent_data[metadata][invoice_prefix]'] = $prefix;
             }
+            if (!$manualCapture) {
+                $params['invoice_creation[invoice_data][description]'] = $invoice;
+                $params['invoice_creation[invoice_data][metadata][order_invoice]'] = $invoice;
+                if (!empty($query['order_invoice_prefix'])) {
+                    $params['invoice_creation[invoice_data][metadata][invoice_prefix]'] = $prefix;
+                }
+            }
         }
-        $params['invoice_creation[enabled]'] = 'true';
-        if (!empty($query['capture_method']) && $query['capture_method'] === 'manual') $params['payment_intent_data[capture_method]'] = 'manual';
+        if (!$manualCapture) {
+            $params['invoice_creation[enabled]'] = 'true';
+        } else {
+            $params['payment_intent_data[capture_method]'] = 'manual';
+        }
         if (!empty($query['merchant_site'])) $params['payment_intent_data[metadata][merchant_site]'] = wplazy_stripe_domain($query['merchant_site']);
         if (!empty($query['order_id'])) $params['payment_intent_data[metadata][order_id]'] = sanitize_text_field($query['order_id']);
         $params['line_items[0][price_data][currency]'] = strtolower($query['currency'] ?? 'usd');
@@ -294,6 +329,9 @@ function wplazy_stripe_handle_action($action) {
         $params['line_items[0][quantity]'] = 1;
         if (!empty($query['customer_email'])) $params['customer_email'] = sanitize_email($query['customer_email']);
         $session = wplazy_stripe_api('POST', '/checkout/sessions', $params, $config);
+        if (!is_wp_error($session) && (empty($session['id']) || empty($session['url']))) {
+            $session = new WP_Error('stripe_session_invalid', 'Stripe returned an incomplete Checkout Session.');
+        }
         wplazy_stripe_json(is_wp_error($session) ? $session : ['status' => 'success', 'payment_session' => ['id' => $session['id'] ?? '', 'url' => $session['url'] ?? '']]);
     }
     if ($action === 'cs-stripe-hosted-verify-payment' || $action === 'cs-stripe-hosted-complete-payment') {
@@ -304,6 +342,13 @@ function wplazy_stripe_handle_action($action) {
             $intent = wplazy_stripe_api('GET', '/payment_intents/' . rawurlencode($intent), [], $config);
         }
         if ($action === 'cs-stripe-hosted-complete-payment' && is_array($intent)) {
+            if (($query['capture_method'] ?? '') === 'manual' && ($intent['status'] ?? '') !== 'requires_capture') {
+                wplazy_stripe_json(new WP_Error(
+                    'stripe_authorization_incomplete',
+                    'Stripe authorization did not reach requires_capture.',
+                    ['payment_intent' => $intent]
+                ), 502);
+            }
             wplazy_stripe_record_event($query, $intent, 'payment');
         }
         wplazy_stripe_json(['status' => 'success', 'payment_intent' => $intent, 'session' => $session]);

@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-const OPT_LAZY_STRIPE_VERSION = '2.6.8';
+const OPT_LAZY_STRIPE_VERSION = '2.7.1';
 const Opt_Lazy_Stripe_Proxies = 'Opt_Lazy_Stripe_Proxies';
 const Opt_Lazy_Stripe_Activated_Proxy = 'Opt_Lazy_Stripe_Activated_Proxy';
 const OPT_LAZY_STRIPE_ROTATION_METHOD =  'OPT_LAZY_STRIPE_ROTATION_METHOD';
@@ -275,7 +275,26 @@ function hasPayableProxyStripe($cartTotal) {
 
 function csStripeErrorLog($data, $message = '')
 {
-    $dataLogString = 'Stripe error: ' . csStripeSafeLogMessage($message);
+    $details = [];
+    if (is_wp_error($data)) {
+        $details['code'] = $data->get_error_code();
+        $details['message'] = $data->get_error_message();
+    } elseif (is_object($data) || is_array($data)) {
+        $data = is_object($data) ? (array) $data : $data;
+        $details['code'] = $data['code'] ?? null;
+        $details['type'] = $data['type'] ?? null;
+        $details['param'] = $data['param'] ?? null;
+        $details['message'] = $data['message'] ?? null;
+        if (isset($data['err']) && is_object($data['err'])) {
+            $details['code'] = $data['err']->code ?? $details['code'];
+            $details['type'] = $data['err']->type ?? $details['type'];
+            $details['param'] = $data['err']->param ?? $details['param'];
+            $details['message'] = $data['err']->message ?? $details['message'];
+        }
+    }
+    $details = array_filter($details, static fn($value) => $value !== null && $value !== '');
+    $suffix = $details ? ' ' . wp_json_encode($details) : '';
+    $dataLogString = 'Stripe error: ' . csStripeSafeLogMessage($message . $suffix);
     if (!$logger = wc_get_logger()) {
         error_log($dataLogString);
     } else {

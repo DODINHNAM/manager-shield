@@ -168,8 +168,19 @@ jQuery(function ($) {
             $('#payment-stripe-area').attr('height', event.data.value + 30);
         }
         if ((typeof event.data === 'object') && event.data.name === 'lazy-paymentMethodIdStripe') {
-            var paymentMethodId = event.data.value;
-            lazy_checkout_form.find('[name="lazy-stripe-payment-method-id"]').val(paymentMethodId);
+            var paymentMethodId = typeof event.data.value === 'string' ? event.data.value.trim() : '';
+            var paymentMethodField = lazy_checkout_form.find('[name="lazy-stripe-payment-method-id"]');
+            if (!paymentMethodField.length) {
+                paymentMethodField = $('<input>', {
+                    type: 'hidden',
+                    name: 'lazy-stripe-payment-method-id'
+                }).appendTo(lazy_checkout_form);
+            }
+            paymentMethodField.val(paymentMethodId);
+            if (!/^pm_[A-Za-z0-9]+$/.test(paymentMethodId)) {
+                checkout_error('We cannot process your payment right now. Please reload the page and try again.[stripe_payment_method_missing]');
+                return;
+            }
             lazy_checkout_form.removeClass('processing').unblock();
             if ($('#lazy_stripe_pay_for_order_page').length) {
                 $.ajax({

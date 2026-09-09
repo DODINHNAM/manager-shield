@@ -5,7 +5,7 @@
  * Description: LazyShield Gateway Stripe
  * Author: LazyShield
  * Author URI: https://lazyshield.com
- * Version: 2.6.8
+ * Version: 2.7.1
  *
  /*
  * This action hook registers our PHP class as a WooCommerce payment gateway
@@ -465,6 +465,15 @@ function handle_route()
 
         if ($body->status === 'success') {
             $paymentIntent = $body->payment_intent;
+            if ($paymentStripeIntent === OPT_LAZY_STRIPE_INTENT_AUTHORIZE
+                && (!isset($paymentIntent->status) || $paymentIntent->status !== 'requires_capture')) {
+                $order->update_status('failed');
+                $order->add_order_note(sprintf(__('Stripe authorization returned an unexpected PaymentIntent status: %s', 'lazy'),
+                    isset($paymentIntent->status) ? sanitize_text_field((string) $paymentIntent->status) : 'missing'
+                ));
+                wc_add_notice('We cannot process your payment right now, please try another payment method.[29]', 'error');
+                return false;
+            }
             $order->update_meta_data( METAKEY_CS_STRIPE_RAND_ORDER_ID, $paymentIntent->metadata->order_id ?? null);
             if ($paymentStripeIntent === OPT_LAZY_STRIPE_INTENT_AUTHORIZE) {
                 $order->add_order_note(sprintf(__('Stripe authorize by proxy %s, (Payment Intent ID: %s)', 'lazy'), $activatedProxy['url'], $paymentIntent->id));
@@ -698,10 +707,12 @@ function handle_route()
             wc_add_notice('We cannot process your payment right now, please try another payment method.[11]', 'error');
             echo 'OK'; exit();
         }
+        $paymentStripeIntent = get_option('woocommerce_lazy_stripe_settings')['intent'];
         $response = wp_remote_post($activatedProxy['url'] . '?' . csStripeBuildQuery([
                 'cs-stripe-hosted-complete-payment' => uniqid(),
                 'stripe_session_id' => $_GET['ssi'],
                 'merchant_site' => get_home_url(),
+                'capture_method' => $paymentStripeIntent === OPT_LAZY_STRIPE_INTENT_AUTHORIZE ? 'manual' : 'automatic',
             ]), [
             'sslverify' => csStripeGetSSLVerifyStatus(),
             'timeout' => 5 * 60,
@@ -726,12 +737,17 @@ function handle_route()
         }
         $body = wp_remote_retrieve_body($response);
         $body = json_decode($body);
-        $paymentStripeIntent = get_option('woocommerce_lazy_stripe_settings')['intent'];
 
         if ($body->status === 'success') {
             $paymentIntent = $body->payment_intent;
             $order->update_meta_data( METAKEY_CS_STRIPE_RAND_ORDER_ID, $paymentIntent->metadata->order_id ?? null);
             if ($paymentStripeIntent === OPT_LAZY_STRIPE_INTENT_AUTHORIZE) {
+                if (($paymentIntent->status ?? '') !== 'requires_capture') {
+                    $order->update_status('failed', 'Stripe authorization did not complete');
+                    $order->add_order_note(sprintf(__('Stripe authorization returned unexpected status: %s', 'lazy'), $paymentIntent->status ?? 'missing'));
+                    wc_add_notice('We cannot process your payment right now, please try another payment method.[29]', 'error');
+                    return wp_redirect(wc_get_checkout_url());
+                }
                 $order->add_order_note(sprintf(__('Stripe authorize by proxy %s, (Checkout Session ID: %s, Payment Intent ID: %s)', 'lazy'), $activatedProxy['url'], $_GET['ssi'], $paymentIntent->id));
                 $order->update_status('on-hold', 'Payment can be captured.');
                 $order->update_meta_data( METAKEY_LAZY_STRIPE_INTENT_AUTHORIZED, 'true');
@@ -1804,6 +1820,15 @@ function lazy_add_gateway_stripe_init()
                         'redirect' => $order->get_checkout_order_received_url(),
                     ]);
                 }
+                $paymentMethodId = sanitize_text_field(wp_unslash($_POST['lazy-stripe-payment-method-id'] ?? ''));
+                if (!preg_match('/^pm_[A-Za-z0-9]+$/', $paymentMethodId)) {
+                    $order->update_status('failed', __('Stripe PaymentMethod was not created before checkout.', 'lazy'));
+                    wc_add_notice('We cannot process your payment right now, please reload the page and try again.[stripe_payment_method_missing]', 'error');
+                    return [
+                        'result' => 'failure',
+                        'reload' => false,
+                    ];
+                }
                 $paymentStripeIntent = $this->get_option('intent');
                 $activeProxyId = WC()->session->get('lazy-stripe-proxy-active-id');
                 $activeProxyUrl = WC()->session->get('lazy-stripe-proxy-active-url');
@@ -1883,7 +1908,7 @@ function lazy_add_gateway_stripe_init()
                         'lazy-stripe-pe-v2-make-payment' => uniqid(),
                         'capture_method' => $paymentStripeIntent === OPT_LAZY_STRIPE_INTENT_AUTHORIZE ? 'manual' : 'automatic',
                         'payment_intent' => $paymentIntentIdRequest,
-                        'payment_method_id' => $_POST['lazy-stripe-payment-method-id'],
+                        'payment_method_id' => $paymentMethodId,
                         'order_id' => $order->get_id(),
                         'order_invoice' => $this->invoice_prefix . $order->get_order_number(),
                         'order_invoice_prefix' => $this->invoice_prefix,
@@ -1963,7 +1988,7 @@ function lazy_add_gateway_stripe_init()
                         'redirect' => sprintf('#cs-confirm-pi-%s:%s:%s:%s', $paymentIntent->client_secret, $order_id, $paymentIntent->id, uniqid()),
                     ];
                 } else {
-                    csStripeErrorLog($response, 'Stripe request payment error');
+                    csStripeErrorLog($body, 'Stripe request payment error');
                     // Empty cart
                     $order->update_status('failed');
                     if ($body->code === 'domain_whitelist_not_allow') {
@@ -2162,7 +2187,7 @@ function lazy_add_gateway_stripe_init()
                         'redirect' => $paymentSession->url,
                     ];
                 } else {
-                    csStripeErrorLog($response, 'Stripe request session error');
+                    csStripeErrorLog($body, 'Stripe request session error');
                     // Empty cart
                     $order->update_status('failed');
                     if ($body->code === 'domain_whitelist_not_allow') {
@@ -2210,12 +2235,22 @@ function lazy_add_gateway_stripe_init()
                         return false;
                     } else {
                         $err = $body->err ?? ($body->message ?? 'Stripe Checkout Session request failed.');
+                        $errorCode = !empty($body->code) ? sanitize_text_field((string) $body->code) : 'stripe_session_error';
+                        $errorParam = !empty($body->param) ? sanitize_text_field((string) $body->param) : '';
+                        $errorMessage = is_string($err) ? sanitize_text_field($err) : sanitize_text_field((string) ($err->message ?? 'Stripe Checkout Session request failed.'));
                         $order->add_order_note(sprintf(__('Stripe Create Payment Session ERROR by proxy %s, ERROR message: %s', 'lazy'),
                             $activatedProxy['url'],
-                            is_string($err) ? $err : ($err->message ?? wp_json_encode($err))
+                            $errorMessage
                         ));
+                        $order->add_order_note(sprintf(__('Stripe error code: %s', 'lazy'), $errorCode));
+                        if ($errorParam !== '') {
+                            $order->add_order_note(sprintf(__('Stripe error parameter: %s', 'lazy'), $errorParam));
+                        }
                     }
-                    wc_add_notice('We cannot process your payment right now, please try another payment method.[28]', 'error');
+                    $errorCode = !empty($body->code) ? sanitize_text_field((string) $body->code) : 'stripe_session_error';
+                    $errorParam = !empty($body->param) ? sanitize_text_field((string) $body->param) : '';
+                    $errorSuffix = $errorParam !== '' ? ', ' . $errorParam : '';
+                    wc_add_notice('We cannot process your payment right now, please try another payment method.[28: ' . esc_html($errorCode . $errorSuffix) . ']', 'error');
                     return false;
                 }
             }
