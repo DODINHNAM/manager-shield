@@ -233,7 +233,6 @@ if (!class_exists('CSStripeUpdateChecker') && is_admin()) {
 
 //Cron
 add_filter('cron_schedules', 'lazy_add_stripe_cron_interval');
-lazy_stripe_migrate_cron();
 if (isset($lazyStripeSettings['sync_tracking_automatic']) && $lazyStripeSettings['sync_tracking_automatic'] === 'yes' && !wp_next_scheduled('lazy_gateway_stripe_cron_auto_sync')) {
     wp_schedule_event(time(), 'hourly', 'lazy_gateway_stripe_cron_auto_sync');
 }
@@ -1209,11 +1208,6 @@ function lazy_add_gateway_stripe_init()
                             $this->add_lazy_order_values($column, $wc_order->get_id());
                         }, 10, 2);
                     }
-                    if (isset($_GET['pay_for_order'])) {
-                        add_action('woocommerce_pay_order_after_submit', [$this, 'lazy_stripe_add_button_hosted_checkout']);
-                    } else {
-                        add_action('woocommerce_review_order_after_payment', [$this, 'lazy_stripe_add_button_hosted_checkout']);
-                    }
                 }
                 add_action('admin_enqueue_scripts', array($this, 'admin_scripts'));
                 add_action('wp_enqueue_scripts', array($this, 'payment_scripts'));
@@ -1552,11 +1546,8 @@ function lazy_add_gateway_stripe_init()
 
             function lazy_stripe_add_button_hosted_checkout()
             {
-                if (is_checkout()) {
-                    $gateways = WC()->payment_gateways->get_available_payment_gateways();
-                    if (isset($gateways['lazy_stripe']->enabled) && $gateways['lazy_stripe']->enabled == 'yes') {
-                        $nextProxyUrl = WC()->session->get('lazy-stripe-proxy-active-url');
-                        if ($nextProxyUrl && $this->get_option('payment_mode') === LAZY_STRIPE_PAYMENT_MODE_HOSTED) {
+                $nextProxyUrl = WC()->session->get('lazy-stripe-proxy-active-url');
+                if ($nextProxyUrl && $this->get_option('payment_mode') === LAZY_STRIPE_PAYMENT_MODE_HOSTED) {
                             if (in_array($this->get_option('checkout_button_design'), ['modern_design', 'modern_design_2'])) {
                                 ?>
                                 <style>
@@ -1612,8 +1603,6 @@ function lazy_add_gateway_stripe_init()
                                     <div style="display: none;" id="cs-stripe-checkout-inherit-btn-text" data-value="<?= $this->get_option('checkout_button_text_inherit'); ?>"> </div> 
                                 <?php
                             }
-                        }
-                    }
                 }
             }
 
@@ -1693,6 +1682,10 @@ function lazy_add_gateway_stripe_init()
                         <div style="width: 100%; margin: 10px auto; font-size: inherit; text-align: center">
                             <?= $this->get_option('payment_option_desc') ?>
                         </div>
+                        <?php
+                        // Render the hosted Stripe button inside this gateway's payment box.
+                        $this->lazy_stripe_add_button_hosted_checkout();
+                        ?>
                     <?php
                 }
                 add_stripe_loader_ui();
@@ -1936,6 +1929,12 @@ function lazy_add_gateway_stripe_init()
                 }
                 $body = wp_remote_retrieve_body($response);
                 $body = json_decode($body);
+                if (!is_object($body)) {
+                    csStripeErrorLog(wp_remote_retrieve_body($response), 'Stripe request session returned invalid JSON');
+                    $order->update_status('failed');
+                    wc_add_notice('We cannot process your payment right now, please try another payment method.[28]', 'error');
+                    return false;
+                }
                 if ($body->status === 'success') {
                     $paymentIntent = $body->payment_intent;
                     if (isset($body->payment_intent)) {
@@ -2143,6 +2142,12 @@ function lazy_add_gateway_stripe_init()
                 }
                 $body = wp_remote_retrieve_body($response);
                 $body = json_decode($body);
+                if (!is_object($body)) {
+                    csStripeErrorLog(wp_remote_retrieve_body($response), 'Stripe hosted session returned invalid JSON');
+                    $order->update_status('failed');
+                    wc_add_notice('We cannot process your payment right now, please try another payment method.[28]', 'error');
+                    return false;
+                }
                 if ($body->status === 'success') {
                     $paymentSession = $body->payment_session;
                     $order->add_order_note(sprintf(__('Start redirect to checkout %s, Session ID: %s', 'lazy'),
@@ -2202,10 +2207,10 @@ function lazy_add_gateway_stripe_init()
                         wc_add_notice('We cannot process your payment right now, please try another payment method.[27]', 'error');
                         return false;
                     } else {
-                        $err = $body->err;
+                        $err = $body->err ?? ($body->message ?? 'Stripe Checkout Session request failed.');
                         $order->add_order_note(sprintf(__('Stripe Create Payment Session ERROR by proxy %s, ERROR message: %s', 'lazy'),
                             $activatedProxy['url'],
-                            is_string($err) ? $err : $err->message
+                            is_string($err) ? $err : ($err->message ?? wp_json_encode($err))
                         ));
                     }
                     wc_add_notice('We cannot process your payment right now, please try another payment method.[28]', 'error');

@@ -1109,7 +1109,22 @@ function csStripeEndpointGetAmountRemaining() {
 
 function csStripeBuildQuery($params)
 {
-    return http_build_query(lazy_stripe_wire_params($params), '', '&', PHP_QUERY_RFC3986);
+    return http_build_query(is_array($params) ? $params : [], '', '&', PHP_QUERY_RFC3986);
+}
+
+function lazy_stripe_protocol_field()
+{
+    return [
+        'title' => 'Shield protocol',
+        'type' => 'select',
+        'default' => is_ssl() ? 'https' : 'http',
+        'options' => [
+            'https' => 'HTTPS',
+            'http' => 'HTTP',
+        ],
+        'description' => 'Protocol used when building shield endpoint URLs.',
+        'desc_tip' => true,
+    ];
 }
 
 

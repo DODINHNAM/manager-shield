@@ -106,7 +106,16 @@ function wplazy_stripe_api($method, $path, array $params = [], $config = null) {
     if (is_wp_error($response)) return $response;
     $body = json_decode(wp_remote_retrieve_body($response), true);
     if (!is_array($body)) return new WP_Error('stripe_response', 'Invalid Stripe response.');
-    if (wp_remote_retrieve_response_code($response) >= 400 || isset($body['error'])) return new WP_Error('stripe_api', $body['error']['message'] ?? 'Stripe request failed.', $body);
+    if (wp_remote_retrieve_response_code($response) >= 400 || isset($body['error'])) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[LazyShield Stripe Proxy] Stripe API error: ' . wp_json_encode([
+                'path' => $path,
+                'status' => wp_remote_retrieve_response_code($response),
+                'body' => $body,
+            ]));
+        }
+        return new WP_Error('stripe_api', $body['error']['message'] ?? 'Stripe request failed.', $body);
+    }
     return $body;
 }
 
@@ -192,13 +201,17 @@ function wplazy_stripe_payment_response($intent) {
 }
 
 add_action('init', function () {
-    $actions = ['lazy-stripe-pe-v2-make-payment', 'lazy-stripe-pe-v2-confirm-payment', 'lazy-stripe-pe-v2-get-payment-intent', 'lazy-stripe-pe-v2-capture-payment', 'lazy-stripe-pe-v2-cancel-payment', 'lazy-stripe-pe-v2-refund', 'cs-stripe-hosted-make-session', 'cs-stripe-hosted-verify-payment', 'cs-stripe-hosted-complete-payment', 'lazy-stripe-pe-v2-add-payment-history', 'lazy-stripe-pe-v2-add-order-detail', 'lazy-stripe-pe-v2-sync-tracking'];
+    $actions = ['lazy-stripe-pe-v2-get-account-charge-status', 'lazy-stripe-pe-v2-make-payment', 'lazy-stripe-pe-v2-confirm-payment', 'lazy-stripe-pe-v2-get-payment-intent', 'lazy-stripe-pe-v2-capture-payment', 'lazy-stripe-pe-v2-cancel-payment', 'lazy-stripe-pe-v2-refund', 'cs-stripe-hosted-make-session', 'cs-stripe-hosted-verify-payment', 'cs-stripe-hosted-complete-payment', 'lazy-stripe-pe-v2-add-payment-history', 'lazy-stripe-pe-v2-add-order-detail', 'lazy-stripe-pe-v2-sync-tracking'];
     foreach ($actions as $action) if (isset($_GET[$action])) { wplazy_stripe_handle_action($action); exit; }
 });
 
 function wplazy_stripe_handle_action($action) {
     $config = wplazy_stripe_get_webshield_config();
     if (is_wp_error($config)) wplazy_stripe_json($config, 502);
+    if ($action === 'lazy-stripe-pe-v2-get-account-charge-status') {
+        $account = wplazy_stripe_api('GET', '/account', [], $config);
+        wplazy_stripe_json(is_wp_error($account) ? ['status' => 'deactive'] : ['status' => 'active']);
+    }
     $query = array_map(static fn($value) => is_array($value) ? $value : sanitize_text_field(wp_unslash($value)), $_GET);
     $merchant = wplazy_stripe_domain($query['merchant_site'] ?? '');
     $isPaymentAction = !in_array($action, ['lazy-stripe-pe-v2-add-payment-history', 'lazy-stripe-pe-v2-add-order-detail', 'lazy-stripe-pe-v2-sync-tracking'], true);
@@ -207,6 +220,10 @@ function wplazy_stripe_handle_action($action) {
     }
     $denial = wplazy_stripe_restriction_denial($config, $query);
     if ($denial && in_array($action, ['lazy-stripe-pe-v2-make-payment', 'cs-stripe-hosted-make-session'], true)) wplazy_stripe_json(new WP_Error($denial, 'Payment is not allowed by the active restrictions.'), 403);
+    $stripe_config = $config['stripe_config'] ?? [];
+    if (!empty($stripe_config['enable_max_order_value']) && isset($stripe_config['max_order_value']) && (float) ($query['amount'] ?? 0) > (float) $stripe_config['max_order_value'] && in_array($action, ['lazy-stripe-pe-v2-make-payment', 'cs-stripe-hosted-make-session'], true)) {
+        wplazy_stripe_json(new WP_Error('order_total_not_allow', 'Order value exceeds the configured Stripe limit.'), 403);
+    }
 
     if ($action === 'lazy-stripe-pe-v2-make-payment') {
         $id = sanitize_text_field($query['payment_intent'] ?? '');
