@@ -5,7 +5,7 @@
  * Description: LazyShield Gateway Stripe
  * Author: LazyShield
  * Author URI: https://lazyshield.com
- * Version: 2.6.7
+ * Version: 2.6.8
  *
  /*
  * This action hook registers our PHP class as a WooCommerce payment gateway

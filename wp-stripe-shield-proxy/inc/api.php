@@ -201,7 +201,7 @@ function wplazy_stripe_payment_response($intent) {
 }
 
 add_action('init', function () {
-    $actions = ['lazy-stripe-pe-v2-get-account-charge-status', 'lazy-stripe-pe-v2-make-payment', 'lazy-stripe-pe-v2-confirm-payment', 'lazy-stripe-pe-v2-get-payment-intent', 'lazy-stripe-pe-v2-capture-payment', 'lazy-stripe-pe-v2-cancel-payment', 'lazy-stripe-pe-v2-refund', 'cs-stripe-hosted-make-session', 'cs-stripe-hosted-verify-payment', 'cs-stripe-hosted-complete-payment', 'lazy-stripe-pe-v2-add-payment-history', 'lazy-stripe-pe-v2-add-order-detail', 'lazy-stripe-pe-v2-sync-tracking'];
+    $actions = ['lazy-stripe-pe-v2-get-account-charge-status', 'lazy-stripe-pe-v2-make-payment', 'lazy-stripe-pe-v2-confirm-payment', 'lazy-stripe-pe-v2-get-payment-intent', 'lazy-stripe-pe-v2-capture-payment', 'lazy-stripe-pe-v2-cancel-payment', 'lazy-stripe-pe-v2-refund', 'lazy-stripe-hosted-make-session', 'cs-stripe-hosted-make-session', 'cs-stripe-hosted-verify-payment', 'cs-stripe-hosted-complete-payment', 'lazy-stripe-pe-v2-add-payment-history', 'lazy-stripe-pe-v2-add-order-detail', 'lazy-stripe-pe-v2-sync-tracking'];
     foreach ($actions as $action) if (isset($_GET[$action])) { wplazy_stripe_handle_action($action); exit; }
 });
 
@@ -219,9 +219,10 @@ function wplazy_stripe_handle_action($action) {
         wplazy_stripe_json(new WP_Error('domain_whitelist_not_allow', 'Merchant domain is not whitelisted.'), 403);
     }
     $denial = wplazy_stripe_restriction_denial($config, $query);
-    if ($denial && in_array($action, ['lazy-stripe-pe-v2-make-payment', 'cs-stripe-hosted-make-session'], true)) wplazy_stripe_json(new WP_Error($denial, 'Payment is not allowed by the active restrictions.'), 403);
+    $session_actions = ['lazy-stripe-hosted-make-session', 'cs-stripe-hosted-make-session'];
+    if ($denial && (in_array($action, ['lazy-stripe-pe-v2-make-payment'], true) || in_array($action, $session_actions, true))) wplazy_stripe_json(new WP_Error($denial, 'Payment is not allowed by the active restrictions.'), 403);
     $stripe_config = $config['stripe_config'] ?? [];
-    if (!empty($stripe_config['enable_max_order_value']) && isset($stripe_config['max_order_value']) && (float) ($query['amount'] ?? 0) > (float) $stripe_config['max_order_value'] && in_array($action, ['lazy-stripe-pe-v2-make-payment', 'cs-stripe-hosted-make-session'], true)) {
+    if (!empty($stripe_config['enable_max_order_value']) && isset($stripe_config['max_order_value']) && (float) ($query['amount'] ?? 0) > (float) $stripe_config['max_order_value'] && (in_array($action, ['lazy-stripe-pe-v2-make-payment'], true) || in_array($action, $session_actions, true))) {
         wplazy_stripe_json(new WP_Error('order_total_not_allow', 'Order value exceeds the configured Stripe limit.'), 403);
     }
 
@@ -251,7 +252,7 @@ function wplazy_stripe_handle_action($action) {
         if (!is_wp_error($refund)) wplazy_stripe_record_event($query, $refund, 'refund');
         wplazy_stripe_json(is_wp_error($refund) ? $refund : ['status' => 'success', 'refund_obj' => $refund, 'charge_obj' => null]);
     }
-    if ($action === 'cs-stripe-hosted-make-session') {
+    if (in_array($action, ['lazy-stripe-hosted-make-session', 'cs-stripe-hosted-make-session'], true)) {
         $params = ['mode' => 'payment', 'success_url' => add_query_arg(['cs_handle_stripe_checkout_session_success' => 1, 'order_id' => $query['order_id'] ?? '', 'stripe_session_id' => '{CHECKOUT_SESSION_ID}'], home_url('/')), 'cancel_url' => add_query_arg(['cs_handle_stripe_checkout_session_cancelled' => 1, 'order_id' => $query['order_id'] ?? ''], home_url('/'))];
         if (!empty($query['order_invoice'])) $params['client_reference_id'] = sanitize_text_field($query['order_invoice']);
         $params['invoice_creation[enabled]'] = 'true';
