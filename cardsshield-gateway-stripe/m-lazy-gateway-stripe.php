@@ -1285,7 +1285,7 @@ function lazy_add_gateway_stripe_init()
                         'type' => 'select',
                         'class' => [],
                         'input_class' => ['wc-enhanced-select'],
-                        'default' => 'capture',
+                        'default' => OPT_LAZY_STRIPE_INTENT_CAPTURE,
                         'desc_tip' => true,
                         'description' => 'The intent to either capture payment immediately or authorize a payment for an order after order creation.',
                         'options' => [
