@@ -777,12 +777,14 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
                     ));
                     wc_add_notice('We cannot process your payment right now, please try another payment method.[18]', 'error');
                 } else {
+                    $paypalErrorCode = !empty($data->code) ? sanitize_text_field((string) $data->code) : 'paypal_unknown_error';
+                    $paypalErrorMessage = !empty($data->message) ? sanitize_text_field((string) $data->message) : 'Unknown PayPal error.';
                     $order->add_order_note(sprintf(__('Paypal charged ERROR by proxy %s, ERROR message: %s', 'lazy'),
                     $getActivateProxyUrl,
-                    $data->code
+                    $paypalErrorCode . ': ' . $paypalErrorMessage
                     )); 
                     $order->update_status('failed');
-                    wc_add_notice('We cannot process your payment right now, please try another payment method.[19]', 'error');
+                    wc_add_notice('We cannot process your payment right now, please try another payment method.[19: ' . esc_html($paypalErrorCode) . ']', 'error');
                 }
                 csPaypalErrorLog($responseBody, 'Checkout error![0]');
                 return false;

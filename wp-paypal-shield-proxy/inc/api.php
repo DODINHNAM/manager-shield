@@ -282,11 +282,37 @@ function handle_capture_order() {
     $payload = json_decode(file_get_contents('php://input'), true);
     $update = wplazy_update_paypal_order($order_id, $payload['purchase_units'] ?? []);
     if (is_wp_error($update)) {
-        wp_send_json(['status' => 'failed', 'message' => $update->get_error_message()], 502);
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[wp-paypal] Order metadata update skipped before capture: ' . $update->get_error_message());
+        }
     }
-    call_paypal_api(null, 'POST', '/v2/checkout/orders/' . $order_id . '/capture');
+    $capture = call_paypal_api(null, 'POST', '/v2/checkout/orders/' . rawurlencode($order_id) . '/capture');
+    if (is_wp_error($capture) || !is_array($capture) || !empty($capture['name']) || !empty($capture['error'])) {
+        wp_send_json([
+            'status' => 'failed',
+            'code' => is_array($capture) ? ($capture['name'] ?? 'paypal_capture_failed') : 'paypal_capture_failed',
+            'message' => is_array($capture) ? ($capture['message'] ?? 'PayPal capture failed.') : $capture->get_error_message(),
+            'details' => is_array($capture) ? $capture : [],
+        ], 502);
+    }
     $response = call_paypal_api(null, 'GET', '/v2/checkout/orders/' . $order_id);
+    if (is_wp_error($response) || !is_array($response) || !empty($response['name']) || !empty($response['error'])) {
+        wp_send_json([
+            'status' => 'failed',
+            'code' => is_array($response) ? ($response['name'] ?? 'paypal_order_fetch_failed') : 'paypal_order_fetch_failed',
+            'message' => is_array($response) ? ($response['message'] ?? 'Unable to retrieve the PayPal order.') : $response->get_error_message(),
+            'details' => is_array($response) ? $response : [],
+        ], 502);
+    }
     $paymentData = wplazy_paypal_proxy_payment_data($response, 'capture');
+    if (empty($paymentData['provider_transaction_id']) || strtoupper((string) ($paymentData['status'] ?? '')) !== 'COMPLETED') {
+        wp_send_json([
+            'status' => 'failed',
+            'code' => 'paypal_capture_not_completed',
+            'message' => 'PayPal did not return a completed capture.',
+            'details' => $response,
+        ], 502);
+    }
     wplazy_record_payment_event(array_merge($paymentData, [
         'merchant_domain' => $_GET['merchant_site'] ?? '',
         'wc_order_id' => $_GET['order_id'] ?? '',
@@ -300,11 +326,37 @@ function handle_authorize_order() {
     $payload = json_decode(file_get_contents('php://input'), true);
     $update = wplazy_update_paypal_order($order_id, $payload['purchase_units'] ?? []);
     if (is_wp_error($update)) {
-        wp_send_json(['status' => 'failed', 'message' => $update->get_error_message()], 502);
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[wp-paypal] Order metadata update skipped before authorize: ' . $update->get_error_message());
+        }
     }
-    call_paypal_api(null, 'POST', '/v2/checkout/orders/' . $order_id . '/authorize');
+    $authorization = call_paypal_api(null, 'POST', '/v2/checkout/orders/' . rawurlencode($order_id) . '/authorize');
+    if (is_wp_error($authorization) || !is_array($authorization) || !empty($authorization['name']) || !empty($authorization['error'])) {
+        wp_send_json([
+            'status' => 'failed',
+            'code' => is_array($authorization) ? ($authorization['name'] ?? 'paypal_authorize_failed') : 'paypal_authorize_failed',
+            'message' => is_array($authorization) ? ($authorization['message'] ?? 'PayPal authorization failed.') : $authorization->get_error_message(),
+            'details' => is_array($authorization) ? $authorization : [],
+        ], 502);
+    }
     $response = call_paypal_api(null, 'GET', '/v2/checkout/orders/' . $order_id);
+    if (is_wp_error($response) || !is_array($response) || !empty($response['name']) || !empty($response['error'])) {
+        wp_send_json([
+            'status' => 'failed',
+            'code' => is_array($response) ? ($response['name'] ?? 'paypal_order_fetch_failed') : 'paypal_order_fetch_failed',
+            'message' => is_array($response) ? ($response['message'] ?? 'Unable to retrieve the PayPal order.') : $response->get_error_message(),
+            'details' => is_array($response) ? $response : [],
+        ], 502);
+    }
     $paymentData = wplazy_paypal_proxy_payment_data($response, 'authorize');
+    if (empty($paymentData['provider_transaction_id']) || strtoupper((string) ($paymentData['status'] ?? '')) !== 'CREATED') {
+        wp_send_json([
+            'status' => 'failed',
+            'code' => 'paypal_authorization_not_created',
+            'message' => 'PayPal did not return a completed authorization.',
+            'details' => $response,
+        ], 502);
+    }
     wplazy_record_payment_event(array_merge($paymentData, [
         'merchant_domain' => $_GET['merchant_site'] ?? '',
         'wc_order_id' => $_GET['order_id'] ?? '',

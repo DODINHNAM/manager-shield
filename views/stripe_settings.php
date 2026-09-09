@@ -3,6 +3,13 @@
 $stripe = $config ?? [];
 $_SESSION['payment_csrf'] = $_SESSION['payment_csrf'] ?? bin2hex(random_bytes(32));
 $stripeMode = $stripe['environment'] ?? 'test';
+$isStripeAdmin = (($user['role'] ?? '') === 'admin');
+$maskStripeKey = static function ($key) {
+    $key = (string) $key;
+    if ($key === '') return 'Not configured';
+    if (strlen($key) <= 8) return str_repeat('*', strlen($key));
+    return substr($key, 0, 4) . '...' . substr($key, -4);
+};
 ?>
 <input type="hidden" name="payment_csrf" value="<?= htmlspecialchars($_SESSION['payment_csrf']) ?>">
 <div class="stripe-settings">
@@ -32,9 +39,17 @@ $stripeMode = $stripe['environment'] ?? 'test';
     <?php foreach (['test' => 'Test', 'live' => 'Live'] as $mode => $modeLabel): ?>
     <div data-stripe-keys="<?= $mode ?>" <?= $stripeMode !== $mode ? 'hidden' : '' ?>>
         <div class="mb-3"><label><?= $modeLabel ?> Publishable Key</label>
-            <input name="<?= $mode ?>_publishable_key" class="form-control" maxlength="255" placeholder="pk_<?= $mode ?>_..." value="<?= htmlspecialchars($stripe[$mode . '_publishable_key'] ?? '') ?>">
+            <?php if ($isStripeAdmin): ?>
+                <div class="stripe-key-preview"><code><?= htmlspecialchars($maskStripeKey($stripe[$mode . '_publishable_key'] ?? '')) ?></code></div>
+                <input name="<?= $mode ?>_publishable_key" class="form-control" maxlength="255" placeholder="Leave blank to keep the current key">
+            <?php else: ?>
+                <input name="<?= $mode ?>_publishable_key" class="form-control" maxlength="255" placeholder="pk_<?= $mode ?>_..." value="<?= htmlspecialchars($stripe[$mode . '_publishable_key'] ?? '') ?>">
+            <?php endif; ?>
         </div>
         <div class="mb-3"><label><?= $modeLabel ?> Secret Key</label>
+            <?php if ($isStripeAdmin): ?>
+                <div class="stripe-key-preview"><code><?= htmlspecialchars($maskStripeKey($stripe[$mode . '_secret_key'] ?? '')) ?></code></div>
+            <?php endif; ?>
             <input type="password" name="<?= $mode ?>_secret_key" class="form-control" maxlength="255" autocomplete="new-password" placeholder="<?= !empty($stripe[$mode . '_secret_key']) ? 'Đã lưu — để trống để giữ key hiện tại' : 'sk_' . $mode . '_...' ?>">
         </div>
     </div>

@@ -165,3 +165,5 @@ textarea.form-control {
 .stripe-settings small { display:block; margin-top:8px; }
 .stripe-settings [hidden] { display:none; }
 .stripe-settings input:disabled { background:#f4f4f6; color:#939bad; }
+.stripe-key-preview { display:inline-flex; align-items:center; min-height:38px; margin-bottom:8px; padding:0 12px; border:1px solid var(--border); border-radius:8px; background:#f6f9fc; color:var(--muted); }
+.stripe-key-preview code { color:inherit; font-size:13px; }
