@@ -1,10 +1,10 @@
 <?php
 /*
- * Plugin Name: CardsShield Gateway Stripe
+ * Plugin Name: LazyShield Gateway Stripe
  * Plugin URI:
- * Description: CardsShield Gateway Stripe
- * Author: CardsShield
- * Author URI: https://cardsshield.com
+ * Description: LazyShield Gateway Stripe
+ * Author: LazyShield
+ * Author URI: https://lazyshield.com
  * Version: 2.6.7
  *
  /*
@@ -18,8 +18,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 if (!defined('LAZY_STRIPE_PLUGIN_FILE')) define('LAZY_STRIPE_PLUGIN_FILE', __FILE__);
-require_once __DIR__ . '/legacy-compat.php';
-lazy_stripe_compat_boot();
 register_activation_hook(LAZY_STRIPE_PLUGIN_FILE, 'lazy_gateway_stripe_install');
 
 require_once(plugin_dir_path(__FILE__) . 'utils.php');
@@ -1718,9 +1716,7 @@ function lazy_add_gateway_stripe_init()
                 wp_register_style('lazy_stripe_styles', plugins_url('assets/css/styles.css', __FILE__), [], OPT_LAZY_STRIPE_VERSION);
                 wp_enqueue_style('lazy_stripe_styles');
 
-                wp_register_script('lazy_stripe_compat', plugins_url('assets/js/legacy-compat.js', __FILE__), [], OPT_LAZY_STRIPE_VERSION, true);
-                wp_localize_script('lazy_stripe_compat', 'lazyStripeProtocol', ['protocol' => lazy_stripe_shield_protocol()]);
-                wp_register_script('lazy_stripe_js', plugins_url('assets/js/checkout_hook.js', __FILE__), array('jquery', 'lazy_stripe_compat'), OPT_LAZY_STRIPE_VERSION, true);
+                wp_register_script('lazy_stripe_js', plugins_url('assets/js/checkout_hook.js', __FILE__), array('jquery'), OPT_LAZY_STRIPE_VERSION, true);
                 wp_enqueue_script('lazy_stripe_js');
                 wp_localize_script('lazy_stripe_js', 'ajax_object', [
                     'cs_add_order_note_nonce' => wp_create_nonce('cs_add_order_note')
@@ -2356,7 +2352,6 @@ function cs_stripe_plugin_deactivation()
     wp_clear_scheduled_hook( 'lazy_gateway_stripe_cron_auto_sync' );
     wp_clear_scheduled_hook('lazy_gateway_stripe_daily');
     wp_clear_scheduled_hook('lazy_gateway_stripe_rotation');
-    lazy_stripe_clear_legacy_cron();
 }
 
 function updateFeeNetOrderStripe($charge, $order)

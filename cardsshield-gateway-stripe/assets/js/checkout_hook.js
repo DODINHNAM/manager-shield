@@ -46,7 +46,7 @@ jQuery(function ($) {
             if ($('#cs-stripe-use-payment-hosted-inherit-design').length) {
                 lazy_checkout_form.submit()
             } else if (validateFormCheckout()) {
-                window.lazyStripeCompat.send($('#payment-stripe-area')[0], {
+                $('#payment-stripe-area')[0].contentWindow.postMessage({
                     name: 'lazy-submitFormStripe',
                     value: {
                         billing_details: {
@@ -124,8 +124,15 @@ jQuery(function ($) {
     }
 
     function listener(event) {
-        event = window.lazyStripeCompat.normalize(event, [document.getElementById('payment-stripe-area'), document.getElementById('payment-area-stripe-to-confirm')]);
-        if (!event) return;
+        var stripeFrames = [
+            document.getElementById('payment-stripe-area'),
+            document.getElementById('payment-area-stripe-to-confirm')
+        ];
+        var isStripeFrame = stripeFrames.some(function (frame) {
+            return frame && event.source === frame.contentWindow;
+        });
+        if (!isStripeFrame) return;
+
          if (event.data === "lazy-stripeRequestFromBlacklist") {
             setInterval(function () {
                 $('.cs_stripe_element').remove();
@@ -265,7 +272,7 @@ jQuery(function ($) {
         window.location.hash = '';
 
         $('#payment-area-stripe-to-confirm').show();
-        window.lazyStripeCompat.send($('#payment-area-stripe-to-confirm')[0], {
+        $('#payment-area-stripe-to-confirm')[0].contentWindow.postMessage({
             name: 'lazy-confirmPaymentIntentStripe',
             value: {
                 clientSecret: intentClientSecret,
