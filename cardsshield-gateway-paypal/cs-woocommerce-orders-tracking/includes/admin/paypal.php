@@ -523,7 +523,8 @@ class CS_VI_WOOCOMMERCE_ORDERS_TRACKING_ADMIN_PAYPAL {
 			$url .= '/v1/oauth2/token';
 			curl_setopt( $ch, CURLOPT_URL, $url );
 			curl_setopt( $ch, CURLOPT_HEADER, false );
-			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, true );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
 			curl_setopt( $ch, CURLOPT_SSLVERSION, 6 ); //NEW ADDITION
 			curl_setopt( $ch, CURLOPT_POST, true );
 			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
@@ -531,7 +532,6 @@ class CS_VI_WOOCOMMERCE_ORDERS_TRACKING_ADMIN_PAYPAL {
 			curl_setopt( $ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials" );
 
 			$result = curl_exec( $ch );
-			self::debug_log( var_export( $result, true ) );
 			if ( empty( $result ) ) {
 				$token = array(
 					'status' => 'error',
@@ -607,7 +607,6 @@ class CS_VI_WOOCOMMERCE_ORDERS_TRACKING_ADMIN_PAYPAL {
 			$return['status'] = 'success';
 			$body             = vi_wot_json_decode( $request['data'] );
 			if ( ! empty( $body['error'] ) ) {
-				self::debug_log( var_export( $request, true ) );
 				if ( isset( $body['error_description'] ) ) {
 					$return['data'] = $body['error_description'];
 				}
@@ -617,7 +616,6 @@ class CS_VI_WOOCOMMERCE_ORDERS_TRACKING_ADMIN_PAYPAL {
 					$return['status'] = 'error';
 				}
 			} elseif ( is_array( $body['errors'] ) && count( $body['errors'] ) ) {
-				self::debug_log( var_export( $request, true ) );
 				$return['status'] = 'error';
 				$return['errors'] = $body['errors'];
 				if ( isset( $body['errors'][0]['message'] ) ) {
@@ -625,7 +623,6 @@ class CS_VI_WOOCOMMERCE_ORDERS_TRACKING_ADMIN_PAYPAL {
 				}
 			}
 		} else {
-			self::debug_log( var_export( $request, true ) );
 			$return['status'] = 'error';
 			$return['data']   = $request['data'];
 		}

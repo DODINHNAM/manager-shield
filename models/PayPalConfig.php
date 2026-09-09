@@ -16,6 +16,8 @@ class PayPalConfig {
     public static function updateByPayment($wspId, $env, $client, $secret) {
         $exists = self::findByPayment($wspId);
         if ($exists) {
+            $client = trim((string) $client) !== '' ? $client : $exists['client_id'];
+            $secret = trim((string) $secret) !== '' ? $secret : $exists['secret_id'];
             return db_execute("UPDATE paypal_configs SET environment=?, client_id=?, secret_id=? WHERE web_shield_payment_id = ?",
                 [$env, $client, $secret, $wspId]);
         } else {

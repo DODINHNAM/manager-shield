@@ -9,6 +9,8 @@ require_once __DIR__ . '/../models/StripeConfig.php';
 require_once __DIR__ . '/../models/ShieldRestriction.php';
 
 header('Content-Type: application/json');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 
 // 1️⃣ Xác định domain gọi đến
 $origin = $_SERVER['HTTP_ORIGIN'] ?? ($_SERVER['HTTP_REFERER'] ?? '');

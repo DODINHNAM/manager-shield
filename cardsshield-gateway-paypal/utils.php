@@ -391,14 +391,9 @@ function getBrowserFingerprint() {
 
 function csLog($error, $message = '') {
     $logger = wc_get_logger();
-    if (is_array($error) || is_object($error)) {
-        $error = json_encode($error);
-    }
-    $error = '\n--------------------- ' . $message . ' ---------------------\n'
-             . $error .
-             '\n------------------------------------------\n';
+    $error = 'PayPal log: ' . csPaypalSafeLogMessage($message);
     if (empty($logger)) {
-        error_log($error);
+        return;
     } else {
         $logger->debug( $error, [ 'source' => 'cardsshield-gateway-paypal' ] );
     }
@@ -707,40 +702,29 @@ function get_purchase_unit_from_order(WC_Order $order) {
 
 function csPaypalErrorLog($data, $message = '')
 {
-    $trace = debug_backtrace();
-    $dataLogString = csPaypalHandleDataLog($data, $message) 
-        . json_encode([$trace[1]['class'] ?? null, $trace[1]['function'] ?? null, $trace[1]['args'] ?? null], true);
+    $dataLogString = 'PayPal error: ' . csPaypalSafeLogMessage($message);
     if (!$logger = wc_get_logger()) {
-        error_log($dataLogString);
+        return;
     } else {
-        $logger->debug($dataLogString, ['source' => 'cardshield-gateway-paypal-ERROR']);
+        $logger->error($dataLogString, ['source' => 'cardshield-gateway-paypal-ERROR']);
     }
 }
 
 function csPaypalDebugLog($data, $message = '')
 {
-    $trace = debug_backtrace();
-    $dataLogString = csPaypalHandleDataLog($data, $message) 
-        . json_encode([$trace[1]['class'] ?? null, $trace[1]['function'] ?? null, $trace[1]['args'] ?? null], true);
+    $dataLogString = 'PayPal debug: ' . csPaypalSafeLogMessage($message);
     if (!$logger = wc_get_logger()) {
-        error_log($dataLogString);
+        return;
     } else {
         $logger->debug($dataLogString, ['source' => 'cardshield-gateway-paypal-INFO']);
     }
 }
 
-function csPaypalHandleDataLog($data, $message = '') {
-    try {
-        if (is_array($data) || is_object($data)) {
-            $dataLog = json_encode($data);
-        } else {
-            $dataLog = (string)$data;
-        }
-    } catch (\Exception $e) {
-        $dataLog = 'csPaypalLog ERROR: ' . $e->getMessage();
-    }
-    return '\n--------------------- ' . $message . ' ---------------------\n'
-        . $dataLog;
+function csPaypalSafeLogMessage($message) {
+    $message = preg_replace('/https?:\/\/\S+/i', '[url]', (string) $message);
+    $message = preg_replace('/\b(token|secret|password|cookie|authorization)\b[^\s:]*(\s*[:=]\s*)?\S*/i', '[redacted]', $message);
+    $message = preg_replace('/\border[_ -]?id\s*[:=]\s*\S+/i', 'order_id:[redacted]', $message);
+    return substr(preg_replace('/\s+/', ' ', trim($message)), 0, 240);
 }
 
 function getCsPaypalOrderDetailFromWcOrder(WC_Order $order) {

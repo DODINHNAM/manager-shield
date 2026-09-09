@@ -3,6 +3,7 @@ $webshield = $data['webshield'] ?? null;
 $managers = $data['managers'] ?? [];
 $payment_types = $data['payment_types'] ?? [];
 $attached_payments = $data['attached_payments'] ?? [];
+$_SESSION['payment_csrf'] = $_SESSION['payment_csrf'] ?? bin2hex(random_bytes(32));
 $restriction_types = $data['restriction_types'] ?? [];
 $local_restrictions = $data['local_restrictions'] ?? [];
 $restriction_values = static function ($type) use ($local_restrictions) {
@@ -103,7 +104,8 @@ $restriction_enabled = static function ($type) use ($local_restrictions) {
                     <?php
                     $config = PaymentController::getConfig($p);
                     ?>
-                    <form method="post" action="index.php?action=manager_save_payment&wsp_id=<?= $p['id'] ?>">
+                        <form method="post" action="index.php?action=manager_save_payment&wsp_id=<?= $p['id'] ?>">
+                        <input type="hidden" name="payment_csrf" value="<?= htmlspecialchars($_SESSION['payment_csrf']) ?>">
                         <?php if ($p['payment_code'] === 'paypal'): ?>
                             <div class="mb-3">
                                 <label>Môi trường</label>
@@ -118,12 +120,12 @@ $restriction_enabled = static function ($type) use ($local_restrictions) {
                             </div>
                             <div class="mb-3">
                                 <label>Secret ID</label>
-                                <input name="secret_id" class="form-control" value="<?= htmlspecialchars($config['secret_id'] ?? '') ?>">
+                                <input type="password" name="secret_id" class="form-control" autocomplete="new-password" placeholder="Leave blank to keep the current secret">
                             </div>
                         <?php elseif ($p['payment_code'] === 'stripe'): ?><?php require __DIR__ . '/../stripe_settings.php'; ?><?php elseif ($p['payment_code'] === 'momo'): ?>
                             <div class="mb-3"><label>Partner Code</label><input name="partner_code" class="form-control" value="<?= htmlspecialchars($config['partner_code'] ?? '') ?>"></div>
                             <div class="mb-3"><label>Access Key</label><input name="access_key" class="form-control" value="<?= htmlspecialchars($config['access_key'] ?? '') ?>"></div>
-                            <div class="mb-3"><label>Secret Key</label><input name="secret_key" class="form-control" value="<?= htmlspecialchars($config['secret_key'] ?? '') ?>"></div>
+                            <div class="mb-3"><label>Secret Key</label><input type="password" name="secret_key" class="form-control" autocomplete="new-password" placeholder="Leave blank to keep the current secret"></div>
                             <div class="mb-3"><label>Môi trường</label><select name="environment" class="form-control"><option value="sandbox">Sandbox</option><option value="production">Production</option></select></div>
                         <?php endif; ?>
                         <div class="mt-3">

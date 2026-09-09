@@ -74,7 +74,16 @@ $fee = is_numeric($payload['fee'] ?? ($payload['provider_fee'] ?? null)) ? (floa
 $payout = is_numeric($payload['payout'] ?? null) ? (float) $payload['payout'] : null;
 $currency = strtoupper(substr((string) ($payload['currency'] ?? ''), 0, 3)) ?: null;
 $safePayload = $payload;
-unset($safePayload['client_secret'], $safePayload['secret'], $safePayload['access_token']);
+unset(
+    $safePayload['client_secret'],
+    $safePayload['secret'],
+    $safePayload['access_token'],
+    $safePayload['api_key'],
+    $safePayload['secret_key'],
+    $safePayload['secret_id'],
+    $safePayload['client_id'],
+    $safePayload['payment_method_id']
+);
 
 // Insert the event first. Retries with the same event key are acknowledged without duplication.
 db_execute(

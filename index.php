@@ -221,7 +221,7 @@ switch($action) {
         $typeCode = $wsp['payment_code'];
         $post = $_POST;
           if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
-          if ($typeCode === 'stripe' && (empty($_SESSION['payment_csrf']) || !is_string($post['payment_csrf'] ?? null) || !hash_equals($_SESSION['payment_csrf'] ?? '', $post['payment_csrf']))) {
+          if (empty($_SESSION['payment_csrf']) || !is_string($post['payment_csrf'] ?? null) || !hash_equals($_SESSION['payment_csrf'], $post['payment_csrf'])) {
               http_response_code(403); exit('Invalid form token.');
           }
           try {

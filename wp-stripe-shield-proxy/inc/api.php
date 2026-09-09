@@ -124,11 +124,7 @@ function wplazy_stripe_api($method, $path, array $params = [], $config = null) {
     if (!is_array($body)) return new WP_Error('stripe_response', 'Invalid Stripe response.');
     if (wp_remote_retrieve_response_code($response) >= 400 || isset($body['error'])) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('[LazyShield Stripe Proxy] Stripe API error: ' . wp_json_encode([
-                'path' => $path,
-                'status' => wp_remote_retrieve_response_code($response),
-                'body' => $body,
-            ]));
+            error_log('[LazyShield Stripe Proxy] Stripe API request failed. HTTP status: ' . wp_remote_retrieve_response_code($response) . ', error code: ' . ($body['error']['code'] ?? 'unknown'));
         }
         return new WP_Error('stripe_api', $body['error']['message'] ?? 'Stripe request failed.', $body);
     }
@@ -163,7 +159,7 @@ function wplazy_stripe_record_event($query, $intent, $action) {
         'body' => wp_json_encode($event),
     ]);
     if (defined('WP_DEBUG') && WP_DEBUG && (is_wp_error($response) || wp_remote_retrieve_response_code($response) >= 300)) {
-        error_log('[LazyShield Stripe Proxy] Payment event rejected: ' . (is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_body($response)));
+        error_log('[LazyShield Stripe Proxy] Payment event rejected. HTTP status: ' . (is_wp_error($response) ? 'transport_error' : wp_remote_retrieve_response_code($response)));
     }
 }
 

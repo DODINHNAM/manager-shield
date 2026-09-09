@@ -236,15 +236,11 @@ function resetPaidAmountStripe($proxies = null)
 function logStripeRotation($rotationMethod, $proxy, $type)
 {
     $methodLabel = $rotationMethod === LAZY_STRIPE_BY_TIME ? 'BY_TIME' : 'BY_AMOUNT';
-    $rotationValue = $rotationMethod === LAZY_STRIPE_BY_TIME
-        ? $proxy['timestamp']
-        : ($proxy['paid_amount'] . '/' . $proxy['amount']);
-    $message = "[{$methodLabel}] {$proxy['url']} , {$rotationValue} - {$type}";
+    $rotationValue = $rotationMethod === LAZY_STRIPE_BY_TIME ? 'time' : 'amount';
+    $message = "[{$methodLabel}] Stripe endpoint rotated ({$rotationValue}) - {$type}";
 
     if (function_exists('wc_get_logger') && ($logger = wc_get_logger())) {
         $logger->info($message, ['source' => 'cardsshield-stripe-rotation']);
-    } else {
-        error_log('[cardsshield-stripe-rotation] ' . $message);
     }
 }
 
@@ -279,40 +275,29 @@ function hasPayableProxyStripe($cartTotal) {
 
 function csStripeErrorLog($data, $message = '')
 {
-    $trace = debug_backtrace();
-    $dataLogString = csStripeHandleDataLog($data, $message) 
-        . print_r([$trace[1]['class'] ?? null, $trace[1]['function'] ?? null, $trace[1]['args'] ?? null], true);
+    $dataLogString = 'Stripe error: ' . csStripeSafeLogMessage($message);
     if (!$logger = wc_get_logger()) {
         error_log($dataLogString);
     } else {
-        $logger->debug($dataLogString, ['source' => 'cardshield-gateway-stripe-ERROR']);
+        $logger->error($dataLogString, ['source' => 'cardshield-gateway-stripe-ERROR']);
     }
 }
 
 function csStripeDebugLog($data, $message = '')
 {
-    $trace = debug_backtrace();
-    $dataLogString = csStripeHandleDataLog($data, $message) 
-        . print_r([$trace[1]['class'] ?? null, $trace[1]['function'] ?? null, $trace[1]['args'] ?? null], true);
+    $dataLogString = 'Stripe debug: ' . csStripeSafeLogMessage($message);
     if (!$logger = wc_get_logger()) {
-        error_log($dataLogString);
+        return;
     } else {
         $logger->debug($dataLogString, ['source' => 'cardshield-gateway-stripe-INFO']);
     }
 }
 
-function csStripeHandleDataLog($data, $message = '') {
-    try {
-        if (is_array($data) || is_object($data)) {
-            $dataLog = print_r($data, true);
-        } else {
-            $dataLog = (string)$data;
-        }
-    } catch (\Exception $e) {
-        $dataLog = 'csStripeLog ERROR: ' . $e->getMessage();
-    }
-    return '\n--------------------- ' . $message . ' ---------------------\n'
-        . $dataLog;
+function csStripeSafeLogMessage($message) {
+    $message = preg_replace('/https?:\/\/\S+/i', '[url]', (string) $message);
+    $message = preg_replace('/\b(token|secret|password|cookie|authorization)\b[^\s:]*(\s*[:=]\s*)?\S*/i', '[redacted]', $message);
+    $message = preg_replace('/\border[_ -]?id\s*[:=]\s*\S+/i', 'order_id:[redacted]', $message);
+    return substr(preg_replace('/\s+/', ' ', trim($message)), 0, 240);
 }
 
 function stripeMoveToUnusedProxyIds($proxyIds) {

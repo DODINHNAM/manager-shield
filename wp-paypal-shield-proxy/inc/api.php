@@ -47,7 +47,7 @@ function create_paypal_order( WP_REST_Request $request ) {
     if ( empty( $response['id'] ) ) {
         // Ghi vào debug.log (WP_DEBUG_LOG phải bật)
         if ( defined('WP_DEBUG') && WP_DEBUG ) {
-            error_log( '[wp-paypal] Missing order id in PayPal response: ' . print_r( $response, true ) );
+        error_log( '[wp-paypal] PayPal response did not include an order id.' );
         }
         return new WP_REST_Response( 'Invalid PayPal response', 502 );
     }
@@ -62,7 +62,7 @@ function create_paypal_order( WP_REST_Request $request ) {
  */
 function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkout/orders') {
     // DEBUG toggle: đặt true khi debug, false khi production
-    $debug = true;
+    $debug = false;
 
     // Get PayPal credentials from Webshield config API
     $webshield_config = get_webshield_config();
@@ -105,12 +105,6 @@ function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkou
         'timeout'     => 20,
     ];
 
-    if ( $debug && defined('WP_DEBUG') && WP_DEBUG ) {
-        $log_token_args = $token_args;
-        $log_token_args['headers']['Authorization'] = 'REDACTED';
-        error_log( '[wp-paypal] Token request: ' . $base . '/v1/oauth2/token -- args: ' . print_r( $log_token_args, true ) );
-    }
-
     $token_resp = wp_remote_post( $base . '/v1/oauth2/token', $token_args );
 
     if ( is_wp_error( $token_resp ) ) {
@@ -122,11 +116,6 @@ function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkou
 
     $token_code = wp_remote_retrieve_response_code( $token_resp );
     $token_body = wp_remote_retrieve_body( $token_resp );
-
-    if ( $debug && defined('WP_DEBUG') && WP_DEBUG ) {
-        error_log( "[wp-paypal] Token response code: $token_code" );
-        error_log( "[wp-paypal] Token response body: $token_body" );
-    }
 
     $token_decoded = json_decode( $token_body, true );
     if ( empty( $token_decoded['access_token'] ) ) {
@@ -149,12 +138,6 @@ function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkou
         $args['body'] = wp_json_encode($order_data);
     }
 
-    if ( $debug && defined('WP_DEBUG') && WP_DEBUG ) {
-        $log_args = $args;
-        $log_args['headers']['Authorization'] = 'REDACTED';
-        error_log( '[wp-paypal] Request to ' . $url . ' -- args: ' . print_r( $log_args, true ) );
-    }
-
     $response = wp_remote_request( $url, $args );
 
     if ( is_wp_error( $response ) ) {
@@ -166,11 +149,6 @@ function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkou
 
     $code = wp_remote_retrieve_response_code( $response );
     $body = wp_remote_retrieve_body( $response );
-
-    if ( $debug && defined('WP_DEBUG') && WP_DEBUG ) {
-        error_log( "[wp-paypal] Response code: $code" );
-        error_log( "[wp-paypal] Response body: $body" );
-    }
 
     $decoded = json_decode( $body, true );
     return $decoded;
@@ -236,7 +214,6 @@ function wplazy_record_payment_event($event) {
         'headers' => [
             'Content-Type' => 'application/json',
             'Origin' => rtrim(home_url('/'), '/'),
-            'Cookie' => 'PHPSESSID=4fl0qkahdsle3u4rkfb7pksbnb',
         ],
         'body' => wp_json_encode($event),
     ]);
@@ -246,6 +223,21 @@ function wplazy_record_payment_event($event) {
 }
 
 add_action('init', function() {
+    $actions = [
+        'lazy-paypal-get-order',
+        'lazy-paypal-capture-order',
+        'lazy-paypal-authorize-order',
+        'lazy-pp-refund',
+        'lazy-pp-capture-authorization-payment',
+        'lazy-pp-cancel-authorization-payment',
+        'lazy-pp-reauthorize-authorization-payment',
+    ];
+    foreach ($actions as $action) {
+        if (isset($_GET[$action])) {
+            wplazy_paypal_require_allowed_merchant();
+            break;
+        }
+    }
     if (isset($_GET['lazy-paypal-get-order'])) {
         handle_get_order();
     }
@@ -483,6 +475,7 @@ add_action('rest_api_init', function () {
     register_rest_route('cs', '/create-paypal-order', [
         'methods' => 'POST',
         'callback' => 'create_paypal_order',
+        'permission_callback' => 'wplazy_paypal_proxy_whitelist_permission_check',
     ]);
 });
 add_action( 'rest_api_init', function() {
@@ -571,7 +564,6 @@ function get_webshield_config() {
         'method'  => 'GET',
         'headers' => array(
             'Origin' => rtrim(home_url('/'), '/'),
-            'Cookie' => 'PHPSESSID=4fl0qkahdsle3u4rkfb7pksbnb',
         ),
         'timeout' => 15,
     );
@@ -704,4 +696,12 @@ function wplazy_paypal_proxy_whitelist_permission_check( WP_REST_Request $reques
     }
 
     return new WP_Error( 'rest_forbidden', 'Request origin is not whitelisted.', array( 'status' => 403 ) );
+}
+
+function wplazy_paypal_require_allowed_merchant() {
+    $merchant = wplazy_paypal_proxy_domain($_GET['merchant_site'] ?? '');
+    $config = get_webshield_config();
+    if ($merchant === '' || is_wp_error($config) || !in_array($merchant, $config['whitelist'] ?? [], true)) {
+        wp_send_json(['status' => 'failed', 'code' => 'domain_whitelist_not_allow'], 403);
+    }
 }

@@ -21,7 +21,7 @@ trait RequestTrait {
 	 *
 	 * @var bool
 	 */
-	protected $is_request_logging_enabled = true;
+	protected $is_request_logging_enabled = false;
 
 	/**
 	 * Performs a request
@@ -61,41 +61,11 @@ trait RequestTrait {
 	 * @return string
 	 */
 	private function request_response_string( string $url, array $args, $response ): string {
-		$method = $args['method'] ?? '';
-		$output = $method . ' ' . $url . "\n";
-		if ( isset( $args['body'] ) ) {
-			if ( ! in_array(
-				$url,
-				array(
-					trailingslashit( $this->host ) . 'v1/oauth2/token/',
-					trailingslashit( $this->host ) . 'v1/oauth2/token?grant_type=client_credentials',
-				),
-				true
-			) ) {
-				$output .= 'Request Body: ' . wc_print_r( $args['body'], true ) . "\n";
-			}
-		}
-
 		if ( $response instanceof WP_Error ) {
-			$output .= 'Request failed. WP error message: ' . implode( "\n", $response->get_error_messages() ) . "\n";
-			return $output;
+			return 'PayPal request failed.';
 		}
 
-		if ( isset( $response['headers']->getAll()['paypal-debug-id'] ) ) {
-			$output .= 'Response Debug ID: ' . $response['headers']->getAll()['paypal-debug-id'] . "\n";
-		}
-		if ( isset( $response['response'] ) ) {
-			$output .= 'Response: ' . wc_print_r( $response['response'], true ) . "\n";
-
-			if (
-				isset( $response['body'] )
-				&& isset( $response['response']['code'] )
-				&& ! in_array( $response['response']['code'], array( 200, 201, 202, 204 ), true )
-			) {
-				$output .= 'Response Body: ' . wc_print_r( $response['body'], true ) . "\n";
-			}
-		}
-
-		return $output;
+		$status = isset( $response['response']['code'] ) ? (int) $response['response']['code'] : 0;
+		return 'PayPal request completed with HTTP status ' . $status . '.';
 	}
 }
