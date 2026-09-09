@@ -57,7 +57,7 @@ class ItemFactory {
 
 				$price = (float) $item['line_subtotal'] / (float) $item['quantity'];
 				return new Item(
-					mb_substr( $product->get_name(), 0, 127 ),
+					mb_substr( $this->getProductTitle( $product->get_name(), 0 ), 0, 127 ),
 					new Money( $price, $this->currency ),
 					$quantity,
 					substr( wp_strip_all_tags( $product->get_description() ), 0, 127 ) ?: '',
@@ -150,10 +150,10 @@ class ItemFactory {
      */
 	private function getProductTitle( $productTitle , $orderId) {
 	    $productTitle = trim($productTitle);
-	    $lazyPPSetting = get_option('woocommerce_lazy_paypal_settings');
-        switch ( $lazyPPSetting['product_title_setting'] ) {
-            case 'user_define':
-                $title = $lazyPPSetting['user_define_product_title'];
+		$lazyPPSetting = (array) get_option('woocommerce_lazy_paypal_settings', array());
+		switch ( $lazyPPSetting['product_title_setting'] ?? 'last_word' ) {
+			case 'user_define':
+				$title = $lazyPPSetting['user_define_product_title'] ?? '[order_id] item';
                 $title = str_replace('[order_id]', strval($orderId), $title);
                
                 $randomTitle = '';

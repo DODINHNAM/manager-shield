@@ -667,6 +667,7 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
                 ],
                 'body' => json_encode([
                     'cs_order_detail' => getCsPaypalOrderDetailFromWcOrder($order),
+                    'purchase_units' => [$purchaseUnits],
                 ])
             ]);
             if (is_wp_error($proxyProcess)) {

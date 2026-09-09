@@ -724,6 +724,7 @@ function handlePaypalButtonCreateWooOrder($cart, $ppOrderId, $currentProxyId, $c
             ],
             'body' => json_encode([
                 'cs_order_detail' => getCsPaypalOrderDetailFromWcOrder($order),
+                'purchase_units' => [$purchaseUnits],
             ])
         ]);
         if (is_wp_error($proxyProcess)) {
@@ -899,6 +900,7 @@ function handlePaypalButtonCreateWooOrderAtPayForOrder($order_id, $ppOrderId, $c
             ],
             'body' => json_encode([
                 'cs_order_detail' => getCsPaypalOrderDetailFromWcOrder($order),
+                'purchase_units' => [$purchaseUnits],
             ])
         ]);
         if (is_wp_error($proxyProcess)) {

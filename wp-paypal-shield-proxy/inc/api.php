@@ -278,9 +278,12 @@ function handle_get_order() {
 }
 
 function handle_capture_order() {
-    // Logic to handle 'lazy-paypal-capture-order' will be added here.
-    // This will involve capturing the payment for a PayPal order.
     $order_id = $_GET['pp_order_id'];
+    $payload = json_decode(file_get_contents('php://input'), true);
+    $update = wplazy_update_paypal_order($order_id, $payload['purchase_units'] ?? []);
+    if (is_wp_error($update)) {
+        wp_send_json(['status' => 'failed', 'message' => $update->get_error_message()], 502);
+    }
     call_paypal_api(null, 'POST', '/v2/checkout/orders/' . $order_id . '/capture');
     $response = call_paypal_api(null, 'GET', '/v2/checkout/orders/' . $order_id);
     $paymentData = wplazy_paypal_proxy_payment_data($response, 'capture');
@@ -294,6 +297,11 @@ function handle_capture_order() {
 
 function handle_authorize_order() {
     $order_id = $_GET['pp_order_id'];
+    $payload = json_decode(file_get_contents('php://input'), true);
+    $update = wplazy_update_paypal_order($order_id, $payload['purchase_units'] ?? []);
+    if (is_wp_error($update)) {
+        wp_send_json(['status' => 'failed', 'message' => $update->get_error_message()], 502);
+    }
     call_paypal_api(null, 'POST', '/v2/checkout/orders/' . $order_id . '/authorize');
     $response = call_paypal_api(null, 'GET', '/v2/checkout/orders/' . $order_id);
     $paymentData = wplazy_paypal_proxy_payment_data($response, 'authorize');
@@ -303,6 +311,49 @@ function handle_authorize_order() {
         'payment_action' => 'authorize',
     ]));
     wp_send_json(['status' => 'success', 'order' => $response]);
+}
+
+function wplazy_update_paypal_order($order_id, $purchase_units) {
+    $unit = is_array($purchase_units) && isset($purchase_units[0])
+        ? $purchase_units[0]
+        : (is_array($purchase_units) ? $purchase_units : []);
+    if (!$order_id || !$unit) {
+        return true;
+    }
+
+    $current = call_paypal_api(null, 'GET', '/v2/checkout/orders/' . rawurlencode($order_id));
+    if (is_wp_error($current)) {
+        return $current;
+    }
+    $current_unit = $current['purchase_units'][0] ?? [];
+    $patches = [];
+
+    if (!empty($unit['invoice_id'])) {
+        $patches[] = [
+            'op' => array_key_exists('invoice_id', $current_unit) ? 'replace' : 'add',
+            'path' => '/purchase_units/0/invoice_id',
+            'value' => (string) $unit['invoice_id'],
+        ];
+    }
+    if (!empty($unit['items']) && is_array($unit['items'])) {
+        $patches[] = [
+            'op' => array_key_exists('items', $current_unit) ? 'replace' : 'add',
+            'path' => '/purchase_units/0/items',
+            'value' => array_values($unit['items']),
+        ];
+    }
+    if (!$patches) {
+        return true;
+    }
+
+    $updated = call_paypal_api($patches, 'PATCH', '/v2/checkout/orders/' . rawurlencode($order_id));
+    if (is_wp_error($updated)) {
+        return $updated;
+    }
+    if (isset($updated['name']) && isset($updated['message'])) {
+        return new WP_Error('paypal_order_update_failed', $updated['message'], $updated);
+    }
+    return true;
 }
 
 function handle_refund() {

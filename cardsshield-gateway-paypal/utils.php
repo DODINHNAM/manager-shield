@@ -681,7 +681,10 @@ function get_purchase_unit_from_cart(WC_Cart $cart) {
     global $appContainerLazyPaypalModules;
     $purchaseUnits = $appContainerLazyPaypalModules->get('api.factory.purchase-unit')->from_wc_cart($cart)->to_array();
     $result = [];
-    foreach (['amount'] as $attrToUse) {
+    foreach (['amount', 'items'] as $attrToUse) {
+        if (!array_key_exists($attrToUse, $purchaseUnits)) {
+            continue;
+        }
         $result[$attrToUse] = $purchaseUnits[$attrToUse];
     }
     
@@ -691,8 +694,11 @@ function get_purchase_unit_from_cart(WC_Cart $cart) {
 function get_purchase_unit_from_order(WC_Order $order) {
     global $appContainerLazyPaypalModules;
     $purchaseUnits = $appContainerLazyPaypalModules->get('api.factory.purchase-unit')->from_wc_order($order)->to_array();
-        $result = [];
+    $result = [];
     foreach (['amount', 'items', 'invoice_id'] as $attrToUse) {
+        if (!array_key_exists($attrToUse, $purchaseUnits)) {
+            continue;
+        }
         $result[$attrToUse] = $purchaseUnits[$attrToUse];
     }
     
