@@ -672,6 +672,16 @@ require_once(plugin_dir_path(__FILE__) . 'vendor/autoload.php');
 $bootstrapLazyPaypalModules = require_once(plugin_dir_path(__FILE__) . 'modules/ppcp-api-client/bootstrap.php');
 $appContainerLazyPaypalModules = $bootstrapLazyPaypalModules( plugin_dir_path(__FILE__) . 'modules/ppcp-api-client');
     
+function csPaypalGetCartInvoiceId(WC_Cart $cart) {
+    $settings = get_option('woocommerce_lazy_paypal_settings', []);
+    $prefix = sanitize_text_field($settings['invoice_prefix'] ?? 'WC-');
+    $prefix = preg_replace('/[^A-Za-z0-9._-]/', '', $prefix);
+    $prefix = $prefix !== '' ? $prefix : 'WC-';
+    $temporaryId = wp_generate_password(16, false, false);
+
+    return substr($prefix . $temporaryId, 0, 127);
+}
+
 function get_purchase_unit_from_cart(WC_Cart $cart) {
     global $appContainerLazyPaypalModules;
     $purchaseUnits = $appContainerLazyPaypalModules->get('api.factory.purchase-unit')->from_wc_cart($cart)->to_array();
@@ -682,6 +692,7 @@ function get_purchase_unit_from_cart(WC_Cart $cart) {
         }
         $result[$attrToUse] = $purchaseUnits[$attrToUse];
     }
+    $result['invoice_id'] = csPaypalGetCartInvoiceId($cart);
     
     return $result;
 }
