@@ -280,9 +280,11 @@ function handle_capture_order() {
     $payload = json_decode(file_get_contents('php://input'), true);
     $update = wplazy_update_paypal_order($order_id, $payload['purchase_units'] ?? []);
     if (is_wp_error($update)) {
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('[wp-paypal] Order metadata update skipped before capture: ' . $update->get_error_message());
-        }
+        wp_send_json([
+            'status' => 'failed',
+            'code' => $update->get_error_code() ?: 'paypal_order_update_failed',
+            'message' => 'Unable to update PayPal order before capture.',
+        ], 502);
     }
     $capture = call_paypal_api(null, 'POST', '/v2/checkout/orders/' . rawurlencode($order_id) . '/capture');
     if (is_wp_error($capture) || !is_array($capture) || !empty($capture['name']) || !empty($capture['error'])) {
@@ -324,9 +326,11 @@ function handle_authorize_order() {
     $payload = json_decode(file_get_contents('php://input'), true);
     $update = wplazy_update_paypal_order($order_id, $payload['purchase_units'] ?? []);
     if (is_wp_error($update)) {
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('[wp-paypal] Order metadata update skipped before authorize: ' . $update->get_error_message());
-        }
+        wp_send_json([
+            'status' => 'failed',
+            'code' => $update->get_error_code() ?: 'paypal_order_update_failed',
+            'message' => 'Unable to update PayPal order before authorization.',
+        ], 502);
     }
     $current = call_paypal_api(null, 'GET', '/v2/checkout/orders/' . rawurlencode($order_id));
     if (is_wp_error($current) || !is_array($current) || !empty($current['name']) || !empty($current['error'])) {
@@ -401,7 +405,9 @@ function wplazy_update_paypal_order($order_id, $purchase_units) {
     if (!empty($unit['invoice_id'])) {
         $patches[] = [
             'op' => array_key_exists('invoice_id', $current_unit) ? 'replace' : 'add',
-            'path' => '/purchase_units/0/invoice_id',
+            // PayPal addresses purchase units by reference_id for PATCH requests.
+            // A single unit without an explicit reference_id is named "default".
+            'path' => "/purchase_units/@reference_id=='default'/invoice_id",
             'value' => (string) $unit['invoice_id'],
         ];
     }

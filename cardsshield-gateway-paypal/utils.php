@@ -682,8 +682,26 @@ function get_purchase_unit_from_cart(WC_Cart $cart) {
         }
         $result[$attrToUse] = $purchaseUnits[$attrToUse];
     }
+    $result['invoice_id'] = csPaypalGetPreliminaryInvoiceId();
 
     return $result;
+}
+
+/**
+ * Return a stable invoice id for the PayPal create-order request.
+ * The final WooCommerce invoice id is patched before authorize/capture.
+ */
+function csPaypalGetPreliminaryInvoiceId() {
+    $settings = get_option('woocommerce_lazy_paypal_settings', []);
+    $prefix = isset($settings['invoice_prefix']) ? (string) $settings['invoice_prefix'] : '';
+    $sessionKey = function_exists('wp_get_session_token') ? wp_get_session_token() : '';
+    if (!$sessionKey && function_exists('WC') && WC()->session) {
+        $sessionKey = (string) WC()->session->get_customer_id();
+    }
+    $cartHash = function_exists('WC') && WC()->cart ? WC()->cart->get_cart_hash() : '';
+    $suffix = strtoupper(substr(hash('sha256', $sessionKey . '|' . $cartHash), 0, 24));
+
+    return substr($prefix . 'TMP-' . $suffix, 0, 127);
 }
 
 function get_purchase_unit_from_order(WC_Order $order) {
