@@ -1,6 +1,6 @@
 <?php
 
-const OPT_LAZY_PAYPAL_VERSION                     = '2.10.11';
+const OPT_LAZY_PAYPAL_VERSION                     = '2.10.12';
 const OPT_LAZY_PAYPAL_PROXIES                     = 'OPT_LAZY_PAYPAL_PROXIES';
 const OPT_LAZY_PAYPAL_UNUSED_PROXIES              = 'OPT_LAZY_PAYPAL_UNUSED_PROXIES';
 const OPT_LAZY_PAYPAL_ACTIVATED_PROXY             = 'OPT_LAZY_PAYPAL_ACTIVATED_PROXY';

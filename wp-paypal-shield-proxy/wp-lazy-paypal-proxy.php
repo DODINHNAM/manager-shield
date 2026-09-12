@@ -2,7 +2,7 @@
 /**
  * Plugin Name: LazyShield PayPal Proxy
  * Description: A WordPress plugin to integrate PayPal's credit payment form.
- * Version: 1.0.23
+ * Version: 1.0.24
  * Author: LazyShield
  */
 
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants
-define( 'WPLAZY_PAYPAL_PROXY_VERSION', '1.0.23' );
+define( 'WPLAZY_PAYPAL_PROXY_VERSION', '1.0.24' );
 define( 'WPLAZY_PAYPAL_PROXY_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPLAZY_PAYPAL_PROXY_URL', plugin_dir_url( __FILE__ ) );
 

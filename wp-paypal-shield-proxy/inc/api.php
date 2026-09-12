@@ -75,7 +75,7 @@ function create_paypal_order( WP_REST_Request $request ) {
  * @param array $order_data The order data.
  * @return array|WP_Error The response from the PayPal API or WP_Error on failure.
  */
-function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkout/orders') {
+function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkout/orders', $request_id = '') {
     // Get PayPal credentials from Webshield config API
     $webshield_config = get_webshield_config();
 
@@ -143,6 +143,9 @@ function call_paypal_api($order_data, $method = 'POST', $endpoint = '/v2/checkou
         'timeout' => 30,
     ];
 
+    if ($request_id !== '') {
+        $args['headers']['PayPal-Request-Id'] = $request_id;
+    }
     if ($order_data) {
         $args['body'] = wp_json_encode($order_data);
     }
@@ -744,3 +747,5 @@ function wplazy_paypal_require_allowed_merchant() {
         wp_send_json(['status' => 'failed', 'code' => 'domain_whitelist_not_allow'], 403);
     }
 }
+
+require_once __DIR__ . '/standard.php';

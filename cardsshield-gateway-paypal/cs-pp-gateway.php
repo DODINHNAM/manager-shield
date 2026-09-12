@@ -637,7 +637,7 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
         $orderData["invoice_id"]    = $this->invoice_prefix . $order->get_order_number();
         $orderData["merchant_site"] = get_home_url();
         $orderData["currency"]      = $currency;
-        set_transient('CS_PAYPAL_ORDER_ID_REF_CS_ORDER_ID' . $_POST['lazy-paypal-payment-order-id'], $order->get_id(), 86400); // 1 days
+        if (!empty($_POST['lazy-paypal-payment-order-id'])) set_transient('CS_PAYPAL_ORDER_ID_REF_CS_ORDER_ID' . sanitize_text_field(wp_unslash($_POST['lazy-paypal-payment-order-id'])), $order->get_id(), 86400); // 1 days
         if ($this->paypal_button === OPT_CS_PAYPAL_SETTING_CHECKOUT) {
             $orderData['purchase_units'] = $purchaseUnits;
             $order->add_order_note(sprintf(__('Paypal processing info at proxy %s, message: %s', 'lazy'),
@@ -790,7 +790,7 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
                 return false;
             }
         } else {
-            unset($purchaseUnits['items']);
+            $orderData['order_key'] = $order->get_order_key();
             $orderData['purchase_units'] = $purchaseUnits;
             $customerIp = csPaypalGetClientIP();
             $proxyProcess = wp_remote_post($getActivateProxyUrl
@@ -825,6 +825,11 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
 
             $responseBody = wp_remote_retrieve_body($proxyProcess);
             $data = json_decode($responseBody);
+            if (!is_object($data) || !isset($data->status) || ($data->status !== 'failed' && (empty($data->redirect_link) || empty($data->paypal_order_id)))) {
+                $order->add_order_note('PayPal Standard proxy returned an invalid response. HTTP ' . wp_remote_retrieve_response_code($proxyProcess));
+                wc_add_notice('Unable to start PayPal checkout. Please try again later. [paypal_standard_invalid_response]', 'error');
+                return ['result' => 'fail', 'redirect' => ''];
+            }
             if($data->status === 'failed') {
                 csPaypalErrorLog($responseBody, 'Checkout error![4]');
                 wc_add_notice(__('We cannot process your payment right now, please try another payment method.[21]', 'lazy'), 'error');
@@ -847,7 +852,9 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
                 }
                 return false;
             }
-            //$order->add_order_note( sprintf( __( 'Process detail %s', 'lazy' ), $proxyProcess ) ,0,false);
+            $order->update_meta_data('_lazy_paypal_standard_order_id', sanitize_text_field($data->paypal_order_id));
+            $order->save_meta_data();
+            set_transient('CS_PAYPAL_ORDER_ID_REF_CS_ORDER_ID' . $data->paypal_order_id, $order->get_id(), DAY_IN_SECONDS);
             $order->add_order_note(sprintf(__('Paypal process info at proxy %s, message: %s', 'lazy'),
                 $getActivateProxyUrl,
                 'Start redirect to Paypal checkout page'

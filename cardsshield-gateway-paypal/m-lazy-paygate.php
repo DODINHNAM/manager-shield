@@ -4,7 +4,7 @@
  * Plugin URI:
  * Description: LazyShield Gateway PayPal
  * Author: LazyShield
- * Version: 2.10.11
+ * Version: 2.10.12
  *
  /*
  * This action hook registers our PHP class as a WooCommerce payment gateway
@@ -164,10 +164,27 @@ function handleReturn()
     global $woocommerce;
     if (isset($_GET["woo-lazy-return"]) && !empty($_GET['order_id'])) {
         
-        $isError = $_GET['error'] == 1;
-        $isCancel = $_GET['cancel'] == 1;
+        $isError = ($_GET['error'] ?? 0) == 1;
+        $isCancel = ($_GET['cancel'] ?? 0) == 1;
         $order_id = $_GET['order_id'];
         $order = wc_get_order($order_id);
+        if (!$order) wp_die('Invalid order.', 'PayPal', ['response' => 404]);
+        $standardId = $order->get_meta('_lazy_paypal_standard_order_id');
+        if ($standardId) {
+            if (!hash_equals($order->get_order_key(), (string) ($_GET['key'] ?? '')) || !hash_equals($standardId, (string) ($_GET['paymentId'] ?? '')) || $order->get_payment_method() !== 'lazy_paypal') {
+                wp_die('Invalid PayPal return.', 'PayPal', ['response' => 403]);
+            }
+            $lockName = 'lazy_pp_standard_lock_' . $order->get_id();
+            if (!add_option($lockName, time(), '', false)) {
+                wp_die('This PayPal order is already being processed. Please check your order status shortly.', 'PayPal', ['response' => 409]);
+            }
+            register_shutdown_function(static function () use ($lockName) { delete_option($lockName); });
+            $order = wc_get_order($order_id);
+            if ($order->is_paid() || ($order->has_status('on-hold') && $order->get_transaction_id())) {
+                wp_safe_redirect($order->get_checkout_order_received_url());
+                exit;
+            }
+        }
         $proxyUrl = $order->get_meta( METAKEY_PAYPAL_PROXY_URL);
         $proxyId = $order->get_meta( METAKEY_PAYPAL_PROXY_ID);
         $order->add_order_note(sprintf(__('Paypal process info at proxy %s, message: %s', 'lazy'),
@@ -192,6 +209,7 @@ function handleReturn()
 
             // Ask the proxy to capture this payment
             $payer_data = [];
+            $payer_data["order_key"] = $order->get_order_key();
             $payer_data["payment_id"] = $payment_id;
             $payer_data["payer_id"] = $payer_id;
             $payer_data["create_billing_agreement"] = $create_billing_agreement;
@@ -262,19 +280,19 @@ function handleReturn()
                 $order->add_order_note(sprintf(__('PayPal Checkout charge complete (Charge ID: %s)', 'lazy'), $transaction_id));
 
                 $sellerPayableBreakdown = $data->seller_receivable_breakdown;
-                $paypalFee              = $sellerPayableBreakdown->paypal_fee->value;
-                $paypalCurrency         = $sellerPayableBreakdown->paypal_fee->currency_code;
-                $paypalPayout           = $sellerPayableBreakdown->net_amount->value;
+                $paypalFee              = $sellerPayableBreakdown->paypal_fee->value ?? 0;
+                $paypalCurrency         = $sellerPayableBreakdown->paypal_fee->currency_code ?? $order->get_currency();
+                $paypalPayout           = $sellerPayableBreakdown->net_amount->value ?? 0;
 
                 $order->update_meta_data( METAKEY_CS_PAYPAL_FEE, $paypalFee);
                 $order->update_meta_data( METAKEY_CS_PAYPAL_PAYOUT, $paypalPayout);
                 $order->update_meta_data( METAKEY_CS_PAYPAL_CURRENCY, $paypalCurrency);
 
                 // we received the payment
-                $order->payment_complete();
+                $order->payment_complete($transaction_id);
             }
 
-            $order->reduce_order_stock();
+            wc_reduce_stock_levels($order->get_id());
 
             $isEnableEndpointMode = isCsPaypalEnableEndpointMode();
 
@@ -292,7 +310,8 @@ function handleReturn()
 
             csPaypalSaveTransactionId($order, wc_clean($transaction_id));
             $order->update_meta_data( METAKEY_PAYPAL_SYNC_TRACKING_INFO, OPT_CS_PAYPAL_NOT_SYNCED);
-            $order->save_meta_data();
+            $order->set_transaction_id($transaction_id);
+            $order->save();
             // Empty cart
             $woocommerce->cart->empty_cart();
             // Redirect to the thank you page
