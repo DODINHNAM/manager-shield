@@ -1774,7 +1774,7 @@ function lazy_add_gateway_stripe_init()
                                 $title = str_replace($matchRandString, $stringRandom, $title);
                             }
                         }
-                        return $title;
+                        return wp_strip_all_tags(do_shortcode($title));
                     case 'keep_original':
                         return $productTitle;
                     case 'last_word':

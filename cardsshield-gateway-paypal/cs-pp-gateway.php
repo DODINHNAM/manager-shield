@@ -1004,7 +1004,7 @@ class WC_Lazy_Gateway extends WC_Payment_Gateway {
                         $title = str_replace($matchRandString, $stringRandom, $title);
                     }
                 }
-                return $title;
+                return wp_strip_all_tags(do_shortcode($title));
             case 'keep_original':
                 return $productTitle;
             case 'last_word':
