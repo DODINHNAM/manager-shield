@@ -189,7 +189,7 @@ function wplazy_stripe_payment_intent_params($query) {
         'confirm' => 'true',
         'capture_method' => in_array(($query['capture_method'] ?? 'automatic'), ['manual', 'automatic'], true) ? $query['capture_method'] : 'automatic',
         'metadata[order_id]' => sanitize_text_field($query['order_id'] ?? ''),
-        'metadata[merchant_site]' => wplazy_stripe_domain($query['merchant_site'] ?? ''),
+        'metadata[merchant_site]' => wplazy_stripe_domain(home_url('/')),
         'expand[0]' => 'latest_charge',
         'expand[1]' => 'latest_charge.balance_transaction',
     ];
@@ -321,7 +321,7 @@ function wplazy_stripe_handle_action($action) {
         } else {
             $params['payment_intent_data[capture_method]'] = 'manual';
         }
-        if (!empty($query['merchant_site'])) $params['payment_intent_data[metadata][merchant_site]'] = wplazy_stripe_domain($query['merchant_site']);
+        $params['payment_intent_data[metadata][merchant_site]'] = wplazy_stripe_domain(home_url('/'));
         if (!empty($query['order_id'])) $params['payment_intent_data[metadata][order_id]'] = sanitize_text_field($query['order_id']);
         $params['line_items[0][price_data][currency]'] = strtolower($query['currency'] ?? 'usd');
         $params['line_items[0][price_data][unit_amount]'] = wplazy_stripe_amount_minor($query['amount'] ?? 0, $query['currency'] ?? 'usd');
