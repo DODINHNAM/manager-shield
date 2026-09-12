@@ -2030,7 +2030,7 @@ function lazy_add_gateway_stripe_init()
                         wc_add_notice('We cannot process your payment right now, please try another payment method.[19]', 'error');
                         return false;
                     } else {
-                        $err = $body->err;
+                        $err = $body->err ?? $body;
                         $paymentIntentId = csStripeGetTransactionId($order);
                         if (isset($err->payment_intent)) {
                             $paymentIntentId = $err->payment_intent->id;
@@ -2041,11 +2041,12 @@ function lazy_add_gateway_stripe_init()
                         }
                         $order->add_order_note(sprintf(__('Stripe charged ERROR by proxy %s, ERROR message: %s, Payment Intent ID: %s', 'lazy'),
                             $activatedProxy['url'],
-                            is_string($err) ? $err : $err->message,
+                            is_string($err) ? $err : sanitize_text_field(($err->code ?? 'stripe_error') . ': ' . ($err->message ?? 'Unknown Stripe error.')),
                             $paymentIntentId
                         ));
                     }
-                    wc_add_notice('We cannot process your payment right now, please try another payment method.[20]', 'error');
+                    $errorCode = sanitize_text_field((string) ($body->code ?? 'stripe_error'));
+                    wc_add_notice('We cannot process your payment right now, please try another payment method.[20: ' . esc_html($errorCode) . ']', 'error');
                     return false;
                 }
             }

@@ -185,6 +185,7 @@ function wplazy_stripe_payment_intent_params($query) {
         'amount' => $amount,
         'currency' => $currency,
         'payment_method' => sanitize_text_field($query['payment_method_id'] ?? ''),
+        'payment_method_types[0]' => 'card',
         'confirmation_method' => 'automatic',
         'confirm' => 'true',
         'capture_method' => in_array(($query['capture_method'] ?? 'automatic'), ['manual', 'automatic'], true) ? $query['capture_method'] : 'automatic',
@@ -212,7 +213,7 @@ function wplazy_stripe_payment_intent_params($query) {
         if ($item_names !== '') $params['metadata[item_names]'] = substr($item_names, 0, 500);
     }
     if (!empty($query['customer_email'])) $params['receipt_email'] = sanitize_email($query['customer_email']);
-    if (!empty($query['statement_descriptor'])) $params['statement_descriptor'] = sanitize_text_field($query['statement_descriptor']);
+    if (!empty($query['statement_descriptor'])) $params['statement_descriptor_suffix'] = sanitize_text_field($query['statement_descriptor']);
     $shipping = $query['shipping'] ?? [];
     if (is_array($shipping)) {
         foreach (['name', 'phone'] as $field) if (!empty($shipping[$field])) $params['shipping[' . $field . ']'] = sanitize_text_field($shipping[$field]);

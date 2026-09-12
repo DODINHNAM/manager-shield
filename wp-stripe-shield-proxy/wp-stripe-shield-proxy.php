@@ -2,13 +2,13 @@
 /**
  * Plugin Name: LazyShield Stripe Proxy
  * Description: Server-side Stripe proxy for LazyShield Gateway Stripe.
- * Version: 1.0.6
+ * Version: 1.0.7
  * Author: LazyShield
  */
 
 defined('ABSPATH') || exit;
 
-define('WPLAZY_STRIPE_PROXY_VERSION', '1.0.6');
+define('WPLAZY_STRIPE_PROXY_VERSION', '1.0.7');
 define('WPLAZY_STRIPE_PROXY_DIR', plugin_dir_path(__FILE__));
 define('WPLAZY_STRIPE_PROXY_URL', plugin_dir_url(__FILE__));
 
