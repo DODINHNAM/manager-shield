@@ -2,23 +2,23 @@
 /**
  * Plugin Name: LazyShield Stripe Proxy
  * Description: Server-side Stripe proxy for LazyShield Gateway Stripe.
- * Version: 1.0.4
+ * Version: 1.0.6
  * Author: LazyShield
  */
 
 defined('ABSPATH') || exit;
 
-define('WPLAZY_STRIPE_PROXY_VERSION', '1.0.4');
+define('WPLAZY_STRIPE_PROXY_VERSION', '1.0.6');
 define('WPLAZY_STRIPE_PROXY_DIR', plugin_dir_path(__FILE__));
 define('WPLAZY_STRIPE_PROXY_URL', plugin_dir_url(__FILE__));
 
 require_once WPLAZY_STRIPE_PROXY_DIR . 'inc/api.php';
 require_once WPLAZY_STRIPE_PROXY_DIR . 'inc/admin.php';
 
-add_action('template_redirect', 'wplazy_stripe_proxy_render_checkout');
+add_action('template_redirect', 'wplazy_stripe_proxy_render_checkout', 0);
 
 function wplazy_stripe_proxy_render_checkout() {
-    if (empty($_GET['checkout']) || sanitize_text_field(wp_unslash($_GET['checkout'])) !== 'yes') {
+    if (empty($_GET['lazy_stripe_checkout']) || sanitize_text_field(wp_unslash($_GET['lazy_stripe_checkout'])) !== 'yes') {
         return;
     }
 

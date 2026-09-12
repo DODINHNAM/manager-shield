@@ -5,7 +5,7 @@
  * Description: LazyShield Gateway Stripe
  * Author: LazyShield
  * Author URI: https://lazyshield.com
- * Version: 2.7.1
+ * Version: 2.7.3
  *
  /*
  * This action hook registers our PHP class as a WooCommerce payment gateway
@@ -1658,6 +1658,8 @@ function lazy_add_gateway_stripe_init()
                         lazy_stripe_generate_input_order();
                     }
                     $params = [
+                        'lazy_stripe_checkout' => 'yes',
+                        'Origin' => home_url('/'),
                         'token' => generateRandomString(25),
                         "need-decide-testmode" => 1,
                         "lang" => csGetCurrentLanguage(),
@@ -1668,12 +1670,12 @@ function lazy_add_gateway_stripe_init()
                     <input style="display:none;" name="lazy-stripe-payment-method-id"/>
                     <iframe class="cs_stripe_element" id="payment-stripe-area" referrerpolicy="no-referrer"
                             sandbox="allow-downloads allow-downloads-without-user-activation allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation allow-top-navigation-by-user-activation allow-top-navigation-to-custom-protocols"
-                            src="<?= $nextProxy['url'] . '/checkout?' . csStripeBuildQuery($params) ?>"
+                            src="<?= esc_url(add_query_arg($params, trailingslashit($nextProxy['url']))) ?>"
                             height="200" frameBorder="0" style="width: 100%"></iframe>
                     <iframe class="cs_stripe_element" style="width: 100%; display: none; position: fixed; top: 0; left: 0; z-index: 99999; height: 100vh"
                             sandbox="allow-downloads allow-downloads-without-user-activation allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation allow-top-navigation-by-user-activation allow-top-navigation-to-custom-protocols"
                             id="payment-area-stripe-to-confirm" referrerpolicy="no-referrer"
-                            src="<?= $nextProxy['url'] . '/checkout?token=' . generateRandomString(26) ?>"
+                            src="<?= esc_url(add_query_arg(['lazy_stripe_checkout' => 'yes', 'Origin' => home_url('/'), 'token' => generateRandomString(26)], trailingslashit($nextProxy['url']))) ?>"
                             height="70" frameBorder="0"></iframe>
                     <?php
                 } else if ($this->get_option('payment_mode') === LAZY_STRIPE_PAYMENT_MODE_HOSTED) {

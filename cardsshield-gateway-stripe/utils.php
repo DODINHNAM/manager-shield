@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-const OPT_LAZY_STRIPE_VERSION = '2.7.1';
+const OPT_LAZY_STRIPE_VERSION = '2.7.3';
 const Opt_Lazy_Stripe_Proxies = 'Opt_Lazy_Stripe_Proxies';
 const Opt_Lazy_Stripe_Activated_Proxy = 'Opt_Lazy_Stripe_Activated_Proxy';
 const OPT_LAZY_STRIPE_ROTATION_METHOD =  'OPT_LAZY_STRIPE_ROTATION_METHOD';
